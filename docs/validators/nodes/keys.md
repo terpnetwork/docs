@@ -55,7 +55,7 @@ terpd keys export <key_name>
 
 The Keyring is where the keys are stored, and there are a few options.
 
-```
+```sh
 terpd keys [subcommands] --keyring-backend [backend type]
 ```
 

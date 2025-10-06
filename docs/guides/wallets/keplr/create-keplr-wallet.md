@@ -1,29 +1,39 @@
-# create keplr wallet
+---
+title: create keplr wallet
+sidebar_position: 2
+---
 
-## How to create a new Account via Manemonic/Seed Phrase
-If you are setting up Keplr for the first time: In the initial pop-up window, choose [Create New Account]
-![](../assets/create-1.png)
 
-If you have used Keplr before: In the extension click on the silhouette in the upper-right-hand corner, then the blue box [Add Account] & select [Create New Account]
+Once you’ve installed Keplr wallet, you’ll see four options to set up an account:
 
-Choose to have a seed/mnemonic phrase of 24 words, then be sure to save them.
-The safest way is to write the words on paper and store them in a secure place. Avoid taking screenshots of the words or copying them into your computer/phone notes.
+- Creating a new account via setting up new seed/mnemonic phrase
+- importing an existing seed phrase account,
+- importing your Ledger account, or
+- creating a new account via Google One-Click Login
 
-Now enter a name for your account (you can change it later).
+:::warning 
+🚫 PLEASE NOTE: NO TEAM should ever need to reach out and ask you to validate your mnemonics. Be careful of scammers.
+:::
 
-You can change the derivation path by clicking on [Advanced], but this is optional and not suggested for how we are going to use Keplr.
+## 1. Create a New Account via Secret Seed/mnemonic Phrase
 
-If you are interested in knowing more about the HD wallet derivation path, you can find more in the Keplr FAQ, section [General Questions].
+:::info 
+NOTE: A seed phrase or mnemonic phrase is a string of 12 or 24 words combined to form your master account key. Only you will be given the key, and whoever holds the key will have permanent access to the wallet. Keep your seed phrase safe!
+:::
 
-Once you are sure that you have correctly transcribed the seed/mnemonic phrase, click on [Next].
+1. To create a seed phrase account, choose option `[Create new account]`.
+2. The next page shows you your secret seed/mnemonic phrase. You can select a 12 or 24 words phrase. **Save this phrase in a secure place but also do not lose it.** *(You'll need to input this phrase into the following page.) *
+3. Next, enter a name for your account and password (you can change these later). Click on `[Next]`.
+4. To confirm the creation of this new account, you'll need to click on the words in the right order in which they appear in your seed/mnemonic phrase. Press `[Register]` and you're all set. 
 
-![](../assets/create-2.png)
+## 2. Import an Existing Account via Mnemonic Phrase
 
-![](../assets/create-3.png)
-To confirm the creation of the new account, all you have to do is click on the words in the right order in which they appear in your seed/mnemonic phrase and press [Register].
+1. Click on `[Import existing account]`
+2. Select Mnemonic seed phrase (12 or 24 words) or Private key from the dropdown and enter in the appropriate slot. Take care to check that they are spelled correctly, typed in small letters and in correct order. Account name and a new password also need to be entered. 
+3. Select `[Next]` and the reinstallation is complete.
 
-![](../assets/create-4.png)
-
-If you have just downloaded Keplr extension, it’s time to set your password! Choose carefully, if possible select a password you’re not using in any other application, and then click [Confirm].
-
-If you have used Keplr before, this step will be skipped as you have already set your password when creating/importing your first account
+## 3. Import/connect a Ledger Account
+1. To begin importing your Ledger account, choose `[Import Ledger]`.
+2. Set the account name for the Ledger account, then click `[Next]`.
+3. Connect and unlock your Ledger hardware wallet, then open the Cosmos app. When you see ‘Cosmos ready’ on the screen, press ‘Next’ on the popup. **Your browser may ask you to grant permission to access the hardware, so please make sure you approve.**
+4. **And that’s it.** You can now start using your Ledger hardware wallet with any of the blockchains that Keplr supports.

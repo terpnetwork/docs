@@ -1,4 +1,7 @@
-# install keplr
+---
+title: install keplr
+sidebar_position: 1
+---
 
 Go to [https://wallet.keplr.app/](https://wallet.keplr.app/) and click ** Install for Chrome **
 
@@ -16,5 +19,3 @@ The Wallet is now installed on the brower's extensions
 ## Next steps
 
 - [Create New Account](create-keplr-wallet)
-- [Import Existing Account](import-account)
-- [Import Ledger Account](import-ledger-account)

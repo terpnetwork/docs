@@ -55,7 +55,7 @@ body {
   --docs-color-background-300: #dcdcdc;
 
   /* Color from prism themes */
-  --docs-color-code-background: #f6f8fa;
+  --docs-color-code-background: #0f2942;
 
   --docs-color-android: #44db85;
   --docs-color-apple: var(--docs-color-text) !important;
@@ -106,7 +106,7 @@ body {
   --code-border-color: var(--docs-color-border);
 
   --ifm-code-font-size: 92%;
-  --docusaurus-highlighted-code-line-bg: rgba(147, 178, 244, 0.38);
+  --docusaurus-highlighted-code-line-bg: rgba(103, 122, 162, 0.38);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */

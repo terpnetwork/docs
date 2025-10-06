@@ -1,7 +1,7 @@
 # create leap wallet
 
 # Download Browser Extension
-First, go to https://www.leapwallet.io/ to download the wallet for Cosmos networks. In this case, we’re using the Brave browser, which means we’ll need to download the wallet extension.
+https://www.leapwallet.io/ is the official website for leap to download the wallet for Cosmos networks. In this case, we’re using the Brave browser, which means we’ll need to download the wallet extension.
 
 ## Create Brand New Wallet
 Select “Create a new wallet” on the interface.

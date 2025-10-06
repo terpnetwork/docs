@@ -4,8 +4,6 @@ sidebar_position: 2.5
 ---
 import DocCardList from '@theme/DocCardList';
 
-# Integrate
-
-Wallet information & configuration.
+# Full Self Custody Wallet Options
 <DocCardList />
 

@@ -22,34 +22,51 @@ import {
   Guide,
 } from '../../src/icons';
 
-# Build Your Path
+# Building Tools For The Ecosystem
 
-The guides on this page are specific to developing & maintaning the [Terp-Core](https://github.com/terpnetwork/terp-core) Repository.
+Learn how to maintain and add new features to [Terp-Core](https://github.com/terpnetwork/terp-core).
+
+## What is Terp-Core?
+
+**Terp-Core is the software that powers Terp Network.** It is how a computer can become a node on terp-network, validate new blocks and earn rewards, save archives for indexing, and much more.
+
+#### Nodes & Validators  
+| Module | Description |
+| --- | --- |
+| Node & Validators |All peer-to-peer networking, state indexing, & node configuration logic.|
+| Application Logic  |Custom modules & functions that power verifiable business logic. |
+|IBC compatibility | Client & Packet verification & acknowledgement logic for cross-chain functions.|
+
+#### 
+
+#### 
 
 
  ## Get Started
-   <Section title="Developers" id="web-sdks" hasSubSections >
+   <Section title="Developers" id="web-sdks" hasSubSections > 
 
    <Section>
+    <Card
+    title="IDE Setup"
+    description="Recommended IDE setup for developing on Terp-Core in Go"
+    to="/developers/getting-started/ide-setup"
+    icon={<IDEIcon />}
+    />
+  <Card
+      title="Modules"
+      description="Terp-Core modules and their respective CLI commands"
+      to="/developers/category/modules"
+      icon={<ModulesIcon />}
+    />
   <Card
     title="Expand Terp-Core Features"
     description="Getting started with building and testing Terp-Core codebase"
     to="/developers/getting-started/contributing"
     icon={<TerpCore />}
   />
-  <Card
-    title="IDE Setup"
-    description="Recommended IDE setup for developing on Terp-Core in Go"
-    to="/developers/getting-started/ide-setup"
-    icon={<IDEIcon />}
-  />
 
-  <Card
-    title="Modules"
-    description="Terp-Core modules and their respective CLI commands"
-    to="/developers/category/modules"
-    icon={<ModulesIcon />}
-  />
+
+ 
 
   </Section>
 

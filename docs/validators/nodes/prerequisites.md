@@ -2,33 +2,32 @@
 title: 1. prerequisites
 sidebar_position: 1
 ---
-This guide explains what the requirements are to install and run an Terp Network full node.
+This guide explains what the requirements are to install and run an Terp Network full node. We assume that you are on a linux distrubtion with atleast 100GB of storage, 1 CPU, and 16GB of RAM.
 
-## Hardware requirements:
-The following hardware requirements are expected:
-
-- x86-64 (amd64) multi-core CPU (AMD / Intel)
-- 16GB RAM
-- 1TB NVMe SSD Storage
-- 100Mbps bi-directional Internet connection
+To quickly spin up a linux testing environment, Akash Console, or Digital Ocean, are two options available to spin up a linux envoronment.
 
 ## Install prerequisites
+
 ```bash
 # update the local package list and install any available upgrades
 sudo apt-get update && sudo apt upgrade -y
 
 # install toolchain and ensure accurate time synchronization
-sudo apt-get install make build-essential gcc git jq chrony -y
+sudo apt-get install make build-essential gcc git jq chrony lz4 -y
 ```
-### Go 
-Follow the instructions [here](https://go.dev/doc/install) to install Go.
+
+### Go
+
+First we will need [to install Go](https://go.dev/doc/install) .
 
 For an Ubuntu, you can probably use:
+
 ```bash
-wget https://golang.org/dl/go1.20.6.linux-amd64.tar.gz
-sudo tar -C /usr/local -xzf go1.20.6.linux-amd64.tar.gz
+wget https://golang.org/dl/go1.25.1.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.25.1.linux-amd64.tar.gz
 ```
-Please install Go v1.19.2 or later.
+
+Please install Go v1.25.1 or later.
 
 Unless you want to configure in a non standard way, then set these in the .profile in the user's home (i.e. ~/) folder.
 
@@ -41,7 +40,7 @@ export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
 
 After updating your ~/.profile you will need to source it:
 
-```bash 
+```bash
 source ~/.profile
 ```
 

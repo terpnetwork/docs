@@ -6,6 +6,7 @@ To get started developing on the Terp Network, you will need to have the the fol
 
 # Required Dependencies
 
+- [Go](#golang 'Install Go')
 - [Rustc](#rustc 'Install Rust')
 - [Cargo](#cargo 'Install Cargo')
 - [Cargo Generate](#cargo-generate 'Install Cargo Generate')
@@ -13,66 +14,46 @@ To get started developing on the Terp Network, you will need to have the the fol
 - [Terpd](#terpd 'Install Terp Network Daemon')
 - [Node.js](#nodejs-and-npm 'Install Node.js and NPM')
 
-#### Optional Dependencies
-- <a href="https://docs.docker.com/get-docker" target="_blank" title="Install Docker">Docker</a> 
+
+# <a href="https://docs.docker.com/get-docker" target="_blank" title="Install Docker">Docker</a> 
 
 For local installations, you need root access to run **docker**. Make sure to follow all the steps with **root** access to prevent conflicts and confusions on the deployment process which requires root permission.
 
 If you prefer, you can use Docker Engine instead of Docker Desktop.
 
-- <a href="https://go.dev/doc/install" target="_blank" >Golang</a>
+# <a href="https://go.dev/doc/install" target="_blank" >Golang</a>
 
 In order to run **terpd**, you will need to install <a href="https://go.dev/doc/install" target="_blank" >Golang</a>.
 
-# Rustc
-**rustc**, provided by the  <a href="https://www.rust-lang.org/" target="_blank" title="Rust Homepage">Rust</a> project maintainers, is the compiler for the Rust programming language. **rustc** takes your Rust source code and produces binary code as a library or an executable.
+# <a href="https://www.rust-lang.org/" target="_blank" title="Rust Homepage">Rust</a> 
+The compiler for the Rust programming language. **rustc** takes your Rust source code and produces binary code as a library or an executable.
 
 To install Rust, follow the instructions for your operating system <a href="https://www.rust-lang.org/tools/install" target="_blank" title="Install Rust">here</a>.
 
-# Cargo
+# [Cargo](https://doc.rust-lang.org/cargo/)
 Cargo is the Rust package manager, like **go get** for Golang or **npm** is for JavaScript. Cargo comes with Rust if you installed **rustc** using **rustup**.
 
 If you did not already install **rustc** with **rustup**, or don't have **cargo** in your command line path, see the instructions for installing Cargo <a href="https://doc.rust-lang.org/cargo/getting-started/installation.html" target="_blank" title="Install Rust">here</a>.
 
-# Cargo Generate
-The cargo-generate tool creates a new Rust project quickly by leveraging a pre-existing code base.
-
-Terp Network uses **cargo-generate** and **cargo-run-script** to provide and manage project templates for dapp development.
-
-To install **cargo-generate** with **vendored-openssl**, and the **cargo-run-script** module, run the commands:
-
-```bash
-cargo install cargo-generate --features vendored-opensslcargo install cargo-run-script
-```
-
-# Cargo Generate
-The **cargo-generate** tool creates a new Rust project quickly by leveraging a pre-existing code base.
-
-Terp Network uses **cargo-generate** and **cargo-run-script** to provide and manage project templates for dapp development.
-
-To install **cargo-generate** with **vendored-openssl**, and the **cargo-run-script** module, run the commands:
-
-```bash
-cargo install cargo-generate --features vendored-openssl
-cargo install cargo-run-script
-```
-
-# wasm32
+# `wasm32-unknown-unknown`
 
 The wasm32 rustup target is a 32-bit "bare wasm" module for producing WebAssembly output that makes zero assumptions about your host machine and environment (hence the -unknown-unkown suffix). It's required by the Developer CLI, as of version 1.2.1, for optimizing wasm output for on-chain storage of binaries.
 
 Install wasm32 using the following command:
 
+
 ```bash
 rustup target add wasm32-unknown-unknown
 ```
-
-# Terpd
-
-**terpd** is an implementation of a Cosmos zone with **wasm** smart contracts enabled.
-
-You can download the latest release of the pre-built binary from the <a href='https://github.com/terpnetwork/terp-core/releases' target='_blank'>releases page</a>.
+# just
 
 ## Node.js & Npm
 
-npm is a package manager for JavaScript and Node.js. Terp Network can use npm for installing and updating a developer CLI.
+NPM is a package manager for JavaScript and Node.js.
+
+
+# Terpd
+
+**Terpd** is the command-line-interface & node software for Terp Network.
+
+You can download the latest release of the pre-built binary from the <a href='https://github.com/terpnetwork/terp-core/releases' target='_blank'>releases page</a>.

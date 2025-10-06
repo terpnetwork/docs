@@ -70,7 +70,7 @@ const MULTI_SECTIONS = [
         'Libraries & UI components to build on top of Terp Network.',
     },
     {
-      name: 'Develop - CosmWasm',
+      name: 'Smart Contracts - CosmWasm',
       section: 'cosmwasm',
       description:
         'Building and interacting with Smart contracts on Terp Network.',

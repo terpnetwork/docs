@@ -10,15 +10,15 @@ Please visit the [API reference](/api) to interact with these endpoints.
 
 <Container>
 <Tabs>
-<TabItem value="testnet-90u" label="testnet: 90u-2">
+<TabItem value="testnet-90u" label="testnet: 90u-4">
 
 ### Chain ID
 ```
-90u-2
+90u-4
 ```
 ### RPC
 ```
-https://terp-testnet-rpc.itrocket.net:443
+https://testnet-rpc.terp.network:443
 ```
 ### Block Explorers
 ```
@@ -26,11 +26,11 @@ ITRocket - https://testnet.itrocket.net/terp/staking
 ```
 ### Genesis
 ```
-https://raw.githubusercontent.com/terpnetwork/networks/main/testnet/90u-2/genesis.json
+https://raw.githubusercontent.com/terpnetwork/networks/main/testnet/90u-4/genesis.json
 ```
 ### P2P Seed
 ```
-a6ee57fb457f71530d165afd1901d0d62cd7d7e0@terp-testnet-seed.itrocket.net:13656
+e3f7a6a37f9b1bc7648603360b24312493c031f1@testnet-peer.terp.network:26656
 ```
 
 </TabItem>
@@ -53,11 +53,10 @@ https://rest.cosmos.directory/terpnetwork:443
 https://grpc.terp.nodestake.top:443
 ```
 ### Block Explorers
-```
-Ping.pub      - https://ping.pub/terp
-Nodestake.top - https://explorer.nodestake.top
-Zenchain Labs - https://terp.zenscan.io/
-```
+[Ping.pub](https://ping.pub/terp)\
+[Nodestake.top](https://explorer.nodestake.top)\
+[Zenchain Labs](https://terp.zenscan.io/)
+
 ### Genesis
 ```
 https://raw.githubusercontent.com/terpnetwork/networks/main/mainnet/morocco-1/genesis.json

@@ -2,7 +2,7 @@
 **A Test Network exist for community members to have a way to familiarize themselves with terp-core & battleharden their custom smart contract code.** 
 
 If you plan to run a node on main network, it is highly reccomended to treat the test network as a production environment to get into the habit of best practices in terms of node operation security. 
-
+___
 ## Current testnet 
 
 Below is the list of Terp testnets and their current status. You will need to know the version tag for installation of the `terpd` binary.
@@ -13,7 +13,7 @@ If you get stuck, then please ask on Discord.
 
 | chain-id | Current Github version tag |
 | -------- | -------------------------- |
-| 90u-2    | v4.1.testnet               |
+| 90u-4    | v4.2.0               |
 
 ## Minimum Hardware Requirements
 
@@ -45,7 +45,7 @@ To clear a variable binding, use unset $VARIABLE_NAME. Shell variables should be
 Set the `CHAIN_ID`:
 
 ```bash
-CHAIN_ID=90u-2
+CHAIN_ID=90u-4
 ```
 ### Set your moniker name
 
@@ -95,7 +95,7 @@ This will generate the following files in `~/.terp/config/`
 
 ### Download the genesis file
 ```
-curl https://raw.githubusercontent.com/terpnetwork/networks/main/testnet/90u-2/genesis.json > ~/.terp/config/genesis.json
+curl https://raw.githubusercontent.com/terpnetwork/networks/main/testnet/90u-4/genesis.json > ~/.terp/config/genesis.json
 ```
 
 This will replace the genesis file created using `terpd init` command with the genesis file for the testnet.

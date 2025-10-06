@@ -3,48 +3,17 @@ title: Terp-CLI
 sidebar_position: 1
 ---
 
-# Terp-Core Command Line Interface (Terpd)
+# Command Line Interface - TERPD
 
 
-The Terpd CLI is a tool that empowers you to interact seamlessly with the Terp Network protocol. Leveraging **terpd**, it allows you to execute a wide array of operations, from sending transactions to querying the blockchain's state and beyond.
+TERPD CLI is a tool that powers interacting seamlessly with the Terp Network. Terpd has a wide array of operations, from sending transactions to querying the blockchain's state and more.
 
-The Terpd CLI is not strictly limited to those running their own nodes. You can engage with the network even without hosting a node personally. You can utilize the Terpd CLI to submit transactions or probe the network's state via RPC. This opens up opportunities for a variety of users to interact with the Terp Network blockchain, making it a versatile tool for a range of operations.
+TERPD CLI is not strictly limited to those running their own nodes. You can engage with the network even without hosting a node personally. You can utilize TERPD CLI to submit transactions or probe the network's state via RPC. This opens up opportunities to interact with the Terp Network blockchain, making it a versatile tool for a range of operations.
 
-:::info
-Please note that even if you can use the Terpd CLI to store, instantiate and manage contracts, it is recommended to use the [Developer CLI](/developers/developer-tools/developer-cli) for these purposes, as it provides a smoother developer experience.
-:::
 ## Installation
 
 You can download the latest release of the pre-built binary from the <a href='https://github.com/terpnetwork/terp-core/releases' target='_blank'>releases page</a>.
 
-For Linux, and depending on your architecture:
-
-<Container>
-<Tabs>
-<TabItem value="amd64" label="amd64">
-
-```
-wget https://github.com/terpnetwork/terp-core/releases/download/v4.1.0/terpd_linux_amd64
-```
-
-</TabItem>
-<TabItem value="arm64" label="arm64">
-
-```
-wget https://github.com/terpnetwork/terp-core/releases/download/v4.1.0/terpd_linux_arm64
-```
-
-</TabItem>
-</Tabs>
-</Container>
-
-
-
-You can then download the sha256 checksum file relative to the release file:
-
-```
-wget terpdsha256.txt https://github.com/terpnetwork/terp-core/releases/download/v4.1.0/checksums.txt
-```
 
 and you can compare that the sha256 hash strings match, By doing so, you are ensuring that the downloaded file matches the actual release file.
 

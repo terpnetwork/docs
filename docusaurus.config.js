@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 const lightCodeTheme = require('prism-react-renderer/themes/github');
-const darkCodeTheme = require('prism-react-renderer/themes/vsDark');
+const darkCodeTheme = require('prism-react-renderer/themes/github');
 
 // const UIKitReferencePlugins = require('./plugins/ui-kit-reference-plugin.cjs');
 const { webpackPlugin } = require('./plugins/webpack-plugin.cjs');
@@ -38,6 +38,7 @@ function defineSection(section, options = {}) {
 const SECTIONS = [
   defineSection('apis'),
   defineSection('cosmwasm'),
+  // defineSection('hash'),
   defineSection('developers'),
   defineSection('guides'),
   defineSection('governance'),
@@ -137,13 +138,8 @@ const config = {
             to: '/overview',
             position: 'left',
           },
-          // {
-          //   label: 'Interact',
-          //   to: '/developers/developer-tools/cli',
-          //   position: 'left',
-          // },
           {
-            label: 'Network',
+            label: 'Participate',
             to: '/validators',
             position: 'left',
           },
@@ -153,7 +149,7 @@ const config = {
             position: 'left',
           },
           {
-            label: 'Participate',
+            label: 'Governance',
             to: '/governance',
             position: 'left',
           },
@@ -179,14 +175,8 @@ const config = {
             position: 'right',
           },
           {
-            label: 'Launch Satellite Bridge',
-            href: 'https://satellite.money/',
-            position: 'right',
-            className: 'dev-portal-signup dev-portal-link',
-          },
-          {
-            label: 'Launch Osmosis Swap',
-            href: 'https://app.osmosis.zone/',
+            label: 'Launch Headstash Dashboard',
+            href: 'https://headstash.terp.network/',
             position: 'right',
             className: 'dev-portal-signup dev-portal-link',
           },

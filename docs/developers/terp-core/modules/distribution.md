@@ -37,3 +37,11 @@ The distribution module allows you to manage your staking rewards
 | [withdraw-rewards](distribution.md#tx-distribution-withdraw-rewards) | Withdraw rewards from a given delegation address, and optionally withdraw validator commission if the delegation address given is a validator operator |
 | [validator-distribution-info](distribution.md#query-distribution-validator-outstanding-rewards) | Query validator distribution info |
 | [validator-outstanding-rewards](distribution.md#query-distribution-validator-outstanding-rewards) | Query distribution outstanding \(un-withdrawn\) rewards for a validator and all their delegations |
+
+
+## Reward Distribution 
+Calculating rewards is done in a method that takes into account 
+- the total voting power
+- any community pool tax %
+- all active delegations for a given delegator
+- all rewards to be claimed for any given validator
