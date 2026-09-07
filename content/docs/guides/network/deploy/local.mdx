@@ -3,8 +3,8 @@ title: Local Network
 description: Run a single-node Terp Network localnet for development and testing
 status: complete
 ---
-import { Callout } from 'fumadocs-ui/components/callout';
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Callout } from '#vocs-compat';
+import { Tab, Tabs } from '#vocs-compat';
 
 Spin up a **single-node local chain** for contract testing, CLI experiments, and integration work without depending on public RPC.
 
@@ -57,7 +57,7 @@ terpd genesis validate --home "$HOME_DIR"
 Exact `genesis` subcommands vary slightly across Cosmos SDK versions (`add-genesis-account` vs nested `genesis` group). If a command fails, run `terpd genesis --help` / `terpd --help` on your binary and adjust. The intent is: init → key → funded genesis account → gentx → collect → validate → start.
 </Callout>
 
-### Minimum gas prices
+## Minimum gas prices
 
 Edit `$HOME_DIR/config/app.toml`:
 

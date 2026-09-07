@@ -1,9 +1,9 @@
 ---
 title: Terp-CLI
+description: TERPD CLI is a tool that powers interacting seamlessly with the Terp Network. Terpd has a wide array of operations, from sending transactions to querying the...
+status: partial
 ---
-
-# Command Line Interface - TERPD
-
+## Command Line Interface - TERPD
 
 TERPD CLI is a tool that powers interacting seamlessly with the Terp Network. Terpd has a wide array of operations, from sending transactions to querying the blockchain's state and more.
 
@@ -13,14 +13,13 @@ TERPD CLI is not strictly limited to those running their own nodes. You can enga
 
 You can download the latest release of the pre-built binary from the <a href='https://github.com/terpnetwork/terp-core/releases' target='_blank'>releases page</a>.
 
-
 and you can compare that the sha256 hash strings match, By doing so, you are ensuring that the downloaded file matches the actual release file.
 
 ## Scope
 
 The full scope of **terpd** commands can be viewed using the command **terpd --help**:
 
-```
+```bash
 Terp Network Community Network
 
 Usage:
@@ -55,7 +54,6 @@ Flags:
 Use "terpd [command] --help" for more information about a command.
 ```
 
-
 There are multiple ways to use Terp-Core with Docker. If you want to run Terp-Core inside a Docker setup and possibly connect the Docker container to other containerized compatible blockchain binaries, check out the guide on building a Docker image containing the Terp binary. If you instead want to generate a binary for use outside of Docker, but want to ensure the correct dependencies are used by building the binary inside a Docker container, then go ahead to the section on building the Terp-Core binary with Docker.
 
 ## Prerequisites
@@ -76,19 +74,19 @@ In order to build Terp-Core binaries with Heighliner, it is necessary to
 
 ### Install Heighliner
 
-```
+```text
 go download
 ```
 
-### Build a docker image & save it locally
+## Build a docker image & save it locally
 
-```
+```text
 ./heighliner build -c terpnetwork --git-ref v5.1.0
 ```
 
 This will create an image with the name `terpnetwork/terp-core` and the version tag `v5.1.0`. Now it is possible to run the `terpd` binary in the container, e.g. evaluating its version:
 
-```
+```bash
 docker run -it --rm terpnetwork/terp-core:v5.1.0 terpd version
 ```
 

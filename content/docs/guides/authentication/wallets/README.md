@@ -1,8 +1,9 @@
 ---
 title: available wallets
+status: stub
 ---
-import DocCardList from '@theme/DocCardList';
+import DocCardList from '#vocs-compat';
 
-# Full Self Custody Wallet Options
+## Full Self Custody Wallet Options
 <DocCardList />
 

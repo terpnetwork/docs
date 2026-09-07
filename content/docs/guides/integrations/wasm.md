@@ -1,9 +1,9 @@
 ---
 title: production build
+description: "- merkltree-server: - headstash tree initalization scripts - wasm-bindgen + html website support - local-terp (zk-cosmwasmvm flavored) + cw-headstash"
+status: partial
 desscription: learn how to build a web-app that uses a wasm file to manage headstash notes
 ---
-
-
 ## Prerequesites
 
 - merkltree-server:
@@ -39,14 +39,14 @@ rustup target add wasm32-unknown-unknown
 cargo install wasm-pack
 ```
 
-#### 2. Create a library crate
+## 2. Create a library crate
 
 ```bash
 cargo new my_wasm --lib
 cd my_wasm
 ```
 
-#### 3. Cargo.toml
+## 3. Cargo.toml
 
 ```toml
 [lib]
@@ -56,7 +56,7 @@ crate-type = ["cdylib"]
 wasm-bindgen = "0.2"
 ```
 
-#### 4. src/lib.rs (example)
+## 4. src/lib.rs (example)
 
 ```rust
 use wasm_bindgen::prelude::*;
@@ -84,7 +84,7 @@ pub fn show_alert() {
 - `wasm-bindgen` works perfectly with `no_std` + `alloc`.
 - `std` technically works on `wasm32-unknown-unknown` but is heavier and unnecessary for browser use (no filesystem, etc.).
 
-#### 5. Build it
+## 5. Build it
 
 ```bash
 # For direct browser use (no bundler)
@@ -99,7 +99,7 @@ This creates a `pkg/` folder with:
 - `my_wasm_bg.wasm` ← the actual binary
 - `my_wasm.js` + `.d.ts` ← nice glue code (handles strings, objects, etc.)
 
-#### 6. Use it in the browser (index.html)
+## 6. Use it in the browser (index.html)
 
 ```html
 <!DOCTYPE html>
@@ -119,7 +119,7 @@ import init, { greet } from 'my_wasm';
 await init();
 ```
 
-### Raw / Low-Level Way (no wasm-bindgen)
+## Raw / Low-Level Way (no wasm-bindgen)
 
 If you want zero dependencies:
 
@@ -139,7 +139,7 @@ const { instance } = await WebAssembly.instantiateStreaming(
 console.log(instance.exports.add(2, 3)); // 5
 ```
 
-### Other Languages (quick mention)
+## Other Languages (quick mention)
 
 - **C/C++**: Use Emscripten (`emcc -sWASM=1 file.c -o file.js`).
 - **AssemblyScript**: TypeScript → WASM (very web-friendly).

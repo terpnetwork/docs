@@ -1,11 +1,13 @@
 ---
-title: "Introduction"
+title: Introduction
+description: As a truly decentralized community, Terp needs your support to materialize our vision of empowering the architects and foundation of our culture with greater...
+status: partial
 ---
 As a truly decentralized community, Terp needs your support to materialize our vision of empowering the architects and foundation of our culture with greater access, freedom, and efficiency to create products that improve the human experience.
 
 In these early days, we want you to join and help us establish the foundation for a valuable and engaged community. In this effort, we're excited to announce the TerpNET Founding Member Rewards Program!
 
-## Overview 
+## Overview
 Of the ! TERP & ! PERSY tokens that are proposed to only be pre-mined at genesis, we're allocating ~! (!) TERP's & ! (!) PERSY's! to a reward program for early contributors in our community. This reward program is inspired by projects from the community, such as Solana [Tour de Sol](https://solana.com/tds), Cosmos [Game of Stakes](https://github.com/cosmos/game-of-stakes), Kava [Founder Rewards](https://github.com/Kava-Labs/kava/blob/master/docs/REWARDS.md), And Akash [Founding Member Program](https://akash.network/).
 
 ### There is two genesis rewards programs to share:

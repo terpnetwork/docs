@@ -1,27 +1,29 @@
 ---
 title: Fine Tune
+description: Yes, tokenization is the key step that turns your raw text data into a format compatible with fine-tuning—but it produces integer token IDs, not vector...
+status: partial
 ---
 **Yes, tokenization is the key step that turns your raw text data into a format compatible with fine-tuning—but it produces integer token IDs, *not* vector embeddings.** The embeddings happen later inside the model (via an `nn.Embedding` lookup table). Here's exactly how data preparation works for Qwen models (Qwen2 / Qwen2.5 / Qwen3) in a **tinygrad** workflow.
 
-### 1. Start with raw text data (the easiest formats)
+## 1. Start with raw text data (the easiest formats)
 You need instruction / conversational data. The simplest and most compatible formats are:
 
-- **Hugging Face datasets** (recommended for quick start)  
-  Examples that work great with Qwen:  
-  - `mlabonne/FineTome-100k`  
-  - `HuggingFaceH4/ultrachat_200k`  
-  - `teknium/OpenHermes-2.5`  
+- **Hugging Face datasets** (recommended for quick start)
+  Examples that work great with Qwen:
+  - `mlabonne/FineTome-100k`
+  - `HuggingFaceH4/ultrachat_200k`
+  - `teknium/OpenHermes-2.5`
   - Or any dataset with columns like `"messages"` (list of `{"role": "user/assistant", "content": "..."}`) or the classic Alpaca format (`"instruction"`, `"input"`, `"output"`).
 
-- **Your own data** as a JSONL file (one JSON object per line):  
+- **Your own data** as a JSONL file (one JSON object per line):
   ```json
   {"messages": [{"role": "user", "content": "Explain tinygrad"}, {"role": "assistant", "content": "It's a tiny ML framework..."}]}
   ```
 
 These are loaded with the `datasets` library (install `pip install datasets`).
 
-### 2. Tokenization: text → integer token IDs (this is the serialization step)
-Qwen models use a **tiktoken-style** tokenizer with special chat tokens (`<|im_start|>`, `<|im_end|>`, etc.). You **do not** create embeddings here—only IDs (0 to ~151,936 for Qwen2).
+## 2. Tokenization: text → integer token IDs (this is the serialization step)
+Qwen models use a **tiktoken-style** tokenizer with special chat tokens (`&lt;|im_start|>`, `&lt;|im_end|>`, etc.). You **do not** create embeddings here—only IDs (0 to ~151,936 for Qwen2).
 
 ```python
 from transformers import AutoTokenizer
@@ -52,12 +54,12 @@ tokens_array = np.array(all_tokens, dtype=np.uint32)  # uint32 is safe (vocab < 
 tokens_array.tofile("train.bin")   # ~few hundred MB even for 100k examples
 ```
 
-**Why `.bin` (flat uint32 array)?**  
-- It's the format used by every simple LLM trainer (nanoGPT, lit-gpt, the community tinygrad GPT-2 efforts, and OpenFormer).  
-- Super fast to `mmap` (memory-map) — no Python overhead.  
+**Why `.bin` (flat uint32 array)?**
+- It's the format used by every simple LLM trainer (nanoGPT, lit-gpt, the community tinygrad GPT-2 efforts, and OpenFormer).
+- Super fast to `mmap` (memory-map) — no Python overhead.
 - One file = entire dataset. You can shard it (`train_00.bin`, `train_01.bin`, …) if it gets > a few GB.
 
-### 3. How the training script consumes the data (tinygrad style)
+## 3. How the training script consumes the data (tinygrad style)
 In your fine-tuning script (or in `kreasof-ai/OpenFormer`'s `train_sft.py`), you do this:
 
 ```python
@@ -84,8 +86,8 @@ for step in range(steps):
         optimizer.step()
 ```
 
-### 4. Bonus: Ready-made options (so you don't write everything from scratch)
-- **Recommended**: Use **OpenFormer** (https://github.com/kreasof-ai/OpenFormer) — it's built *specifically* for tinygrad + Qwen/Llama3 fine-tuning.  
+## 4. Bonus: Ready-made options (so you don't write everything from scratch)
+- **Recommended**: Use **OpenFormer** (https://github.com/kreasof-ai/OpenFormer) — it's built *specifically* for tinygrad + Qwen/Llama3 fine-tuning.
   It already does the HF dataset + tokenizer + chat template + LoRA + SFT masking internally. Just run:
   ```bash
   python src/train_sft.py --model_id Qwen/Qwen2-0.5B-Instruct --dataset_id mlabonne/FineTome-100k
@@ -94,11 +96,11 @@ for step in range(steps):
 
 - Official tinygrad has no LLM fine-tuning script yet (only inference in `llama.py`/`gpt2.py` and a toy `transformer.py`), but the community GPT-2 pre-training repos on Discord/Reddit use exactly the `.bin` + `memmap` pattern above.
 
-### Quick checklist before you start fine-tuning
+## Quick checklist before you start fine-tuning
 1. Install tokenizer deps: `pip install transformers datasets`
 2. Run the tokenization script above → get `train.bin`
 3. Use (or copy) a training script that expects `np.uint32` token sequences
-4. For instruction tuning, always use `apply_chat_template` so Qwen sees the correct `<|im_start|>` tokens
+4. For instruction tuning, always use `apply_chat_template` so Qwen sees the correct `&lt;|im_start|>` tokens
 5. Mask loss on user/prompt tokens (OpenFormer does this automatically)
 
 That's it — once you have the `.bin` file, the rest of the tinygrad workflow is literally the same as `beautiful_mnist.py`: define model, loss, optim, `.backward()`, `.step()`. No PyTorch DataLoader, no complicated packing, just raw token IDs in a binary file.
@@ -180,12 +182,12 @@ WORKDIR /workspace
 CMD ["/bin/bash"]
 ```
 
-### Build the image
+## Build the image
 ```bash
 docker build -t tinygrad-qwen:cu126 -f Dockerfile.tinygrad-qwen .
 ```
 
-### Recommended run command (SGLang-style)
+## Recommended run command (SGLang-style)
 ```bash
 docker run --gpus all \
   --shm-size 64g \
@@ -195,7 +197,7 @@ docker run --gpus all \
   -it tinygrad-qwen:cu126
 ```
 
-### Inside the container — instant fine-tuning demo
+## Inside the container — instant fine-tuning demo
 ```bash
 # You are now in /workspace with everything pre-installed
 
@@ -219,7 +221,7 @@ python src/train_sft.py \
   --save_dir /workspace/qwen-finetuned
 ```
 
-### Why this is SGLang-style
+## Why this is SGLang-style
 - Minimal layers, no unnecessary bloat
 - Huge `--shm-size` + `--ipc=host` (exactly what SGLang uses for high-throughput training)
 - HF cache mounted so you don’t redownload models every time
@@ -228,6 +230,6 @@ python src/train_sft.py \
 
 You now have a reproducible, GPU-ready environment that matches exactly the data prep → `.bin` → training loop we talked about.
 
-Want a lighter version (no OpenFormer, just tinygrad), a multi-stage build, or one that includes your custom training script as entrypoint? Just say the word and I’ll tweak it in 10 seconds.  
+Want a lighter version (no OpenFormer, just tinygrad), a multi-stage build, or one that includes your custom training script as entrypoint? Just say the word and I’ll tweak it in 10 seconds.
 
 Happy fine-tuning — this one flies on any NVIDIA GPU! 🚀

@@ -1,27 +1,26 @@
 ---
 title: Verify
+status: stub
 ---
-
-
-### Verifying Installation Script Integrity
+## Verifying Installation Script Integrity
 
 Before running the installation scripts, verify their integrity using checksums:
 
-#### SHA256 Checksums
+### SHA256 Checksums
 
-```
+```text
 0e2743c117a3be8e5648427e0e1d8863b7ac59e1e1cff428152eda99cf9dc970  terp-installer.py
 a233f0863b439273e772b14d61b985c8a20e719c72506399adebff03551596c7  terp-installer.sh
 ```
 
-#### BLAKE3 Checksums
+## BLAKE3 Checksums
 
-```
+```text
 3113805970499a614c8dda2b8d2730bade6f0b0a3d5a8fa99bac4e9856396cee  terp-installer.py
 8c1826931f3c9c620dddabe6756881a2a51aa977c24b60842eca697dfd40ebb7  terp-installer.sh
 ```
 
-#### Verification Instructions
+## Verification Instructions
 
 **Using SHA256:**
 
@@ -53,6 +52,6 @@ echo "8c1826931f3c9c620dddabe6756881a2a51aa977c24b60842eca697dfd40ebb7  terp-ins
 
 **Expected output on successful verification:**
 
-```
+```text
 terp-installer.sh: OK
 ```

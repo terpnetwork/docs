@@ -131,6 +131,83 @@ body > *:not(.glyph-bg) {
   z-index: 1;
 }
 
+/* ── Themed docs icons (Lucide + legacy asset host) ──────────────
+   Multi-color Illustrator / Osmosis-era SVGs are monochromed into
+   the Terp primary (purple). Prefer <ThemedIcon /> / Lucide.     */
+.docs-themed-icon {
+  color: var(--color-fd-primary);
+  background: color-mix(in oklab, var(--color-fd-primary) 12%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklab, var(--color-fd-primary) 18%, transparent);
+}
+
+.docs-themed-icon svg {
+  display: block;
+  color: inherit;
+  stroke: currentColor;
+}
+
+/* Legacy multi-color SVG/React icons → monochrome, then tint to primary */
+.docs-themed-icon-legacy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--color-fd-primary) 12%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklab, var(--color-fd-primary) 18%, transparent);
+  color: var(--color-fd-primary);
+}
+
+.docs-themed-icon-legacy > svg,
+.docs-themed-icon-legacy > img {
+  width: 1.15rem !important;
+  height: 1.15rem !important;
+  max-width: 1.15rem;
+  max-height: 1.15rem;
+  object-fit: contain;
+  /* Flatten full-color assets to a silhouette */
+  filter: grayscale(1) contrast(1.15) brightness(0.15);
+  opacity: 0.88;
+}
+
+.dark .docs-themed-icon-legacy > svg,
+.dark .docs-themed-icon-legacy > img {
+  /* White silhouette on dark; parent chip supplies purple wash */
+  filter: grayscale(1) contrast(1.1) brightness(0) invert(1);
+  opacity: 0.92;
+}
+
+/* Fumadocs card icon slot — kill any residual full-bleed art */
+[data-card] img[src$='.svg'],
+.fd-card img[src$='.svg'] {
+  max-width: 1.25rem;
+  max-height: 1.25rem;
+}
+
+/* ── Glyph watermark — soft brand mark, never compete with content ─ */
+.glyph-bg {
+  opacity: 0.12 !important;
+  filter: blur(18px) !important;
+  background-size: min(70vmin, 520px) !important;
+}
+
+.dark .glyph-bg {
+  opacity: 0.1 !important;
+  filter: blur(22px) brightness(0.95) !important;
+  /* Prefer mint glyph on dark; keep subtle */
+  background-image: url('/terp-glyph.svg') !important;
+}
+
+:root:not(.dark) .glyph-bg {
+  /* Coral-soft glyph on light pages */
+  background-image: url('/terp-glyph-light.svg') !important;
+  opacity: 0.1 !important;
+}
+
 /* ── Prose overrides — headings & links via prose variables ───── */
 .prose {
   --tw-prose-headings: hsl(265, 45%, 30%);

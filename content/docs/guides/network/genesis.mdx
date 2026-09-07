@@ -1,8 +1,9 @@
 ---
 title: Genesis
+description: The genesis file defines the initial state of the blockchain. This guide explains how to download and set up the genesis file for Terp Network.
+status: partial
 ---
-
-# Download Genesis File
+## Download Genesis File
 
 The genesis file defines the initial state of the blockchain. This guide explains how to download and set up the genesis file for Terp Network.
 
@@ -29,7 +30,7 @@ curl -Ls https://raw.githubusercontent.com/terpnetwork/mainnet/main/morocco-1/ge
 ls -la $HOME/.terpd/config/genesis.json
 ```
 
-### Testnet (90u-4)
+## Testnet (90u-4)
 
 ```bash
 # Create config directory if it doesn't exist
@@ -87,7 +88,7 @@ terpd validate-genesis $HOME/.terpd/config/genesis.json
 curl -Ls https://raw.githubusercontent.com/terpnetwork/mainnet/main/morocco-1/genesis.json > $HOME/.terpd/config/genesis.json
 ```
 
-### For Validators
+## For Validators
 
 ```bash
 # Validators should verify the genesis file before starting
@@ -98,7 +99,7 @@ jq '.chain_id' $HOME/.terpd/config/genesis.json
 sha256sum $HOME/.terpd/config/genesis.json
 ```
 
-### For Testnet Development
+## For Testnet Development
 
 ```bash
 # Download testnet genesis
@@ -124,7 +125,7 @@ curl -Ls https://raw.githubusercontent.com/terpnetwork/mainnet/main/morocco-1/ge
 jq '.' $HOME/.terpd/config/genesis.json > /dev/null && echo "Valid JSON"
 ```
 
-### Chain ID Mismatch
+## Chain ID Mismatch
 
 If you see "chain ID mismatch" error:
 
@@ -137,7 +138,7 @@ grep 'chain-id' $HOME/.terpd/config/client.toml
 terpd init <moniker> --chain-id <correct-chain-id>
 ```
 
-### Network Upgrade
+## Network Upgrade
 
 When a network upgrade requires a new genesis file:
 
@@ -152,5 +153,5 @@ After setting up the genesis file:
 
 1. [Configure your node](/guides/network/nodes/configure)
 2. [Add persistent peers](/guides/network/nodes/sentry) to help your node discover peers
-3. [Start your node](/guides/network/connect/bootstrap)
-4. [Set up systemd](/guides/network/connect/systemd-service) for production use
+3. [Start your node](/docs/guides/network/bootstrap)
+4. [Set up systemd](/docs/guides/network/systemd-service) for production use

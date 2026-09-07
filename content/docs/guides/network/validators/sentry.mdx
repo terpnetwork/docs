@@ -1,0 +1,152 @@
+---
+title: Sentry array (oline)
+description: Protect a Terp validator with a sentry node array — topology, config.toml knobs, and oline-style multi-sentry ops
+status: complete
+---
+import { Callout } from '#vocs-compat';
+
+Sentries are **full nodes that shield the validator’s P2P identity**. The rest of the network peers with sentries; the validator only talks to those sentries. This is the standard pattern for DoS resistance — including multi-region **oline** deployments (Akash / multi-provider arrays).
+
+```text
+  Network peers  ←→  Sentry A  ──┐
+  Network peers  ←→  Sentry B  ──┼──  Validator (pex=false, private)
+  Network peers  ←→  Sentry C  ──┘
+```
+
+## Why sentries
+
+| Risk without sentries | Mitigation |
+|----------------------|------------|
+| Validator IP public on P2P | Only sentry IPs are advertised |
+| DoS on validator host | Attack hits disposable sentries; redeploy quickly |
+| Jail from downtime | Redundant sentries across DCs keep the signer fed |
+
+Minimum: **two** sentries. Prefer **different datacenters / providers**. One sentry may share a private network with the validator for low latency.
+
+<Callout type="info" title="oline">
+“Oline sentry array” here means the same topology operated as a managed multi-node layout (snapshot nodes, sentries, signer) — configs below apply whether you provision by hand, Docker, or oline/Akash SDLs.
+</Callout>
+
+## Prerequisites
+
+- [terpd installed](/docs/guides/network/nodes/install) on validator **and** each sentry
+- Genesis + peers for target chain ([public endpoints](/docs/resources/public))
+- [Validator setup](/docs/guides/network/validators/setup) if you have not created the valoper yet
+
+## 1. Bootstrap each sentry like a full node
+
+On **every** sentry (example mainnet `morocco-1`; use `90u-4` for testnet):
+
+```bash
+terpd init "sentry-a" --chain-id morocco-1
+## genesis
+curl -Ls https://s3.terp.network/snapshots/mainnet/morocco-1/genesis.json \
+  > $HOME/.terpd/config/genesis.json
+## or network repo genesis — verify checksum when possible
+```
+
+Sync with [state sync](/docs/guides/network/state-sync) or [bootstrap](/docs/guides/network/bootstrap). Sentries do **not** run `create-validator`.
+
+systemd (each sentry):
+
+```bash
+sudo tee /etc/systemd/system/terpd.service > /dev/null <<EOF
+[Unit]
+Description=terpd sentry
+After=network-online.target
+[Service]
+User=$USER
+ExecStart=$(which terpd) start
+Restart=always
+RestartSec=3
+LimitNOFILE=65535
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload && sudo systemctl enable --now terpd
+```
+
+## 2. Sentry `config.toml` knobs
+
+On **each sentry**:
+
+| Setting | Value |
+|---------|--------|
+| `persistent_peers` | Public seeds/peers **plus** other sentries |
+| `private_peer_ids` | **Validator** node ID (never gossip it) |
+| `unconditional_peer_ids` | Validator ID (+ peer sentry IDs recommended) |
+
+```bash
+## Validator node id (run on validator host)
+terpd tendermint show-node-id
+```
+
+```toml
+## sentry config.toml (illustrative)
+private_peer_ids = "<VALIDATOR_NODE_ID>"
+unconditional_peer_ids = "<VALIDATOR_NODE_ID>,<OTHER_SENTRY_NODE_ID>"
+```
+
+Peers for public discovery — use current sources from [public endpoints](/docs/resources/public) / operator peer lists (URLs change; verify before production).
+
+## 3. Validator `config.toml` knobs
+
+On the **validator only**:
+
+| Setting | Value |
+|---------|--------|
+| `persistent_peers` | **Only** sentry node IDs (host:port) |
+| `pex` | `false` |
+| `addr_book_strict` | `false` if using private RFC1918 links to a co-located sentry |
+
+```toml
+pex = false
+persistent_peers = "<sentryA_id>@<sentryA_ip>:26656,<sentryB_id>@<sentryB_ip>:26656"
+```
+
+If the validator was previously public:
+
+```bash
+## node stopped
+rm -f $HOME/.terpd/config/addrbook.json
+```
+
+Confirm only sentries remain:
+
+```bash
+curl -s localhost:26657/net_info | jq '.result.n_peers, [.result.peers[].node_info.id]'
+```
+
+## 4. Firewall
+
+- **Validator P2P `26656`**: allow **only** sentry IPs (ufw / security group / provider ACL).
+- **Sentries**: P2P open to the network; RPC preferably private or firewalled.
+- Never expose validator RPC/gRPC publicly if avoidable.
+
+## 5. oline / multi-provider notes
+
+| Practice | Why |
+|----------|-----|
+| Snapshot or state-sync sentries first | Validator should not fall behind while wiring private peers |
+| Separate providers for ≥1 sentry | DC / network failure isolation |
+| Automate binary + genesis via your deploy path | Same [install](/docs/guides/network/nodes/install) + [integrity](/docs/resources/integrity) checks |
+| Monitor sentry lag + peer count | [Monitoring](/docs/guides/network/validators/monitoring) |
+
+Akash / deploy references: [Deploy on Akash](/docs/guides/network/deploy/akash), [resources ecosystem](/docs/resources/ecosystem/akash).
+
+## Checklist
+
+1. ≥2 sentries synced
+2. `private_peer_ids` + `unconditional_peer_ids` set on sentries
+3. Validator `pex = false`, peers = sentries only
+4. Firewall locks validator P2P to sentry IPs
+5. `net_info` shows expected peer count
+6. Prometheus/Grafana on validator (and ideally sentries)
+
+## Related
+
+- [Validator overview](/docs/guides/network/validators/overview)
+- [Validator setup](/docs/guides/network/validators/setup)
+- [Monitoring](/docs/guides/network/validators/monitoring)
+- [Nodes · sentry (legacy path)](/docs/guides/network/nodes/sentry)
+- [P2P concept](/docs/overview/concepts/p2p)

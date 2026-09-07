@@ -1,7 +1,8 @@
 ---
 title: d. archive node tutorial
+description: Archive nodes save the raw historical state of the blockchain for full nodes to reference. These require a large amount of storage.
+status: partial
 ---
-
 Archive nodes save the raw historical state of the blockchain for full nodes to reference. These require a large amount of storage.
 
 ## Solution
@@ -10,20 +11,18 @@ To setup an archive node, you will need to customize your nodes pruning settings
 sed -i -e "s/^pruning *=.*/pruning = \"nothing\"/" $HOME/.terpd/config/app.toml
 ```
 
-now your node will keep the entire state saved, without pruning. 
+now your node will keep the entire state saved, without pruning.
 
-
-## Sync From Genesis Block Archive 
+## Sync From Genesis Block Archive
 
 To sync from block height 1, you will need to ensure the node uses the proper versioning of terp-core dependent on the block height:
 
-| Blocks From | Blocks To | Terp-Core Version | 
-| -----------| -----------| ------------------| 
-| `0`         | `2,847,602` | `barberry`      |  
-| `2,847,603` | `3,039,061` | `v2`            | 
-| `3,039,062` | `3,341,663` | `v3`            | 
-| `3,341,664` | `current`   | `v4`            | 
-
+| Blocks From | Blocks To | Terp-Core Version |
+| -----------| -----------| ------------------|
+| `0`         | `2,847,602` | `barberry`      |
+| `2,847,603` | `3,039,061` | `v2`            |
+| `3,039,062` | `3,341,663` | `v3`            |
+| `3,341,664` | `current`   | `v4`            |
 
 ## Archive Peers
 ```sh

@@ -3,9 +3,6 @@ title: Account Recovery
 description: Pointers for recovering smart-account control — full operational guide lives under authentication
 status: partial
 ---
-
-# Account Recovery
-
 Operational backup and recovery (mnemonics, keyring, secondary authenticators, composition) is documented here:
 
 **[Backup and Recovery](/docs/guides/authentication/backup-and-recovery)**

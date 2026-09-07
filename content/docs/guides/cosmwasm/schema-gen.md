@@ -1,7 +1,9 @@
 ---
 title: 8 - command schema
+description: While the Wasm calls (instantiate, execute, query) accept JSON, this is not enough information to use it. We need to expose the schema for the expected...
+status: partial
 ---
-# Command Schema
+## Command Schema
 
 While the Wasm calls (`instantiate`, `execute`, `query`) accept JSON, this is not enough
 information to use it. We need to expose the schema for the expected messages to the

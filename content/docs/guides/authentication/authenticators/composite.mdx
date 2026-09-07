@@ -1,11 +1,9 @@
 ---
 title: Composite Authenticators
 description: Combine multiple authenticators with AllOf (AND) and AnyOf (OR) logic — multisig, tiered access, and multi-factor authentication
+status: partial
 ---
-
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-
-# Composite Authenticators
+import { Tab, Tabs } from '#vocs-compat';
 
 Composite authenticators combine **sub-authenticators** into logical groups, enabling multi-factor authentication, multisig, and tiered access patterns without writing custom contracts.
 
@@ -27,11 +25,11 @@ When you register a composite authenticator, you provide a list of sub-authentic
 ]
 ```
 
-### Composite IDs
+## Composite IDs
 
 Each composite authenticator gets a global ID. Sub-authenticators are addressed by appending a path:
 
-```
+```text
 Global ID: 10
   └─ AllOf(10)
       ├─ SignatureVerification → ID: 10.0
@@ -157,7 +155,7 @@ msg = MsgAddAuthenticator(
 </Tab>
 </Tabs>
 
-### Sending a Transaction with Composite Signatures
+## Sending a Transaction with Composite Signatures
 
 For `AllOf`, the transaction must include signatures that satisfy **all** sub-authenticators. When using `AllOf(SignatureVerification, SignatureVerification)`, the tx must have both signatures.
 
@@ -310,7 +308,7 @@ This requires **pubkey1** AND **(pubkey2 OR pubkey3)** — a 2-of-3 multisig wit
 
 When you have nested composites, sub-authenticators are addressed hierarchically. Given the 2-of-3 example above with global ID 20:
 
-```
+```text
 ID 20: AllOf
   ├── 20.0: SignatureVerification(pubkey1)
   └── 20.1: AnyOf

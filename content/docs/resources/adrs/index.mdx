@@ -1,8 +1,8 @@
 ---
 title: ADR
 description: Architectural Decision Records for Terp Network
+status: partial
 ---
-
 ## ADR Index
 
 | # | Title | Status | Last Updated |
@@ -15,7 +15,7 @@ description: Architectural Decision Records for Terp Network
 | 6 | [zk-cosmwasmvm — Custom WASM Module for Authentication](/docs/resources/adrs/adr/6) | DRAFT | 2026-05 |
 | 7 | [External ADRs — Reference for Followed External Decisions](/docs/resources/adrs/adr/7) | DRAFT | 2026-05 |
 | 8 | [Closing the Loop — Sustainable Revenue and Automation](/docs/resources/adrs/adr/8) | DRAFT | 2026-05 |
-| 9 | [LM-Augmented Development and Semantic Tooling](/docs/resources/adrs/adr/9) | DRAFT | 2026-05 |
+| 9 | [LM-Augmented Development and Semantic Tooling](/docs/guides/adrs) | DRAFT | 2026-05 |
 | 10 | [Community Working Groups and Resource Coordination](/docs/resources/adrs/adr/10) | DRAFT | 2026-05 |
 
 ## Status Definitions
@@ -33,7 +33,7 @@ Terp Network inherits architectural decisions from three upstream layers. Before
 
 1. **Cosmos SDK ADRs** — 63 ADRs covering store management, module wiring, testing, and core SDK mechanics. Start with ADR-041, ADR-059, ADR-063, ADR-065.
 2. **IBC-go ADRs** — 15 ADRs governing inter-chain communication, relayers, and middleware. Critical: ADR-027 (IBC wasm client).
-3. **Terp-core module specs** — Local specs under `x/<module>/spec/` covering feeshare, drip, and custom module behavior.
+3. **Terp-core module specs** — Local specs under `x/&lt;module>/spec/` covering feeshare, drip, and custom module behavior.
 
 When layers conflict, the most specific layer wins — but the conflict must be documented as a Terp-specific ADR.
 

@@ -1,0 +1,49 @@
+---
+title: Ledger
+description: Use a Ledger hardware wallet with Terp Network via Cosmos app and Keplr or CLI
+status: complete
+---
+import { Callout } from '#vocs-compat';
+
+[Ledger](https://www.ledger.com/) keeps private keys on hardware. On Terp Network you typically use the **Cosmos** app with Keplr or `terpd`.
+
+## Prerequisites
+
+- Ledger device + Ledger Live updated
+- **Cosmos** app installed on the device
+- USB/WebHID permissions in the browser for Keplr
+
+## With Keplr
+
+1. Install [Keplr](/docs/guides/authentication/wallets/keplr).
+2. In Keplr: **Import Ledger** (or connect Ledger from account menu).
+3. Unlock Ledger, open **Cosmos** app (“Cosmos ready”).
+4. Approve browser access when prompted.
+5. Add Terp Network as in the Keplr guide; sign txs on-device.
+
+## With `terpd` CLI
+
+```bash
+## List Ledger keys (Cosmos app open)
+terpd keys add ledger-main --ledger
+
+## Show address
+terpd keys show ledger-main -a
+```
+
+Sign transactions with `--from ledger-main` (device confirms).
+
+## Safety notes
+
+<Callout type="warn">
+Validator **consensus** keys are ed25519 and are a different story (TMKMS / HSM). Ledger + Keplr is for **account / operator** secp256k1 keys, not continuous block signing.
+</Callout>
+
+- Prefer hardware for funds you care about
+- Verify chain ID and fee denom on-device before approving
+- See [Key safety](/docs/guides/authentication/wallets/safety) and [TMKMS](/docs/guides/network/nodes/tmkms) for validator ops
+
+## Related
+
+- [Wallets hub](/docs/guides/authentication/wallets)
+- [Keplr](/docs/guides/authentication/wallets/keplr)

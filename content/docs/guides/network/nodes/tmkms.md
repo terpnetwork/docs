@@ -1,9 +1,9 @@
 ---
-title:  c. tmkms - setup key management
+title: c. tmkms - setup key management
+description: Tmkms is a solution to avoiding the risk that surfaces when handling validator private key signatures.
+status: partial
 ---
-
-[Tmkms](https://github.com/iqlusioninc/tmkms) is a solution to avoiding the risk that surfaces when handling validator private key signatures. 
-
+[Tmkms](https://github.com/iqlusioninc/tmkms) is a solution to avoiding the risk that surfaces when handling validator private key signatures.
 
 ## Prerequisites
 - Rust (stable; 1.72+): https://rustup.rs/
@@ -14,15 +14,15 @@ title:  c. tmkms - setup key management
     - RedHat/CentOS: yum install libusb1-devel
     - macOS (Homebrew): brew install libusb
 
-## Installation 
-```
+## Installation
+```bash
 cargo install tmkms --features=yubihsm --version=0.4.0
 ```
 
 ## Configuration: `tmkms init`
 The `tmkms init` command can be used to generate a directory containing the configuration files needed to run the KMS. Run the following:
 
-```
+```text
 $ tmkms init /path/to/kms/home
 ```
 

@@ -1,11 +1,8 @@
 ---
 title: Install
+description: This guide provides instructions on how various methods to install and run a full node on the Terp Network blockchain.
+status: partial
 ---
-
----
-title: Install
----
- 
 This guide provides instructions on how various methods to install and run a full node on the Terp Network blockchain.
 
 ## Option 1: Build from source
@@ -20,10 +17,10 @@ git fetch
 git checkout <verison-tag>
 ```
 
-The `<version-tag>` for `morocco-1` is
-The `<version-tag>` for `90u-4` is
+The `&lt;version-tag>` for `morocco-1` is
+The `&lt;version-tag>` for `90u-4` is
 
-### Ensure that terpd is installed
+## Ensure that terpd is installed
 
 Do the following to build and install the terpd daemon:
 
@@ -35,7 +32,7 @@ make install
 You can now verify that **terpd** has been correctly installed by launching:
 
 ```bash
-terpd version 
+terpd version
 ```
 
 The version you installed should be returned.
@@ -44,28 +41,30 @@ The version you installed should be returned.
 
 ### Download the binary
 
-You can download the latest release of the pre-built binary from the [**releases page**](https://github.com/terpnetwork/terp-core/releases).
+Binaries are on `s3.terp.network` under `releases/terp-core/<tag>/` (ADR-11). Prefer `curl -sL https://terp.network/get | bash`.
 
-For Linux, depending on your architechture:
+For Linux:
 
 <Tabs>
 <Tab value="amd64" label="amd64">
 
 ```bash
-wget https://github.com/terpnetwork/terp-core/releases/download/v5.1.0/terpd_linux_amd64
+wget https://s3.terp.network/releases/terp-core/v5.2.0/terpd-5.2.0-linux-amd64.tar.gz
+tar -xzf terpd-5.2.0-linux-amd64.tar.gz
 ```
 
 </Tab>
 <Tab value="arm64" label="arm64">
 
 ```bash
-wget https://github.com/terpnetwork/terp-core/releases/download/v5.1.0/terpd_linux_arm64
+wget https://s3.terp.network/releases/terp-core/v5.2.0/terpd-5.2.0-linux-arm64.tar.gz
+tar -xzf terpd-5.2.0-linux-arm64.tar.gz
 ```
 
 </Tab>
 </Tabs>
 
-### Verify the integrity of the binary
+## Verify the integrity of the binary
 
 You can now verify the download by generating the sha256 hash for the downloaded file:
 
@@ -73,8 +72,8 @@ You can now verify the download by generating the sha256 hash for the downloaded
 <Tab value="amd64" label="amd64">
 
 ```bash
-sha256sum terpd_linux_amd64 
-// returns: 
+sha256sum terpd_linux_amd64
+// returns:
 ```
 
 </Tab>
@@ -82,7 +81,7 @@ sha256sum terpd_linux_amd64
 
 ```bash
 sha256sum terpd_linux_arm64
-// returns: 
+// returns:
 ```
 
 </Tab>
@@ -100,13 +99,13 @@ Make sure to always use the image tag that points to the network you want to con
 
 You can build a docker image locally by running this command in the root of the terp-core repository:
 
-```
+```bash
 docker build -t terpnetwork/terp-core:<version-info> .
 ```
 
-This will generate a docker image locally, named `terpnetwork/terp-core:<version-info>`.
+This will generate a docker image locally, named `terpnetwork/terp-core:&lt;version-info>`.
 
-### Set up the PATH
+## Set up the PATH
 
 By default, the Docker image runs the `terpd` binary, so you should specify the arguments for `terpd` right after the image name. For better usage, mount an external volume at `/root/.terp` to persist the daemon home path across different runs. For example, if you want to add a key:
 
@@ -134,13 +133,13 @@ It's also important to notice that, when running a node in a network, you'll nee
 
 To simplify using the Docker container, you can set an alias with the home path and the proper image tag, like:
 
-```
+```bash
 alias terpd="docker run --rm -it -v ~/.terp:/root/.terp terpnetwork/terp-core:<version-info>"
 
 ```
 
 After setting the alias with the above tip, you can use the other terpd commands without typing the verbose Docker run command. For the sake of comprehensive documentation, the full Docker command is shown. Just remember that by setting the alias you can simply use terpd instead of the Docker command.
 
-# Next steps
+## Next steps
 
 Now its time to initialize your [node](./configure)

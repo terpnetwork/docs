@@ -1,10 +1,8 @@
 ---
 title: Merkle Mountain Ranges
 description: Append-only Merkle accumulator optimized for streaming data, blockchain history, and efficient proof generation
+status: partial
 ---
-
-# Merkle Mountain Ranges
-
 A **Merkle Mountain Range (MMR)** is an append-only Merkle accumulator that grows incrementally as new data is added. Unlike a standard Merkle tree which requires full knowledge of all leaves to build, an MMR supports **incremental addition** — each new leaf produces a new root without rebuilding the entire structure.
 
 ## Why MMR?
@@ -22,7 +20,7 @@ If two mountains of size 2 exist → merge into a 4-leaf mountain
 
 After inserting 7 leaves:
 
-```
+```text
         Mountain 3 (height 2)         Mountain 2 (height 1)   Peak
        ┌──────────M3──────────┐       ┌────M1────┐
       M1                      M2      M0        L5          L6

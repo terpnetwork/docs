@@ -1,8 +1,9 @@
 ---
 title: Daos
+description: As part of our ongoing efforts to build a robust and experiened coorporative network of peers, we are preparing to instantiate two new sub-DAOs, alongside our...
+status: partial
 ---
-
-# Intro
+## Intro
 As part of our ongoing efforts to build a robust and experiened coorporative network of peers, we are preparing to instantiate two new sub-DAOs, alongside our main TestNET DAO.
 
 ## What is a DAO & SubDAO?
@@ -12,15 +13,13 @@ The DAO's governance can itself be modified by governance proposals. For example
 
 ## What would a DAO be used for?
 
-Daos can be used for almost anything, one could imagine in the future for DAO's to be how buisnesses run their entire operations. Legally recognized, self-soviergn (meaning it manages itself) on-chain entity could be where DAO's come into play for various multi-cultural collaborations that is effective and 
+Daos can be used for almost anything, one could imagine in the future for DAO's to be how buisnesses run their entire operations. Legally recognized, self-soviergn (meaning it manages itself) on-chain entity could be where DAO's come into play for various multi-cultural collaborations that is effective and
 
 ## What can DAO's Do?
-
 
 ---
 title: SubDAOs
 ---
-
 
 ## Definition and Purpose
 SubDaos are typically DAO-funded teams with a recurring budget with no termination date (i.e., Community Moderation & Support, Marketing & Creative Services, etc).
@@ -43,7 +42,7 @@ The burden falls mostly on the proposers of the sub-DAO, i.e., the sub-DAO must 
 
 A great way to build trust within the community is to operate informally first.
 
-## SubDao Stages 
+## SubDao Stages
 SubDaos have five potential states. Each of the five states and the requirements for a subdao in each state are outlined below:
 - **Informal**: The subdao is not funded by the DAO, and has not made a formal proposal with its goals and a budgetary request.
 - **Proposed**: The subdao has made a formal proposal to the DAO for a working budget.
@@ -79,7 +78,7 @@ SubDaos have five potential states. Each of the five states and the requirements
 
 - **⚪ Informal:** The subdao is not funded by the DAO, and has not made a formal proposal with its goals and a budgetary request.
 - **🟡 Proposed:** The subdao has made a formal proposal to the DAO for a working budget.
-- **🟢 Active:** The subdao is active and funded by the DAO. 
+- **🟢 Active:** The subdao is active and funded by the DAO.
 - **🛑 Inactive:** The subdao has been discontinued and is no longer being funded by the DAO.
 
 ## Overview

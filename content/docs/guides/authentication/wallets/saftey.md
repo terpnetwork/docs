@@ -1,9 +1,8 @@
 ---
 title: Wallet Saftey
+description: To touch on a point of vocabulary, all key management products described above can be considered hot, in that it can and must produce valid signatures at any...
+status: partial
 ---
-
-
-
 ## Hot and cold keys
 
 To touch on a point of vocabulary, all key management products described above can be considered hot, in that it can and must produce valid signatures at any time. This is a higher security risk compared to **cold** keys, which are kept out of a networked computer altogether, or at least require human approval before being accessed (like an HSM device stored in your desk drawer).

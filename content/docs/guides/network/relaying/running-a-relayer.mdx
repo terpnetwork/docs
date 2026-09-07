@@ -1,7 +1,9 @@
 ---
 title: run a relayer
+description: In this section, you will find relevant information and guides in order to run a relayer and forward Inter-Blockchain Communication Protocol (IBC) packets...
+status: partial
 ---
-# Relayer Guide
+## Relayer Guide
 
 In this section, you will find relevant information and guides in order to run a relayer and forward Inter-Blockchain Communication Protocol (IBC) packets between chains.
 
@@ -10,7 +12,6 @@ In this section, you will find relevant information and guides in order to run a
 - Get the information specific to those chains by looking into the [Chain Registry](#chain-registry). As the IBC protocol relies on light clients, connections, and channels (with ports),you need to make sure to set up the proper paths for the chains you are relaying to.
 - Set up addresses on all those chains. You would need to have a private key and enough funds to pay for transaction fees when submitting IBC messages.
 - Being able to query and submit transactions. The relayer must listen for events related to packet commitments, subscribe to events through the Tendermint WebSocket, and query proofs via the Tendermint RPC endpoint. The relayer must also be able to create and update light clients, connections, and channels. This allows the relayer to submit a notice of misbehavior for validators, and relay packets, acknowledgments, and timeouts.
-
 
 Not every relayer operator needs to initialize their own channel when starting to relay a certain path.
 
@@ -28,7 +29,6 @@ As an additional resource, you can have a look at the <a href="https://tutorials
 
 In order to get reliable information about the chains you are relaying between, you can have a look at the  <a href="https://github.com/cosmos/chain-registry" target="_blank">chain-registry Github repository</a>. This repository
 provides detailed parameters about chains, their assets, and other relevant IBC data.
-
 
 Check the [active channels](./channels.md) to learn more about current relayer channels for all of Terp Network's networks.
 

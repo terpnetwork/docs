@@ -1,10 +1,8 @@
 ---
 title: Selective Disclosure
 description: How Terp Network supports selective disclosure — proving attributes without revealing identity
+status: partial
 ---
-
-# Selective Disclosure
-
 Selective disclosure is the ability to prove a specific fact about yourself without revealing all your information. For example: proving you're over 18 without revealing your exact birth date, or proving you hold an NFT without revealing which one.
 
 ## How Selective Disclosure Works
@@ -15,7 +13,7 @@ The basic pattern:
 2. **Proof** — when needed, you reveal a subset of the information along with a zero-knowledge proof
 3. **Verification** — the verifier checks the proof against the on-chain commitment
 
-```
+```text
 Private data → Commit (hash) → Store on-chain
                                  ↓
 Proof request → Reveal subset + ZK proof → Verify against commitment
@@ -46,7 +44,7 @@ reveal(secret, salt)
 // On-chain: verify sha256(secret ++ salt) == stored_commit
 ```
 
-### Merkle Proofs
+## Merkle Proofs
 
 For more granular disclosure, data is structured as a Merkle tree. A user proves membership of a leaf without revealing the entire tree.
 
@@ -74,4 +72,4 @@ For wallet integrations, selective disclosure enables:
 
 - [Privacy overview](/docs/overview/concepts/privacy) — broader privacy context
 - [ZK resources](/docs/resources) — circuit development and tooling
-- [Wallet integration guides](/guides/wallets) — privacy-preserving wallet connections
+- [Wallet integration guides](/docs/guides/authentication/wallets) — privacy-preserving wallet connections

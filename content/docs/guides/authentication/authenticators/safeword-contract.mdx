@@ -1,11 +1,9 @@
 ---
 title: Safe-word CosmWasm Authenticator
 description: Build a CosmWasm authenticator contract that authorizes transactions containing a pre-registered safe-word — custom authentication logic with key rotation
+status: partial
 ---
-
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-
-# Safe-word CosmWasm Authenticator
+import { Tab, Tabs } from '#vocs-compat';
 
 This example demonstrates a **custom CosmWasm authenticator** that uses a pre-registered safe-word to authorize a key rotation. When a transaction includes the safe-word and a new public key, the authenticator approves the authentication and updates the expected key for future transactions.
 
@@ -13,13 +11,13 @@ This example demonstrates a **custom CosmWasm authenticator** that uses a pre-re
 
 1. **Setup** — The contract stores a SHA-256 hash of a safe-word chosen by the user
 2. **Registration** — The user registers the contract as a `CosmwasmAuthenticatorV1` on their account, passing the safe-word hash as params
-3. **Authentication** — When a transaction arrives containing `{ "safeword": "<the_word>", "pubkey": "<new_key>" }` in its memo, the contract:
+3. **Authentication** — When a transaction arrives containing `{ "safeword": "&lt;the_word>", "pubkey": "&lt;new_key>" }` in its memo, the contract:
    - Checks the revealed safe-word against the stored hash
    - If it matches, **accepts authentication** and stores the new expected pubkey
    - Future authentications check against the stored pubkey instead
 4. **Completion** — The account's effective authentication has been rotated to the new key
 
-```
+```text
 User stores: sha256("my_secret_word")
                 ↓
 Tx arrives with memo: {"safeword": "my_secret_word", "pubkey": "A7YH7..."}
@@ -119,7 +117,7 @@ pub enum SudoMsg {
 }
 ```
 
-### 2. Contract Entrypoints
+## 2. Contract Entrypoints
 
 ```rust
 /// Instantiate sets up the safe-word hash.
@@ -148,7 +146,7 @@ pub fn sudo(deps: DepsMut, _env: Env, msg: SudoMsg) -> StdResult<Response> {
 }
 ```
 
-### 3. OnAuthenticatorAdded — Store the Safe-word Hash
+## 3. OnAuthenticatorAdded — Store the Safe-word Hash
 
 When the user registers this contract as an authenticator, the `authenticator_params` contains the SHA-256 hash of their safe-word:
 
@@ -176,7 +174,7 @@ pub fn on_authenticator_added(
 }
 ```
 
-### 4. Authenticate — Verify the Safe-word and Rotate Key
+## 4. Authenticate — Verify the Safe-word and Rotate Key
 
 This is the core logic. The contract checks the `signature` field for the safe-word. If it matches the stored hash, the authentication succeeds and the pubkey from the `signature` is stored for future checks:
 
@@ -264,7 +262,7 @@ pub fn authenticate(deps: DepsMut, req: AuthenticationRequest) -> StdResult<Resp
 }
 ```
 
-### 5. OnAuthenticatorRemoved — Cleanup
+## 5. OnAuthenticatorRemoved — Cleanup
 
 ```rust
 pub fn on_authenticator_removed(
@@ -295,7 +293,7 @@ docker run --rm -v "$(pwd)":/code \
 
 Output: `artifacts/safeword_authenticator.wasm`
 
-### Step 2: Store and Instantiate on Terp Network
+## Step 2: Store and Instantiate on Terp Network
 
 <Tabs items={['terpd CLI', 'TypeScript/JS', 'Rust (cw-orch)']}>
   <Tab value="terpd CLI">
@@ -573,7 +571,7 @@ msg = MsgAddAuthenticator(
 
 ## Phase 1: Authenticate with the Safe-word
 
-Send a transaction where the `signature` field in the authentication request contains `{"safeword":"my_secret_phrase_123","pubkey":"<new_pubkey_hex>"}`. The authenticator contract will:
+Send a transaction where the `signature` field in the authentication request contains `{"safeword":"my_secret_phrase_123","pubkey":"&lt;new_pubkey_hex>"}`. The authenticator contract will:
 1. Hash the revealed safe-word
 2. Compare it to the stored hash
 3. If it matches, store the new pubkey and authorize the transaction
@@ -581,7 +579,7 @@ Send a transaction where the `signature` field in the authentication request con
 <Tabs items={['terpd CLI', 'TypeScript/JS', 'Rust', 'Go', 'Python']}>
   <Tab value="terpd CLI">
 
-For custom authenticator data like the safe-word payload, use a direct transaction submission with the proper TxExtension. The auth payload `{"safeword":"my_secret_phrase_123","pubkey":"<new_pubkey>"}` is set as the signature bytes sent to the contract's `Authenticate` sudo handler.
+For custom authenticator data like the safe-word payload, use a direct transaction submission with the proper TxExtension. The auth payload `{"safeword":"my_secret_phrase_123","pubkey":"&lt;new_pubkey>"}` is set as the signature bytes sent to the contract's `Authenticate` sudo handler.
 
 ```bash
 # Build a raw tx with authenticator extension

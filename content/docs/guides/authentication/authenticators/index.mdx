@@ -1,15 +1,13 @@
 ---
 title: Smart Account Authenticators
 description: Programmable authentication for Terp Network accounts — register authenticators, combine strategies, build custom CosmWasm authenticator contracts
+status: partial
 ---
-
-# Smart Account Authenticators
-
 The `x/smart-account` module replaces the default Cosmos SDK authentication with a programmable, per-account authentication framework. Instead of every transaction being authenticated by a single secp256k1 signature check, accounts can register **multiple authenticators** — each with their own rules for what they authorize.
 
 ## How It Works
 
-```
+```text
 Transaction → Circuit Breaker → For each message:
                                    1. Identify the account for this message
                                    2. Fetch authenticator(s) registered to that account

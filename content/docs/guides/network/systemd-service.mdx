@@ -1,8 +1,9 @@
 ---
 title: Systemd Service
+description: This guide covers setting up terpd as a systemd service for production deployments. Running as a systemd service ensures your node automatically starts on...
+status: partial
 ---
-
-# Systemd Service Guide
+## Systemd Service Guide
 
 This guide covers setting up terpd as a systemd service for production deployments. Running as a systemd service ensures your node automatically starts on boot and restarts if it crashes.
 
@@ -136,7 +137,7 @@ which terpd
 terpd start --home $HOME/.terp --dry-run
 ```
 
-### Node Won't Sync
+## Node Won't Sync
 
 ```bash
 # Check sync status
@@ -151,7 +152,7 @@ sed -i "s/^persistent_peers *=.*/persistent_peers = \"$peers\"/" $HOME/.terpd/co
 sudo systemctl restart terpd
 ```
 
-### Out of Memory
+## Out of Memory
 
 Add memory limits to the service file:
 
@@ -201,11 +202,11 @@ sudo systemctl start terpd
 echo "Update complete"
 ```
 
-### Log Rotation
+## Log Rotation
 
 Create `/etc/logrotate.d/terpd`:
 
-```
+```bash
 /home/*/.terpd/logs/*.log {
     daily
     rotate 7

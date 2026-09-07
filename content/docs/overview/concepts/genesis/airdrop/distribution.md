@@ -1,5 +1,7 @@
 ---
-title:  Distribution
+title: Distribution
+description: No private sales. No investment rounds. The majority of the genesis supply (Over 95%) is proposed to be airdropped to BCNA holders, committed to the community...
+status: partial
 ---
 No private sales. No investment rounds. The majority of the genesis supply (Over 95%) is proposed to be airdropped to BCNA holders, committed to the community pool, and airdropped to the community members of other projects focused and involved with ongoing the process of integrating our culture to the censorship resistant ecosystems blockchains create.
 
@@ -8,15 +10,13 @@ No private sales. No investment rounds. The majority of the genesis supply (Over
 | ✅ Initial Circulating Supply | 420,000,000 | 710,000,000 |
 | ✅ Initial Total Supply       | 420,000,000 | 6,754,110,500 THIOL |
 
-
-## Distribution 
+## Distribution
 
 | Type  |  Total Initial Supply |  |  |   |
 |-----------------|:-------:|:------:|:-----------:|---|
-| Vested Airdrops | 17% | 
+| Vested Airdrops | 17% |
 | Treasury        | 63% |
 | Foundation      | 15% |
-  
 
 ## Minting Schedule
 ### TERP

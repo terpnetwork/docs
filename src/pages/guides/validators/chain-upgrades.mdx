@@ -1,0 +1,228 @@
+---
+title: "Chain upgrades"
+description: "Coordinate and execute chain upgrades"
+status: "complete"
+---
+import { Tabs, Tab } from 'vocs'
+
+## Perform a chain upgrade
+
+In this guide, we will go through upgrading your node during network upgrades, chain halt upgrades and hard forks. Depending on if you are using [Cosmovisor](/guides/nodes/cosmovisor) or not, there are key differences. Please note that the use of cosmovisor is recommended.
+
+## Using cosmovisor vs. not using cosmovisor
+
+- **Using Cosmovisor:** Cosmovisor is an upgrade manager for Cosmos SDK-based blockchains. It lets you automatically switch to the new binary when the specified block height for the upgrade is reached. Additionally, you can enable cosmovisor to download the upgrade automatically. In any case, for hard forks, you will still need to replace the genesis file manually.
+
+- **Not Using Cosmovisor:** If you are not using Cosmovisor, you are responsible for manually managing the upgrade process. This involves downloading, verifying, and extracting the new binary, and restarting the node once the specified block height is reached. Similarly to when using cosmovisor, for hard forks you will need to replace the genesis file manually.
+
+It is highly recommended to use Cosmovisor, as it is considered the standard best practice to run nodes.
+
+In either case, make sure to monitor the upgrade details on [Discord](https://discord.terp.network)
+or watch upcoming upgrade proposals with `terpd query gov proposals`. It is recommended to be aware about the exact block height for the upgrade, so that action can be taken in case specific steps are required.
+
+## Network Upgrades
+
+### With cosmovisor (auto-download enabled)
+
+If you enable Cosmovisor to automatically perform binary downloads, only the following steps are required:
+
+- Monitor the upgrade details on [Discord](https://discord.terp.network) or watch upcoming upgrade proposals with `terpd query gov proposals`. It is recommended to be aware about the exact block height for the upgrade, so that action can be taken in case specific steps are required.
+
+- Cosmovisor will automatically switch to the new binary when the specified block height is reached.
+
+Please make sure to always be aware of upcoming upgrades even if you enabled the automatic download, so you can make sure you are aware of any risks.
+
+### With cosmovisor (auto-download disabled)
+
+If you are using cosmovisor with the automatic download disabled, you will need to download the binary manually. In this scenario, the steps would be:
+
+- Monitor the upgrade details on [Discord](https://discord.terp.network) or watch upcoming upgrade proposals with `terpd query gov proposals`. It is recommended to be aware about the exact block height for the upgrade, so that action can be taken in case specific steps are required.
+
+Within the cosmovisor **upgrades** directory, go to the folder relative to the specific binary version you are looking to download, for example:
+
+```bash
+cd "${HOME}"/.terpd/cosmovisor/upgrades/v6.0.0/bin
+```
+
+Download the latest release, in this case:
+
+```bash
+wget https://s3.terp.network/releases/terp-core/v6.0.0/terpd-6.0.0-linux-amd64.tar.gz
+tar -xzf terpd-6.0.0-linux-amd64.tar.gz
+```
+
+You can then verify the download by looking at its sha256 hash using the **sha256sum** command:
+
+```bash
+sha256sum -c sha256sum.txt --ignore-missing
+```
+
+You can then download the sha256 checksum file relative to the release file:
+
+```bash
+wget https://s3.terp.network/releases/terp-core/v6.0.0/sha256sum.txt
+sha256sum -c sha256sum.txt --ignore-missing
+```
+
+A clean `sha256sum -c` run means the tarball matches the published release.
+
+Once the upgrade block height is reached, cosmovisor will automatically stop the old binary and start the latest one.
+
+## Hard forks
+
+The process for hard forks is similar to the one for [Network upgrades](#network-upgrades) but includes additional steps for replacing the genesis file.
+
+When using cosmovisor, the process slightly differs depending on if you enabled or disabled the auto-download feature.
+
+### Cosmovisor with auto-download enabled
+
+If you have allowed the auto-download feature, you would just need to [replace the genesis file](#replace-the-genesis-file).
+
+### Cosmovisor with auto-download disbled
+
+If you have disabled the auto-download feature, then you would need to:
+
+- Similarly to the [network upgrades](#network-upgrades), you can download the updated binary and check its sha256 checksum.
+
+- [Replace the genesis file](#replace-the-genesis-file).
+
+### Replace the genesis file
+
+First, download the new genesis file to your local machine. The genesis file for each respective network live in the [networks repository](https://github.com/terpnetwork/networks).
+
+For example, you can download the genesis with:
+
+<Tabs>
+<Tab title="mainnet">
+
+```bash
+curl -Ls https://raw.githubusercontent.com/terpnetwork/networks/main/mainnet/morocco-1/genesis.json > $HOME/.terpd/config/genesis.json
+```
+
+</Tab>
+<Tab title="testnet">
+
+```bash
+curl -Ls https://s3.terp.network/snapshots/testnet/120u-1/genesis.json > $HOME/.terpd/config/genesis.json
+```
+
+</Tab>
+</Tabs>
+
+Before replacing the current genesis file, it's good practice to create a backup. Navigate to the directory containing the genesis file (usually located in the config folder) and create a backup:
+
+```bash
+cd ~/.terpd/config
+cp genesis.json genesis.json.backup
+
+```
+
+Replace the current genesis file with the new one you downloaded earlier. Assuming you have downloaded the new genesis file as **new-genesis.json**, you can replace the existing file using the following command:
+
+```bash
+cp /path/to/new-genesis.json ~/.terpd/config/genesis.json
+
+```
+
+Make sure to replace **/path/to/new-genesis.json** with the actual path to the new genesis file.
+
+You will now need to reset your node's data to start with the new genesis file. You can do this using the following command:
+
+```bash
+terpd tendermint unsafe-reset-all
+```
+
+If you have already updated the binary (either manually or through Cosmovisor), you can now restart your node to complete the process:
+
+```bash
+sudo systemctl restart terpd
+```
+
+Keep in mind that the process of replacing the genesis file is the same whether you are using Cosmovisor or not. Cosmovisor only helps automate the binary upgrade, while replacing the genesis file remains a manual process.
+
+## Chain Halt Upgrades
+
+Chain halt upgrades are a specific type of upgrade process triggered by the discovery of a critical protocol bug that necessitates an urgent chain upgrade. Unlike regular upgrades, these don't wait for a governance proposal due to the immediate need for a fix.
+
+The workflow for a chain halt upgrade involves the following steps:
+
+- Validators and node operators shut the node down.
+- Download a new **terpd** binary and replace the old one on the node.
+- Restart the node.
+
+### Shutting down the node
+
+The first step in a chain halt upgrade is for all validators and node operators to stop their node's operation. This is an essential step to prevent any further spread the consequences of the issue across the network.
+
+If you are running **terpd** as a service, you can launch:
+
+```bash
+sudo systemctl stop terpd
+```
+
+## Download the Binary
+
+Similarly to [network upgrades](#network-upgrades), within the cosmovisor **upgrades** directory, you can go to the folder relative to the specific binary version you are looking to download, for example:
+
+```bash
+cd "${HOME}"/.terpd/cosmovisor/upgrades/v6.0.0/bin
+```
+
+And download the new terp-core binary from the [release page](https://github.com/terpnetwork/terp-core/releases).
+
+For example:
+
+<Tabs>
+<Tab title="amd64">
+
+```bash
+wget https://s3.terp.network/releases/terp-core/v6.0.0/terpd-6.0.0-linux-amd64.tar.gz
+tar -xzf terpd-6.0.0-linux-amd64.tar.gz
+```
+
+</Tab>
+<Tab title="arm64">
+
+```bash
+wget https://s3.terp.network/releases/terp-core/v6.0.0/terpd-6.0.0-linux-arm64.tar.gz
+tar -xzf terpd-6.0.0-linux-arm64.tar.gz
+```
+
+</Tab>
+</Tabs>
+
+You can now verify the download by generating the sha256 hash for the downloaded file:
+
+<Tabs>
+<Tab title="amd64">
+
+```bash
+sha256sum -c sha256sum.txt --ignore-missing
+```
+
+</Tab>
+<Tab title="arm64">
+
+```bash
+sha256sum -c sha256sum.txt --ignore-missing
+```
+
+</Tab>
+</Tabs>
+
+You can then download the sha256 checksum file relative to the release file:
+
+```bash
+wget https://s3.terp.network/releases/terp-core/v6.0.0/sha256sum.txt
+sha256sum -c sha256sum.txt --ignore-missing
+
+```
+
+A clean `sha256sum -c` run means the tarball matches the published release.
+
+## Restart the Node
+
+```bash
+
+sudo systemctl start terpd
+```

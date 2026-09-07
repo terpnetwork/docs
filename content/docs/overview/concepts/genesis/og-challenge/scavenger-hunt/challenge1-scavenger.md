@@ -1,7 +1,8 @@
 ---
 title: First Challenge
+description: "- Reward: ! TERP & PERSY - Challenge: Adding a Validator & Persistent Peer Endpoint to the Repository - Winners: First 100 submissions - measured by the..."
+status: partial
 ---
-
 ## Scavenger Hunt Level 1, Your First Challenge (! TERP & PERSY)
 
 - **Reward:** ! TERP & PERSY
@@ -20,7 +21,7 @@ Checkout [getting-started](https://docs.terp.network/overview/getting-started), 
 
 The following format is reccomended particpants follow when including their own P2P & participation info:
 
-```
+```json
 {
 "name": "<your-[personal/team/company]-name-here>",
 "terpval-address": "terpval1...",
@@ -45,7 +46,7 @@ TestNET repo: [Link] (learn about forking repositories here: [Link](https://docs
 
 ## Add your P2P details in your forked repo
 
-Add your new file containing all of your individual P2P info, named `<your-terpval-address>.json` in the `/challenges/1/P2P/` folder, & commit your changes to the forked repository
+Add your new file containing all of your individual P2P info, named `&lt;your-terpval-address>.json` in the `/challenges/1/P2P/` folder, & commit your changes to the forked repository
 
 ## Open new PR to add your P2P details
 

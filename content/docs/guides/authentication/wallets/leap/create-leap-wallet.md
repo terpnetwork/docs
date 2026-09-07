@@ -1,10 +1,10 @@
 ---
 title: Create Leap Wallet0
+description: Select “Create a new wallet” on the interface.
+status: partial
 ---
-
-
-# Download Browser Extension
-<https://www.leapwallet.io/> is the official website for leap to download the wallet for Cosmos networks. In this case, we’re using the Brave browser, which means we’ll need to download the wallet extension.
+## Download Browser Extension
+&lt;https://www.leapwallet.io/> is the official website for leap to download the wallet for Cosmos networks. In this case, we’re using the Brave browser, which means we’ll need to download the wallet extension.
 
 ## Create Brand New Wallet
 
@@ -23,8 +23,7 @@ Select a password of your choice, and make sure to write this down as well. If a
 - `⌘`+`shift`+`k` on mac/linux
 - `ctrl`+`shift`+`k` on windows
 
-
 sources:
 
-- <https://medium.com/stakin/the-ultimate-leap-wallet-staking-guide-3521a522dde4>
+- &lt;https://medium.com/stakin/the-ultimate-leap-wallet-staking-guide-3521a522dde4>
 

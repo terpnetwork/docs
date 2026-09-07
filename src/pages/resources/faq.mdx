@@ -1,0 +1,186 @@
+---
+title: "FAQs"
+description: "Frequently Asked Questions about Terp Network"
+status: "partial"
+---
+
+
+### What is Terp Network?
+
+Terp Network is a decentralized blockchain protocol for curating trustless, interoperable, and free markets. It is built on the Cosmos SDK with CometBFT consensus and supports CosmWasm smart contracts.
+
+Key properties:
+- **Permissionless** — anyone can join, transact, deploy contracts, or run a node
+- **IBC-enabled** — interoperable with 100+ Cosmos chains
+- **Smart contracts** — CosmWasm (Rust → WASM) for application logic
+- **Trust-minimized** — reproducible builds, on-chain verification, open source
+
+See [What Is Terp Network](/overview), [Core Concepts](/overview/concepts)
+
+
+### I Still Do Not Understand What Terp Network Is? What Can It Be Compared To?
+
+Think of Terp Network like a **decentralized notary service** — a neutral settlement layer where actions are recorded, timestamped, and verifiable by anyone, without needing to trust any single entity.
+
+A more concrete comparison: Terp Network is to notaries what Wikipedia is to an encyclopedia. Wikipedia replaced a centralized publisher with a distributed, verifiable, permissionless system. Terp Network does the same for settlement and verification — anyone can verify the record, anyone can contribute to maintaining it, and no single party controls the system.
+
+See [Trustlessness concept](/overview/concepts/trustless), [Decentralization concept](/overview/concepts/decentralization)
+
+
+### Can I Join Terp Network?
+
+Yes. Terp Network is permissionless. You can participate in several ways:
+
+| Role | What You Do | Get Started |
+|------|-------------|-------------|
+| **User** | Transact, use dApps | Get tokens, use Keplr/Leap wallet |
+| **Developer** | Deploy smart contracts, build dApps | [CosmWasm guides](/resources/libraries), [libraries](/resources/libraries) |
+| **Validator** | Run a node, secure the network | [Validator guides](/guides/validators) |
+| **Relayer** | Relay IBC packets between chains | [Relaying guides](/overview/concepts/ibc) |
+| **Community** | Contribute code, documentation, governance | [Community resources](/resources/community) |
+
+No permission is required for any of these roles — just the necessary technical setup.
+
+
+### What Do I Need To Get Started?
+
+**Minimal setup:**
+
+1. **A wallet** — [Keplr](https://keplr.app), [Leap](https://leapwallet.io), or [Ledger](/guides/nodes/keys)
+2. **Some tokens** — `uthiol` for fees (get from testnet faucet or an exchange)
+3. **Network endpoints** — see [Public Endpoints](/resources/public)
+4. **CLI (optional)** — `terpd` binary from [install guide](/overview/quickstart)
+
+**For developers, additionally:**
+
+5. **Rust toolchain** and `cosmwasm-optimizer`
+6. **O-Line** for localnet/testnet deployment ([docs](/overview/quickstart))
+
+See [Quickstart](/overview/quickstart), [Guides index](/guides)
+
+
+### How Do I Interact With Terp Network?
+
+| Method | Description |
+|--------|-------------|
+| **CLI** (`terpd`) | Full node control — query balances, submit txs, stake, vote |
+| **Wallet app** | Keplr/Leap browser extension — send tokens, interact with dApps |
+| **REST API** | HTTP queries to node endpoints — see [API docs](/api) |
+| **gRPC** | Typed queries — see [gRPC endpoints](/api/grpc) |
+| **CosmJS** | JS/TS library for programmatic interaction — see [Libraries](/resources/libraries) |
+| **cw-orchestrator** | Rust library for multi-contract deployment — see [Development tools](/resources) |
+
+The most common pattern: use Keplr/Leap for wallet connection to a dApp, which uses CosmJS under the hood to sign and broadcast transactions via a public RPC endpoint.
+
+
+### Would I Be Able To Integrate Terp Network Into My Business?
+
+Yes. Terp Network is designed for integration. Common integration patterns:
+
+- **Accept payments** — receive `uthiol` or IBC tokens via a wallet address or payment contract
+- **Tokenize assets** — use Tokenfactory to create a native denom, or CW20 for a contract-based token
+- **Verifiable records** — store hashes on-chain for audit trails, supply chain, or certification
+- **DAO governance** — launch a DAO for decentralized decision-making ([governance](/overview/concepts/governance))
+- **IBC interoperability** — bridge assets to/from other Cosmos chains
+- **Smart contract automation** — use the Clock module for scheduled contract execution
+
+All integration points are permissionless — no approval needed. See [Products & Modules](/overview/products), [Guides](/guides)
+
+
+### What Are The Obvious Risks Of Terp Network?
+
+As with any blockchain protocol, participants should be aware of:
+
+| Risk | Description | Mitigation |
+|------|-------------|------------|
+| **Smart contract bugs** | Vulnerabilities in contract code could lead to loss of funds | Audits, formal verification, testnet deployment first |
+| **Validator centralization** | A small group controlling majority of stake | Governance can adjust parameters, community vigilance |
+| **IBC bridge risk** | Relayer or light client issues could cause stuck funds | Multiple relayers, timeout mechanisms |
+| **Governance attacks** | Malicious proposals passing | Minimum deposit requirements, veto power, quorum |
+| **Key loss** | Lost private keys = lost access to funds | Hardware wallets, multisig, passkey recovery |
+| **Regulatory uncertainty** | Changing regulations could affect token classification | Legal counsel, compliance tooling |
+
+See [Governance concepts](/overview/concepts/governance), [Trustlessness concepts](/overview/concepts/trustless)
+
+
+### What Are The Less Obvious Risks Of Terp Network?
+
+| Risk | Description |
+|------|-------------|
+| **Liquidity fragmentation** | IBC enables many tokens across many chains — finding liquidity across pairs can be complex |
+| **State bloat** | Long-running chains accumulate state; pruning and state-sync strategies must be maintained |
+| **Composability surprises** | Multi-contract call chains can have unexpected gas costs or re-entrancy risks |
+| **Upgrade coordination** | Forkful upgrades require all validators to upgrade simultaneously — missed upgrades cause missed blocks |
+| **MEV / frontrunning** | Block proposers can reorder transactions within a block; CosmWasm provides some protection but it's not zero |
+| **API provider dependency** | Using a public RPC means trusting that provider (run your own node for full trustlessness) |
+| **Manifesto drift** | The trustlessness mandate requires ongoing effort to maintain — a successful but lazy chain may compromise on verifiability |
+
+See [P2P concepts](/overview/concepts/p2p), [Trustlessness](/overview/concepts/trustless)
+
+
+### Does Terp Network Integrate With The Major Cryptocurrencies?
+
+Yes. Through IBC (Inter-Blockchain Communication), Terp Network can send and receive tokens with any IBC-enabled chain. Major integrations:
+
+| Asset | Method | Status |
+|-------|--------|--------|
+| **Cosmos Hub (ATOM)** | IBC transfer | Live |
+| **Osmosis (OSMO)** | IBC transfer | Live |
+| **Bitcoin (BTC)** | BTC prefix support, future: IBC v2 light client | Partial |
+| **Ethereum (ETH)** | IBC v2 light client (planned) | Future |
+| **Penumbra** | IBC via zk-privacy bridge | Live |
+| **Nostr** | Nostr key integration, signed events | Live |
+
+See [IBC concepts](/overview/concepts/ibc), [Resources](/resources)
+
+
+### Does Terp Network Integrate With My Bank?
+
+Not directly. Terp Network is a decentralized blockchain — it has no bank accounts, no KYC, and no central operator.
+
+However, you can on-ramp from fiat through:
+
+| Method | Description |
+|--------|-------------|
+| **Centralized exchanges** | Buy tokens on Coinbase, Gemini, etc., withdraw to wallet |
+| **Payy** | Decentralized on-ramp with minimal friction |
+| **Peer-to-peer** | Direct trade with other participants |
+
+The path is always: **fiat → exchange → token → IBC to Terp Network** (if the exchange does not directly support Terp).
+
+See [On-ramps guide](/overview/products)
+
+
+### How Can I Authorize Actions On Terp Network?
+
+Authorization is handled through cryptographic signatures. The primary methods:
+
+| Method | How It Works | Use Case |
+|--------|-------------|----------|
+| **Single key** | Sign with your private key via wallet | Standard transactions |
+| **Multisig** | M-of-N signatures required | DAO treasuries, shared accounts |
+| **Authz grants** | Delegate specific permissions to another account ([guide](/overview/concepts/tax)) | Automation, delegation |
+| **Feegrant** | Allow another account to pay fees on your behalf ([guide](/overview/concepts/tax)) | Sponsored transactions |
+| **Passkeys** | WebAuthn-based authentication (future) | Hardware-backed auth |
+| **Smart accounts** | Programmable authentication via CosmWasm | Custom auth logic |
+
+See [Authentication guides](/overview/quickstart)
+
+
+### What Already Exists On Terp Network?
+
+The ecosystem includes deployed projects across several categories:
+
+| Category | Examples |
+|----------|---------|
+| **Infrastructure** | O-Line (ephemeral node deployment), S3 storage, Merkle tree server |
+| **Smart contracts** | CW-Headstash, CW-Calendar, CW-Infusions, CW-Walled-Garden |
+| **DeFi** | Osmosis outpost, token swaps via IBC |
+| **Privacy** | HashMerchant (verifiable Merkle markets), Penumbra integration |
+| **Governance** | DAO DAO framework, on-chain gov module |
+| **Identity** | Terp Account Billboards, selective disclosure |
+| **Tools** | QMD (semantic indexing), cw-orchestrator, terp.js, type generation |
+
+See [Ecosystem](/overview), [Products](/overview/products), [Deployed contracts](/resources/libraries)
+
+

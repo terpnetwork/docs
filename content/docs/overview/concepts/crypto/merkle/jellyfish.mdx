@@ -1,10 +1,8 @@
 ---
 title: Jellyfish Merkle Trees
 description: Sparse Merkle tree variant optimized for account-based blockchain state — used in Diem/Aptos and adapted for ZK-friendly verification
+status: partial
 ---
-
-# Jellyfish Merkle Trees
-
 Jellyfish Merkle trees are a **sparse Merkle tree** variant designed for account-based blockchains. Unlike a standard Merkle tree where leaves are packed densely, a sparse tree maps every possible key to a slot — even if that slot is empty.
 
 ## Why Sparse?
@@ -13,7 +11,7 @@ In an account-based blockchain, the total address space is vast (2^256 for Ether
 
 ## Structure
 
-```
+```text
                      Root
                    /      \
             Node(A)        Node(B)

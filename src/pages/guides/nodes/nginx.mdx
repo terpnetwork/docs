@@ -1,0 +1,211 @@
+---
+title: Reverse proxy (nginx)
+description: Route RPC, WebSocket, REST, gRPC, and P2P correctly — these are four different protocols, not four HTTP vhosts
+---
+
+# Reverse proxy and public endpoints
+
+A full node listens on **localhost TCP ports**. nginx (or another proxy) is how you publish some of those ports on DNS + TLS without binding CometBFT / the SDK to `0.0.0.0`.
+
+These listeners are **not interchangeable**. Treating gRPC or P2P as "just another HTTP vhost" will look like it works in `nginx -t` and fail for every real client.
+
+## What each port actually is
+
+| Surface | Default bind | Protocol | Public hostname example | nginx module |
+|---------|--------------|----------|-------------------------|--------------|
+| CometBFT RPC | `127.0.0.1:26657` | HTTP/1.1 JSON-RPC | `rpc.example.com` | `http` + `proxy_pass` |
+| CometBFT WebSocket | same process, path `/websocket` | HTTP/1.1 **Upgrade** to WS | `wss://rpc.example.com/websocket` | same `server`, dedicated `location /websocket` |
+| LCD / REST | `127.0.0.1:1317` | HTTP/1.1 | `api.example.com` | `http` + `proxy_pass` |
+| gRPC | `127.0.0.1:9090` | HTTP/2 (h2c) gRPC | `grpc.example.com` | `http` + **`grpc_pass`** (or `stream` TCP) |
+| P2P | `0.0.0.0:26656` | CometBFT **raw TCP** (not HTTP) | `peer.example.com:26656` or IP:26656 | **`stream { }` TCP**, never `server { location / }` |
+
+`rpc.terp.network` is the public RPC (HTTP + WS). `api.terp.network` is REST. `grpc.terp.network` is gRPC. Peers are published as `id@host:26656`, not as `https://…`.
+
+Bind the node itself to localhost for RPC/REST/gRPC (`laddr = "tcp://127.0.0.1:26657"` etc.) and let nginx be the only process on `:443`. P2P must stay reachable on **26656/tcp** if you want other nodes to dial you.
+
+## Do not proxy P2P as HTTP
+
+P2P is the gossip/block-exchange socket. An HTTP `server { proxy_pass http://127.0.0.1:26656 }` (including "WebSocket support" headers) does **not** speak CometBFT. Other nodes cannot use it as a seed or persistent peer.
+
+Options:
+
+1. **No proxy** — firewall allows `26656/tcp` to the node. This is the usual setup.
+2. **TCP pass-through** — nginx `stream` (or HAProxy TCP) forwards 26656 → 127.0.0.1:26656. TLS on P2P is not CometBFT-native; do not wrap it in HTTPS.
+3. **RPC-only node** — do not publish 26656 at all. The node still needs outbound P2P to sync.
+
+```nginx
+# /etc/nginx/nginx.conf — stream context is a sibling of http {}, not inside it
+stream {
+    upstream terp_p2p {
+        server 127.0.0.1:26656;
+    }
+    server {
+        listen 26656;
+        listen [::]:26656;
+        proxy_pass terp_p2p;
+        proxy_timeout 1d;
+        proxy_connect_timeout 10s;
+    }
+}
+```
+
+Seed/peer strings stay `$(terpd tendermint show-node-id)@peer.example.com:26656`.
+
+## RPC + WebSocket (same port, two locations)
+
+CometBFT serves JSON-RPC on `/` and subscriptions on `/websocket`. Wallets and indexers that subscribe to `NewBlock` / `Tx` need the Upgrade path. Terminate TLS here; the backend is plain `ws://127.0.0.1:26657`.
+
+```nginx
+upstream terp_rpc {
+    server 127.0.0.1:26657;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name rpc.example.com;
+
+    # ssl_certificate / ssl_certificate_key from certbot
+
+    location /websocket {
+        proxy_pass http://terp_rpc/websocket;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+    }
+
+    location / {
+        proxy_pass http://terp_rpc;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Connection "";
+        # optional: also honor Upgrade on / for clients that WS the root
+        proxy_set_header Upgrade $http_upgrade;
+    }
+}
+```
+
+Check:
+
+```bash
+curl -sS https://rpc.example.com/status | jq .result.node_info.network
+# expect morocco-1 or 120u-1
+
+# WebSocket (wscat, websocat, or browser)
+# wss://rpc.example.com/websocket
+# {"jsonrpc":"2.0","method":"subscribe","id":1,"params":{"query":"tm.event='NewBlock'"}}
+```
+
+## REST / LCD
+
+HTTP only. `api.enable = true` in `app.toml`.
+
+```nginx
+upstream terp_rest {
+    server 127.0.0.1:1317;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name api.example.com;
+
+    location / {
+        proxy_pass http://terp_rest;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+```bash
+curl -sS https://api.example.com/cosmos/base/tendermint/v1beta1/node_info | jq .
+```
+
+## gRPC
+
+Default SDK listen is **`:9090`**, HTTP/2 without TLS (h2c). nginx must use `grpc_pass`, not `proxy_pass`. A `proxy_pass` HTTP/1.1 location will 502 or hang `grpcurl`.
+
+```nginx
+upstream terp_grpc {
+    server 127.0.0.1:9090;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name grpc.example.com;
+
+    location / {
+        grpc_pass grpc://terp_grpc;   # h2c to the node
+        grpc_set_header Host $host;
+        grpc_read_timeout 300s;
+        grpc_send_timeout 300s;
+        error_page 502 = /error502grpc;
+    }
+}
+```
+
+If you terminate TLS in nginx, clients use `grpcurl grpc.example.com:443 …` (TLS). If you TCP-passthrough 9090 instead, clients use plaintext `-plaintext grpc.example.com:9090`.
+
+```bash
+grpcurl grpc.example.com:443 list
+# or, raw to the node:
+grpcurl -plaintext 127.0.0.1:9090 list
+```
+
+Confirm `app.toml`:
+
+```toml
+[grpc]
+enable = true
+address = "127.0.0.1:9090"
+```
+
+## Install and TLS
+
+```bash
+sudo apt install nginx certbot python3-certbot-nginx
+sudo rm -f /etc/nginx/sites-enabled/default
+# write the server blocks under /etc/nginx/sites-available/
+sudo ln -s /etc/nginx/sites-available/terp-endpoints /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+
+# certificates after DNS A/AAAA records point at this host
+sudo certbot --nginx \
+  -d rpc.example.com \
+  -d api.example.com \
+  -d grpc.example.com
+```
+
+`stream { }` for P2P is not managed by certbot. Leave 26656 as TCP.
+
+## Node bind checklist
+
+```toml
+# config.toml
+[rpc]
+laddr = "tcp://127.0.0.1:26657"
+
+[p2p]
+laddr = "tcp://0.0.0.0:26656"
+external_address = "YOUR.PUBLIC.IP:26656"
+
+# app.toml
+[api]
+enable = true
+address = "tcp://127.0.0.1:1317"
+
+[grpc]
+enable = true
+address = "127.0.0.1:9090"
+```
+
+Then [process supervisor](/guides/nodes/systemd) so nginx and `terpd` both come back after reboot.

@@ -1,5 +1,7 @@
 ---
-title:  Scavenger Hunt
+title: Scavenger Hunt
+description: Welcome to the Terp Network Journey! The TerpNET Foundation is grateful you are joining us on our mission to build a hyperfocused ecosystem for all things...
+status: partial
 ---
 Welcome to the Terp Network Journey! The TerpNET Foundation is grateful you are joining us on our mission to build a hyperfocused ecosystem for all things terpene. This multi-month event serves multiple purposes and will be an exciting experience for all participants.
 

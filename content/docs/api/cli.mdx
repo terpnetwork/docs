@@ -1,7 +1,8 @@
 ---
 title: CLI
+description: Once terpd is installed and configured with the correct network, you can now send commands with it. In a new terminal window, start by running the following...
+status: partial
 ---
-
 ## Using the CLI
 
 Once terpd is [installed](/docs/) and configured with the correct network, you can now send commands with it. In a new terminal window, start by running the following query command:
@@ -14,7 +15,7 @@ terpd status
 <summary>Output</summary>
 
 <p>
-#### This is the output from `terpd status`
+## This is the output from `terpd status`
 
 ```json
 {
@@ -60,11 +61,11 @@ terpd status
 </p>
 </details>
 
-### Node configuration
+## Node configuration
 ```bash
 terpd config
 ```
-Output: 
+Output:
 ```json
 {
 	"chain-id": "tbd",
@@ -75,15 +76,15 @@ Output:
 	"grpc-concurrency": false
 }
 ```
-In this example when we install terpd as a client with the [installer](/docs/), it connects to the `http://rpc.terp.network:443`. 
+In this example when we install terpd as a client with the [installer](/docs/), it connects to the `http://rpc.terp.network:443`.
 
-### Change node
+## Change node
 
-```
+```text
 Terp Network config node https://api.terp.network:443/
 ```
 
-### Connect to the testnet
+## Connect to the testnet
 
 ```bash
 terpd config node https://api.terp.network:443/
@@ -98,7 +99,7 @@ terpd keys add testaccount --keyring-backend test
 MYACCOUNT=$(terpd keys show testaccount -a --keyring-backend test)
 ```
 
-The command above creates a local key-pair that is not yet registered on the chain. An account is created the first time it receives tokens from another account. 
+The command above creates a local key-pair that is not yet registered on the chain. An account is created the first time it receives tokens from another account.
  You can now send some tokens to this enw account. If you are connected to the testnet, you can get tokens from [https://faucet.terp.network](https://faucet.terp.network)
 
 ```bash
@@ -106,12 +107,6 @@ The command above creates a local key-pair that is not yet registered on the cha
 terpd query bank balances $MYACCOUNT
 ```
 ![](../assets/query-balance.png)
-
-
-
- 
- 
-
 
 ## Using the REST Endpoints
 
@@ -126,9 +121,9 @@ curl \
     https://lcd.terp.network/cosmos/bank/v1beta1/balances/$MY_ADDRESS
 ```
 
-The list of all available REST endpoints is available as a Swagger specification file, it can be viewed at `localhost:1317/swagger`. Make sure that the `api.swagger` field is set to true in your [`app.toml`](/connect/apis/cli#configuring-the-node-using-apptoml) file.
+The list of all available REST endpoints is available as a Swagger specification file, it can be viewed at `localhost:1317/swagger`. Make sure that the `api.swagger` field is set to true in your [`app.toml`](/docs/api/cli#configuring-the-node-using-apptoml) file.
 
-### Query for historical state using REST
+## Query for historical state using REST
 
 Querying for historical state is done using the HTTP header `x-cosmos-block-height`. For example, a curl command would look like:
 
@@ -142,15 +137,14 @@ curl \
 
 Assuming the state at that block has not yet been pruned by the node, this query should return a non-empty response.
 
-### Cross-Origin Resource Sharing (CORS)
+## Cross-Origin Resource Sharing (CORS)
 
-[CORS policies](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) are not enabled by default to help with security. 
+[CORS policies](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) are not enabled by default to help with security.
 
 ### Setting up a public rest server
 If you would like to use the rest-server in a public environment we recommend you provide a reverse proxy. We can share our Terraform infrastructurefor setting up rest servers in DigitalOcean. We will write a guide soon and publish a repo soon. In the meantime feel free to reachout in Discord. s
 
 For testing and development purposes there is an `enabled-unsafe-cors` field inside [`app.toml`](/docs/).
-
 
 ### Signing transactions
 

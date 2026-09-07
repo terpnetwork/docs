@@ -1,11 +1,9 @@
 ---
 title: Integrity Verification
 description: Verify the integrity of Terp Network releases, installation scripts, genesis files, and static websites
+status: partial
 ---
-
-import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
-
-# Integrity Verification
+import { Accordion, Accordions } from '#vocs-compat';
 
 Before using any Terp Network artifact, verify its integrity against published checksums. This ensures the artifact has not been tampered with in transit.
 
@@ -18,14 +16,13 @@ Each Terp Network release publishes checksums for the compiled binary. Verify be
 **SHA256 Checksums (terpd binaries):**
 
 ```bash
-# Download the binary
-wget https://github.com/terpnetwork/terp-core/releases/download/v5.2.0/terpd-linux-amd64
-
-# Verify against published checksum
-echo "<expected_checksum>  terpd-linux-amd64" | sha256sum -c
+# Download the release tarball (ADR-11)
+wget https://s3.terp.network/releases/terp-core/v5.2.0/terpd-5.2.0-linux-amd64.tar.gz
+wget https://s3.terp.network/releases/terp-core/v5.2.0/sha256sum.txt
+sha256sum -c sha256sum.txt --ignore-missing
 ```
 
-Checksums are published in the release notes on [GitHub Releases](https://github.com/terpnetwork/terp-core/releases).
+Checksums are published next to the tarball at `https://s3.terp.network/releases/terp-core/<tag>/sha256sum.txt`.
 
 **Reproducible build verification:**
 
@@ -50,14 +47,14 @@ Installation scripts (`terp-installer.sh`, `terp-installer.py`) have published c
 
 **SHA256:**
 
-```
-0e2743c117a3be8e5648427e0e1d8863b7ac59e1e1cff428152eda99cf9dc970  terp-installer.py
-a233f0863b439273e772b14d61b985c8a20e719c72506399adebff03551596c7  terp-installer.sh
+```text
+b507799e558e8173d7a4139dd5caaa73b5fc6c8dba2a58b3f0015b726e239266  terp-installer.py
+9f76178e8d5146b7c3c004463d64aac36ce0f35d49477c1a69e4f1e5dee860c5  terp-installer.sh
 ```
 
 **BLAKE3:**
 
-```
+```text
 3113805970499a614c8dda2b8d2730bade6f0b0a3d5a8fa99bac4e9856396cee  terp-installer.py
 8c1826931f3c9c620dddabe6756881a2a51aa977c24b60842eca697dfd40ebb7  terp-installer.sh
 ```
@@ -98,7 +95,7 @@ Genesis checksums are published alongside the genesis files in the [networks rep
 
 > **Genesis integrity diagram scaffold** — a flowchart showing: genesis.json downloaded → checksum computed → compared against published hash → match (proceed) or mismatch (abort).
 
-See [Networks concepts](/docs/overview/concepts/networks)
+See [Networks concepts](/docs/overview/concepts/network/networks)
 </Accordion>
 
 <Accordion title="Static Websites">

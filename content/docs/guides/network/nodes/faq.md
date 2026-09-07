@@ -1,12 +1,8 @@
 ---
 title: Faq
+description: Validators play a crucial role in maintaining the integrity of the blockchain by performing two key tasks. First, they participate in consensus by...
+status: partial
 ---
-
----
-title: Faq
----
- 
-
 ## General Concepts
 
 ## What is a validator?
@@ -64,7 +60,7 @@ By delegating to a validator, a user delegates voting power. The more voting pow
 
 Even though delegated funds cannot be stolen by their validators, delegators' tokens can still be slashed by a small percentage if their validator suffers a slashing event, which is why we encourage due diligence when selecting a validator.
 
-# Responsibilities
+## Responsibilities
 
 ## Do validators need to be publicly identified?
 
@@ -106,7 +102,7 @@ If a validator simply shuts down their node, this would result in the validator 
 
 It's highly advised to inform your delegators when doing this, as they will still be bonded to your validator after it got jailed. They will need to manually unbond and they might not have been made aware of this via their preferred wallet application.
 
-# Incentives
+## Incentives
 
 ## What is the incentive to stake?
 

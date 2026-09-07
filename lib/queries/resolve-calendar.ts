@@ -1,8 +1,12 @@
 import { CHAIN_CONFIG, CONTRACTS, BILLBOARD_ACCOUNT } from '@/lib/wallet/config';
+import {
+  MESH_TEXT_RECORD_KEY,
+  TERP_CHAIN_MESH_SERVICES,
+  resolveMesh,
+  type ResolvedMesh,
+} from '@/lib/mesh';
 import { queryREST, queryContractSmart } from './fetchers';
-// TODO: remove account billboard text record from defualt traitt, dedicat its own helper function to define any value via specifi text record key query (argus api should already have this spec, fallback to chain query)
-// TODO: resolve calendar needs to be tuned to use accurate query api defintions for calendars (generated from utils)
-// utilize a nostr relayer query client design to access specific information 
+
 const REST_BASE = CHAIN_CONFIG.rest;
 
 // ── Client-side cache (sessionStorage) ────────────────────────────────
@@ -52,16 +56,57 @@ interface ContractsByCreatorResponse {
 }
 
 /**
+ * Resolve mesh for Connect (public read path).
+ *
+ * Order: env calendar override → mesh.v1 text record → chain headstash defaults
+ * → legacy billboard/subdao probe for calendar only.
+ */
+export async function resolveDaoMesh(
+  account: string = BILLBOARD_ACCOUNT,
+): Promise<ResolvedMesh> {
+  const records = await loadTextRecords(account).catch(() => [] as TextRecord[]);
+
+  const mesh = await resolveMesh({
+    chainId: CHAIN_CONFIG.chainId,
+    chainServices: { ...TERP_CHAIN_MESH_SERVICES },
+    overrides: CONTRACTS.calendar
+      ? { calendar: CONTRACTS.calendar }
+      : undefined,
+    loaders: {
+      getTextRecord: async (key) => {
+        const hit = records.find((r) => r.account === key);
+        return hit?.value;
+      },
+    },
+  });
+
+  // If mesh has no calendar, try legacy discovery and re-resolve with override
+  if (!mesh.calendar) {
+    try {
+      const legacy = await resolveCalendarAddressLegacy(account, records);
+      return {
+        ...mesh,
+        calendar: legacy,
+        warnings: [
+          ...mesh.warnings.filter((w) => !w.includes('calendar')),
+          'calendar filled via legacy billboard/subdao probe',
+        ],
+      };
+    } catch {
+      return mesh;
+    }
+  }
+
+  return mesh;
+}
+
+/**
  * Resolve the calendar contract address.
  *
- * 1. Try indexer: GET /indexer/dao-calendar/resolve/{account}
- *    Returns { calendar: "terp1..." } or 501 if not implemented.
- *
- * 2. Fallback — manual chain query sequence:
- *    a. Query terp721-account billboard for text records
- *    b. Find the "subdao" text record → DAO address
- *    c. Query contracts-by-creator(daoAddr) to find the calendar contract
- *    d. Verify it's a calendar by calling { dao: {} } on each candidate
+ * Prefers mesh.v1 (text record + chain headstash defaults), then:
+ * 1. Static CONTRACTS.calendar
+ * 2. Indexer: GET /indexer/dao-calendar/resolve/{account}
+ * 3. Legacy billboard subdao → contracts-by-creator probe
  */
 export async function resolveCalendarAddress(
   account: string = BILLBOARD_ACCOUNT,
@@ -73,7 +118,18 @@ export async function resolveCalendarAddress(
   const cached = getCachedAddress(account);
   if (cached) return cached;
 
-  // 1. Try indexer route
+  // Mesh path (mesh.v1 text record or chain defaults + legacy probe)
+  try {
+    const mesh = await resolveDaoMesh(account);
+    if (mesh.calendar) {
+      setCachedAddress(account, mesh.calendar);
+      return mesh.calendar;
+    }
+  } catch {
+    // fall through
+  }
+
+  // Indexer route
   try {
     const result = await queryREST<{ calendar: string }>(
       `/indexer/dao-calendar/resolve/${encodeURIComponent(account)}`,
@@ -83,13 +139,26 @@ export async function resolveCalendarAddress(
       return result.calendar;
     }
   } catch {
-    // Indexer not available or returned error — fall through to chain query
+    // Indexer not available — fall through
   }
 
-  // 2. Fallback: billboard text records → DAO → contracts-by-creator
   const address = await resolveFromChain(account);
   setCachedAddress(account, address);
   return address;
+}
+
+async function loadTextRecords(account: string): Promise<TextRecord[]> {
+  return queryContractSmart<TextRecord[]>(CONTRACTS.terp721Account, {
+    text_records: { account },
+  });
+}
+
+async function resolveCalendarAddressLegacy(
+  account: string,
+  records?: TextRecord[],
+): Promise<string> {
+  const recs = records ?? (await loadTextRecords(account));
+  return resolveFromChainWithRecords(recs);
 }
 
 /**
@@ -97,20 +166,19 @@ export async function resolveCalendarAddress(
  * billboard text records → subdao address → contracts-by-creator → verify calendar
  */
 async function resolveFromChain(account: string): Promise<string> {
-  // 2a. Query billboard text records
-  const records = await queryContractSmart<TextRecord[]>(
-    CONTRACTS.terp721Account,
-    { text_records: { account } },
-  );
+  const records = await loadTextRecords(account);
+  return resolveFromChainWithRecords(records);
+}
 
-  // 2b. Find the subdao text record
-  const subdaoRecord = records.find(r => r.account === 'subdao');
+async function resolveFromChainWithRecords(
+  records: TextRecord[],
+): Promise<string> {
+  const subdaoRecord = records.find((r) => r.account === 'subdao');
   if (!subdaoRecord?.value) {
-    throw new Error(`No "subdao" text record found for account "${account}"`);
+    throw new Error('No "subdao" text record found for account');
   }
   const daoAddr = subdaoRecord.value;
 
-  // 2c. Query contracts instantiated by this DAO
   const res = await fetch(
     `${REST_BASE}/cosmwasm/wasm/v1/contracts/creator/${daoAddr}`,
   );
@@ -124,12 +192,9 @@ async function resolveFromChain(account: string): Promise<string> {
     throw new Error(`No contracts found instantiated by DAO ${daoAddr}`);
   }
 
-  // 2d. Probe each candidate with { dao: {} } to find the calendar
   for (const addr of candidates) {
     try {
       const dao = await queryContractSmart<string>(addr, { dao: {} });
-      // If it responds to { dao: {} } and returns the expected DAO address,
-      // this is a dao-calendar contract
       if (dao === daoAddr) return addr;
     } catch {
       // Not a calendar contract — continue

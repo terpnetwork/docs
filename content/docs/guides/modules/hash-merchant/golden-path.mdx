@@ -1,0 +1,91 @@
+---
+title: Golden path
+description: Path B end-to-end — sidecar, vote extensions, confirmed root, contract sudo
+status: partial
+---
+## HashMerchant golden path (Path B)
+
+One happy path from “terpd exists” to “contract saw a confirmed foreign root.”
+This mirrors the lab flow in terp-core `tests/tsh/hashmerchant/` without reimplementing consensus.
+
+## Mental model
+
+1. Governance (or genesis) **registers** a foreign `chain_uid` + hash `algo`.
+2. Validators run a **sidecar** that serves `/vote-extension` with the foreign state root.
+3. Vote extensions carry that data; **quorum** of voting power stores a **HashRoot**.
+4. **Registered** contracts with **paid escrow** receive the root via **sudo**.
+5. Contracts verify Merkle proofs against the confirmed root.
+
+```bash
+Foreign chain → Sidecar → terpd VE → HashRoot → sudo → Contract
+```
+
+## Prerequisites
+
+- `terpd` installed (use [terp-installer](/docs/ecosystem/terp-installer) / node guides — not this page)
+- `curl`, `jq`
+- Sidecar (lab mock or production hash-market)
+- Wasm for your claim/test contract
+
+## Steps
+
+### 1. Prepare
+
+Record chain-id, RPC, keyring, intended `chain_uid` + `algo`, and key owners. See [Support role](./support-role).
+
+### 2. Configure the node
+
+See [Configuration](./config). Minimal:
+
+```toml
+## app.toml
+[hashmerchant]
+sidecar-url = "http://127.0.0.1:9090"
+sidecar-timeout = "1s"
+```
+
+Or `export HASHMERCHANT_SIDECAR_URL=http://127.0.0.1:9090`.
+
+Empty URL ⇒ empty vote extensions (safe; this validator contributes no root).
+
+## 3. Run the sidecar
+
+- `GET /health` → OK
+- `GET /vote-extension` → JSON with `chain_uid`, `algo`, `root`, heights
+
+### 4. Confirm chain registration
+
+```bash
+terpd q hashmerchant chains
+terpd q hashmerchant chain <chain_uid>
+```
+
+Registration is governance-gated. Support does not invent chain UIDs.
+
+## 5. Deploy and register contract
+
+```bash
+terpd tx hashmerchant register-contract \
+  <contract-addr> <chain_uid> <substore-keys> <escrow-amount> \
+  --from <operator> --gas auto -y
+
+terpd q hashmerchant escrow <contract-addr>
+```
+
+## 6. Smoke
+
+```bash
+curl -sf "$HASHMERCHANT_SIDECAR_URL/health"
+curl -sf "$HASHMERCHANT_SIDECAR_URL/vote-extension" | jq .
+terpd q hashmerchant root <chain_uid> <algo>
+```
+
+After enough voting power agrees, the root query advances. On failure, use [Playbooks](./playbooks).
+
+## Path A note
+
+Operator loyalty trees / CRM snapshots are **out of scope** for this golden path. Static member-list whitelists may appear in demos; full CRM attach is a separate product layer.
+
+## Protocol SSOT
+
+Module specification in terp-core: `x/hashmerchant/spec/` (concepts, vote extensions, sudo, parameters, examples).

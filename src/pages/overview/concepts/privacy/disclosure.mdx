@@ -1,0 +1,75 @@
+---
+title: "Selective Disclosure"
+description: "How Terp Network supports selective disclosure \u2014 proving attributes without revealing identity"
+status: "partial"
+---
+Selective disclosure is the ability to prove a specific fact about yourself without revealing all your information. For example: proving you're over 18 without revealing your exact birth date, or proving you hold an NFT without revealing which one.
+
+## How Selective Disclosure Works
+
+The basic pattern:
+
+1. **Commitment** — you commit to a piece of information by storing a hash on-chain
+2. **Proof** — when needed, you reveal a subset of the information along with a zero-knowledge proof
+3. **Verification** — the verifier checks the proof against the on-chain commitment
+
+```text
+Private data → Commit (hash) → Store on-chain
+                                 ↓
+Proof request → Reveal subset + ZK proof → Verify against commitment
+```
+
+## Use Cases on Terp Network
+
+| Use Case | What Is Disclosed | What Is Hidden |
+|----------|------------------|----------------|
+| Age verification | "Over 18" boolean | Exact birth date |
+| KYC attestation | "Verified by issuer X" | Personal identity data |
+| Token holding | "Holds at least N tokens" | Exact balance or wallet |
+| Membership | "Is a DAO member" | Which DAO or member ID |
+| Credential | "Has completed course Y" | Personal details |
+
+## Implementation Patterns
+
+### Hash Chains
+
+The simplest form of selective disclosure uses hash chains. A user stores `H(secret || salt)` on-chain. Later, they reveal `(secret, salt)` to prove they know the original data.
+
+```solidity
+// Pseudocode: commit-reveal pattern
+commit = sha256(secret ++ salt)
+// Store commit on-chain
+// Later:
+reveal(secret, salt)
+// On-chain: verify sha256(secret ++ salt) == stored_commit
+```
+
+## Merkle Proofs
+
+For more granular disclosure, data is structured as a Merkle tree. A user proves membership of a leaf without revealing the entire tree.
+
+> **Merkle disclosure diagram scaffold** — a diagram showing a Merkle tree where a user proves membership of one leaf (disclosed) while keeping other leaves (undisclosed) hidden. The proof path goes from leaf to root.
+
+### Zero-Knowledge Proofs
+
+ZK proofs enable arbitrary selective disclosure without revealing underlying data. Terp Network supports ZK circuits through:
+
+- **PollRegistry** — verifiable vote tallying
+- **zk-CosmWasm VM** — private contract execution (future)
+- **Custom circuits** — deployable via the circuit module
+
+## Selective Disclosure in Practice
+
+For wallet integrations, selective disclosure enables:
+
+- **Login without identity** — prove wallet ownership without sharing address
+- **Private airdrops** — claim an airdrop without linking to your on-chain activity
+- **Compliance** — meet regulatory requirements without exposing user data
+
+> **Selective disclosure wallet flow scaffold** — a sequence diagram showing a user generating a proof in their wallet, submitting it to a dApp, and the dApp verifying against on-chain commitments.
+
+## Further Reading
+
+- [Privacy overview](/overview/concepts/privacy) — broader privacy context
+- [ZK resources](/resources) — circuit development and tooling
+- [Wallet integration guides](/guides/nodes/keys) — privacy-preserving wallet connections

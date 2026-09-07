@@ -1,11 +1,11 @@
 ---
 title: Crypto
 description: Cryptographic primitives used in Terp Network — hash functions, elliptic curves, key pairs, Merkle structures, zero-knowledge proofs, post-quantum readiness
+status: partial
 ---
+import { Accordion, Accordions } from '#vocs-compat';
 
-import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
-
-# Cryptography on Terp Network
+## Cryptography on Terp Network
 
 Cryptography is the foundation of every trust-minimized system. Terp Network uses cryptographic primitives at every layer — from account authentication to block finalization to cross-chain proofs.
 
@@ -45,7 +45,7 @@ Hash functions take an input of any size and produce a fixed-size digest that un
 
 **Example — same input, different algorithms:**
 
-```
+```text
 Input: "Hello"
 
 SHA-256:  2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
@@ -72,7 +72,7 @@ Elliptic curve cryptography (ECC) provides the mathematical foundation for Terp 
 
 **How key pairs work:**
 
-```
+```text
 Private Key: a random 256-bit integer
         ↓ (scalar multiplication on the curve)
 Public Key: a point (x, y) on the curve, 33 bytes compressed
@@ -92,7 +92,7 @@ A key pair on Terp Network consists of a **private key** (kept secret) and a **p
 
 **Terp Network derivation path:**
 
-```
+```text
 m / 44' / 114' / 0' / 0 / <index>
   ↑      ↑       ↑
  BIP-44  Coin   Account

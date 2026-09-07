@@ -39,7 +39,7 @@ Rules:
 - Never paste mainnet mnemonics into chat, tickets, or web forms.
 - Separate **testnet** keys from **mainnet** keys.
 
-### Private keys and armor
+## Private keys and armor
 
 ```bash
 ## Export private key (dangerous — prefer only for migration between air-gapped machines)
@@ -52,7 +52,7 @@ terpd keys show my-wallet --pubkey
 
 Prefer hardware devices for value: [Ledger](/docs/guides/authentication/wallets/ledger).
 
-### Keyring backends
+## Keyring backends
 
 | Backend | Typical use |
 |---------|-------------|
@@ -78,13 +78,13 @@ terpd keys show my-wallet -a
 ## Address must match the original account
 ```
 
-### From armored private key
+## From armored private key
 
 ```bash
 terpd keys import my-wallet ./my-wallet.asc
 ```
 
-### Hardware
+## Hardware
 
 Re-link the device in the wallet app; the seed never leaves the device. See [Ledger](/docs/guides/authentication/wallets/ledger) and [Wallet safety](/docs/guides/authentication/wallets/safety).
 

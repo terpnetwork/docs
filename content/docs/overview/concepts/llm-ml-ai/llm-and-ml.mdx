@@ -1,15 +1,13 @@
 ---
 title: AI & ML Integration
 description: How Terp Network integrates with AI and ML tooling — QMD semantic analysis, LLM code generation, smart contract indexing
+status: partial
 ---
-
-# AI & ML Integration
-
 Terp Network provides infrastructure and tooling for integrating AI and ML capabilities into blockchain workflows.
 
 ## QMD — Query Markdown Documentation
 
-[QMD](/docs/resources/development/tools) is a semantic code analysis tool that indexes CosmWasm contract source code and documentation into a searchable database. It powers:
+[QMD](/docs/resources/development) is a semantic code analysis tool that indexes CosmWasm contract source code and documentation into a searchable database. It powers:
 
 - **Smart contract discovery** — find contracts by behavior, not just name
 - **Semantic code search** — query code by meaning, not exact strings
@@ -25,9 +23,9 @@ qmd index my-contracts
 qmd query "contracts that handle IBC callbacks"
 ```
 
-### QMD + Trailmark
+## QMD + Trailmark
 
-[Trailmark](/docs/resources/development/tools) extends QMD with AST-level code graph analysis, enabling:
+[Trailmark](/docs/resources/development) extends QMD with AST-level code graph analysis, enabling:
 
 - **Dependency mapping** — visualize contract dependency trees
 - **Entrypoint analysis** — understand which entrypoints a contract exposes
@@ -41,7 +39,7 @@ Terp Network documentation and tooling are designed to work with LLM-based codin
 
 ### llms.txt
 
-Terp Network provides an [llms.txt](/llms.txt) file that LLMs can ingest for context-aware assistance. This file includes:
+Terp Network provides an [llms.txt](/docs/guides/llms) file that LLMs can ingest for context-aware assistance. This file includes:
 
 - Core documentation pages in LLM-friendly format
 - Code snippets and examples
@@ -89,6 +87,6 @@ The Terp Network ecosystem uses semantic indexing to make codebases searchable b
 
 ## Further Reading
 
-- [QMD setup guide](/docs/resources/development/tools) — installation and configuration
+- [QMD setup guide](/docs/resources/development) — installation and configuration
 - [Semantic indexing docs](/docs/resources/development) — advanced usage
-- [LLM context configuration](/llms.txt) — machine-readable doc index
+- [LLM context configuration](/docs/guides/llms) — machine-readable doc index

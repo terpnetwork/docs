@@ -1,5 +1,7 @@
 ---
 title: 3. IBC channels
+description: "IBC channels for Terp Network"
+status: partial
 ---
 ## IBC Channels for Terp Network
 

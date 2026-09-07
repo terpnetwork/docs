@@ -1,7 +1,8 @@
 ---
 title: run a relayer via hermes
+description: A relayer communicates with 2 networks in order for packets (msgs) to be sent between them sercurely & with finality.
+status: partial
 ---
-
 A relayer communicates with 2 networks in order for packets (msgs) to be sent between them sercurely & with finality.
 
 ## GUIDE
@@ -22,7 +23,7 @@ Instructions for setting up a relayer via hermes.
 *first, install rust on your machine if not already installed:*
 
 ```bash
-# install rust 
+# install rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
@@ -63,7 +64,6 @@ you should have now created a config.toml file that we can further modify for ou
 Your relayer will need to sign & broadcast messages on chain, so first the private keys that we will grant to the relayer must be set up.Generally it is ideal to utilize a fresh wallet and private key, not associated with any personal or critical keys in your possession.
 
 Cosmos blockchains enable various methods for handling how the messages are signed, for example a **fee grant** for a key a relayer is using, by a completely different key, and ONLY for the messages that are used when relayed packets are received is possible.
-
 
 To add keys, this example uses a **mnemonic-file,** which contains just the mnemonic seed phrase of the account you want the relayer to sign & broadcast messages with:
 

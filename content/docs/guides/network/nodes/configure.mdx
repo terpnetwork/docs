@@ -1,17 +1,9 @@
 ---
 title: Configure
+description: The following page will guide you through the configuration of a node and a client. The node is used to run the blockchain network, produce blocks and...
+status: partial
 ---
-
----
-title: Configure
----
-
----
-title: Configure
----
- 
-
-# Configuration
+## Configuration
 
 The following page will guide you through the configuration of a node and a client.
 The node is used to run the blockchain network, produce blocks and validate transactions.
@@ -38,7 +30,7 @@ you can have multiple home directories that each represent a different blockchai
       └── priv_validator_key.json    # Private key to use as a validator in the consensus protocol.
 ```
 
-To specify the `terpd` config and data storage directory; you can update it using the global flag `--home <directory>`.
+To specify the `terpd` config and data storage directory; you can update it using the global flag `--home &lt;directory>`.
 
 ## Node Configuration
 
@@ -55,7 +47,7 @@ If it's empty, make sure to edit the field with some value, for example `10token
 
 ## App.toml
 
-###  Minimum Gas Prices
+### Minimum Gas Prices
 
 <Tabs>
 <Tab value="morocco-1" label="morocco-1">
@@ -78,7 +70,6 @@ If it's empty, make sure to edit the field with some value, for example `10token
 </Tab>
 </Tabs>
 
-
 to update the value:
 
 ```sh
@@ -86,7 +77,7 @@ $min_gas="0.05uthiolx"
 sed -i.bak -e "s/^minimum-gas-prices *=.*/minimum-gas-prices = \"$min_gas\"/" ~/.terpd/config/app.toml
 
 ```
-### Pruning of State
+## Pruning of State
 
 There are four strategies for pruning state. These strategies apply only to state and do not apply to block storage.
 To set pruning, adjust the `pruning` parameter in the `~/.terpd/config/app.toml` file.
@@ -100,10 +91,8 @@ The following pruning state settings are available:
 By default, every node is in `default` mode which is the recommended setting for most environments.
 If you would like to change your nodes pruning strategy then you must do so when the node is initialized. Passing a flag when starting `terpd` will always override settings in the `app.toml` file, if you would like to change your node to the `everything` mode then you can pass the `--pruning everything` flag when you call `terpd start`.
 
-
 **IMPORTANT**:
 When you are pruning state you will not be able to query the heights that are not in your store.
-
 
 ```yaml
 # default: the last 362880 states are kept, pruning at 10 block intervals
@@ -133,7 +122,7 @@ pruning-interval = "0"
 min-retain-blocks = 0
 ```
 
-### Halting Options
+## Halting Options
 
 ```yaml
 # HaltHeight contains a non-zero block height at which a node will gracefully
@@ -151,7 +140,7 @@ halt-time = 0
 
 ```
 
-### Caching & Index Events
+## Caching & Index Events
 ```yaml
 
 # InterBlockCache enables inter-block caching.
@@ -165,13 +154,13 @@ inter-block-cache = true
 index-events = []
 ```
 
-### IAVL Options
+## IAVL Options
 
 ```yaml
 # IavlCacheSize set the size of the iavl tree cache (in number of nodes).
 iavl-cache-size = 781250
 
-# IAVLDisableFastNode enables or disables the fast node feature of IAVL. 
+# IAVLDisableFastNode enables or disables the fast node feature of IAVL.
 # Default is false.
 iavl-disable-fastnode = false
 
@@ -180,7 +169,7 @@ iavl-disable-fastnode = false
 iavl-lazy-loading = false
 ```
 
-### AppDBBackend 
+## AppDBBackend
 ```yaml
 
 # AppDBBackend defines the database backend type to use for the application and snapshots DBs.
@@ -189,7 +178,7 @@ iavl-lazy-loading = false
 app-db-backend = ""
 ```
 
-### Telemetry Options
+## Telemetry Options
 ```yaml
 
 [telemetry]
@@ -222,7 +211,7 @@ prometheus-retention-time = 0
 global-labels = []
 ```
 
-### API Options
+## API Options
 ```yaml
 [api]
 
@@ -251,7 +240,7 @@ rpc-max-body-bytes = 1000000
 enabled-unsafe-cors = false
 ```
 
-### Rosetta Options
+## Rosetta Options
 ```yaml
 [rosetta]
 
@@ -286,7 +275,7 @@ gas-to-suggest = 200000
 denom-to-suggest = "uatom"
 ```
 
-### GRPC Options
+## GRPC Options
 ```yaml
 
 [grpc]
@@ -306,7 +295,7 @@ max-recv-msg-size = "10485760"
 max-send-msg-size = "2147483647"
 ```
 
-### GRPC Web Options
+## GRPC Web Options
 ```yaml
 
 [grpc-web]
@@ -322,7 +311,7 @@ address = "localhost:9091"
 enable-unsafe-cors = false
 ```
 
-### State Sync Options
+## State Sync Options
 ```yaml
 
 # State sync snapshots allow other nodes to rapidly join the network without replaying historical
@@ -337,7 +326,7 @@ snapshot-interval = 0
 snapshot-keep-recent = 2
 ```
 
-### Store / State Streaming Options
+## Store / State Streaming Options
 ```yaml
 
 [store]
@@ -349,7 +338,7 @@ keys = ["*", ]
 write_dir = ""
 prefix = ""
 
-# output-metadata specifies if output the metadata file which includes the abci request/responses 
+# output-metadata specifies if output the metadata file which includes the abci request/responses
 # during processing the block.
 output-metadata = "true"
 
@@ -360,7 +349,7 @@ stop-node-on-error = "true"
 fsync = "false"
 ```
 
-### Mempool Options
+## Mempool Options
 ```yaml
 [mempool]
 # Setting max-txs to 0 will allow for a unbounded amount of transactions in the mempool.
@@ -384,7 +373,7 @@ memory_cache_size = 100
 # simulation_gas_limit =
 ```
 
-## Config.toml 
+## Config.toml
 
 ### DB Backend
 
@@ -411,13 +400,13 @@ memory_cache_size = 100
 db_backend = "goleveldb"
 ```
 
-### DB Directory 
+## DB Directory
 ```yaml
 # Database directory
 db_dir = "data"
 ```
 
-### Logs
+## Logs
 ```yaml
 # Output level for logging, including package level options
 log_level = "info"
@@ -427,7 +416,7 @@ log_format = "plain"
 
 ```
 
-### Additional Base Configurations
+## Additional Base Configurations
 ```yaml
 # Path to the JSON file containing the initial validator set and other meta data
 genesis_file = "config/genesis.json"
@@ -454,7 +443,7 @@ filter_peers = false
 
 ```
 
-### RPC Server Options
+## RPC Server Options
 ```yaml
 [rpc]
 
@@ -565,7 +554,7 @@ tls_key_file = ""
 pprof_laddr = "localhost:6060"
 ```
 
-### P2P Options
+## P2P Options
 ```yaml
 [p2p]
 
@@ -640,7 +629,7 @@ dial_timeout = "3s"
 
 ```
 
-### Mempool Options
+## Mempool Options
 
 ```yaml
 [mempool]
@@ -696,7 +685,7 @@ ttl-duration = "0s"
 ttl-num-blocks = 0
 ```
 
-### State Sync Options
+## State Sync Options
 
 ```yaml
 [statesync]
@@ -733,12 +722,12 @@ chunk_request_timeout = "10s"
 chunk_fetchers = "4"
 ```
 
-### Blocksync options
+## Blocksync options
 ```yaml
 [blocksync]
 
 # Block Sync version to use:
-# 
+#
 # In v0.37, v1 and v2 of the block sync protocols were deprecated.
 # Please use v0 instead.
 #
@@ -746,7 +735,7 @@ chunk_fetchers = "4"
 version = "v0"
 ```
 
-### Consensus Options
+## Consensus Options
 
 ```yaml
 [consensus]
@@ -787,7 +776,7 @@ create_empty_blocks_interval = "0s"
 peer_gossip_sleep_duration = "100ms"
 peer_query_maj23_sleep_duration = "2s"
 ```
-### Storage Options
+## Storage Options
 ```yaml
 [storage]
 
@@ -798,7 +787,7 @@ peer_query_maj23_sleep_duration = "2s"
 discard_abci_responses = false
 ```
 
-### Tx Indexer Options
+## Tx Indexer Options
 ```yaml
 [tx_index]
 
@@ -820,7 +809,7 @@ indexer = "kv"
 psql-conn = ""
 ```
 
-### Instrumentation Options
+## Instrumentation Options
 ```yaml
 [instrumentation]
 
@@ -917,9 +906,7 @@ JSON-RPC is provided on multiple transports. Evmos supports JSON-RPC over HTTP a
 In terms of requirements we recommend a server with minimum 8-core CPU and 64gb of RAM.
 You must have ports 8545 and 8546 open on your firewall.
 
-
-**Important**: You cannot use all JSON RPC methods unless your node stores the entire copy of the blockchain locally. Do you need archives/snapshots of our networks? Go to [this section](/connect/apis#snapshots).
-
+**Important**: You cannot use all JSON RPC methods unless your node stores the entire copy of the blockchain locally. Do you need archives/snapshots of our networks? Go to [this section](/docs/api#snapshots).
 
 ### Enable Server
 
@@ -929,7 +916,7 @@ To enable RPC server use the following flag (set to true by default).
 terpd start --json-rpc.enable
 ```
 
-### Defining Namespaces
+## Defining Namespaces
 
 `Eth`,`Net` and `Web3` namespaces are enabled by default, but for the JSON-RPC you need to add more namespaces.
 In order to enable other namespaces edit `app.toml` file.
@@ -940,7 +927,7 @@ In order to enable other namespaces edit `app.toml` file.
 api = "eth,net,web3,txpool,debug,personal"
 ```
 
-### Set a Gas Cap
+## Set a Gas Cap
 
 `eth_call` and `eth_estimateGas` define a global gas cap over rpc for DoS protection. You can override the default gas cap value of 25,000,000 by passing a custom value in `app.toml`:
 
@@ -949,7 +936,7 @@ api = "eth,net,web3,txpool,debug,personal"
 gas-cap = 25000000
 ```
 
-### CORS
+## CORS
 
 If accessing the RPC from a browser, CORS will need to be enabled with the appropriate domain set. Otherwise, JavaScript calls are limit by the same-origin policy and requests will fail.
 
@@ -968,7 +955,7 @@ The CORS setting can be updated from the `app.toml`
 enabled-unsafe-cors = true # default false
 ```
 
-### Pruning
+## Pruning
 
 For all methods to work correctly, your node must be archival (store the entire copy of the blockchain locally). Pruning must be disabled.
 The pruning settings can be updated from the `app.toml`
@@ -994,7 +981,7 @@ pruning-keep-every = "0"
 pruning-interval = "0"
 ```
 
-### WebSocket Server
+## WebSocket Server
 
 Websocket is a bidirectional transport protocol. A Websocket connection is maintained by client and server until it is explicitly terminated by one. Most modern browsers support Websocket which means it has good tooling.
 

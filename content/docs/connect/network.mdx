@@ -1,12 +1,9 @@
 ---
 title: Join a Network
 description: Mainnet and testnet connection guides (installation from source)
+status: partial
 ---
-
-# Join a Network
-
 Connecting to Terp Network is permissionless. Use the tabs below for Mainnet or Testnet workflows (identical steps, network-specific configs).
-
 
 ## LocalTerp
 
@@ -22,7 +19,7 @@ Connecting to Terp Network is permissionless. Use the tabs below for Mainnet or 
 State sync wires into a Cosmos SDK app through the ABCI interface, using dedicated ABCI methods for snapshot management. Its internal storage is isolated from both CometBFT's storage namespace and the application's main KV store.
 https://github.com/cosmos/cosmos-sdk/blob/main/store/snapshots/README.md
 https://medium.com/tendermint/tendermint-core-state-sync-for-developers-70a96ba3ee35
-## Pruning     
+## Pruning
 
 <Tabs items={['Mainnet', 'Testnet']} defaultValue="Mainnet">
 <Tab value="Mainnet" label="Mainnet (morocco-1)">
@@ -54,7 +51,7 @@ make build
 </Tabs>
 
 ## Common Workflow
-1. `terpd init <moniker> --chain-id $CHAIN_ID`
+1. `terpd init &lt;moniker> --chain-id $CHAIN_ID`
 2. Download genesis, update `config.toml` (seeds, peers), `app.toml` (gas prices: `0.05uthiol`)
 3. Sync using snapshot or state-sync
 4. Start node with `terpd start` or cosmovisor

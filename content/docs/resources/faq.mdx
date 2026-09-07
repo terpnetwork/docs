@@ -1,9 +1,9 @@
 ---
 title: FAQs
 description: Frequently Asked Questions about Terp Network
+status: partial
 ---
-
-import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+import { Accordion, Accordions } from '#vocs-compat';
 
 <Accordions type="single">
 
@@ -67,7 +67,7 @@ See [Quickstart](/docs/overview/quickstart), [Guides index](/docs/guides)
 | **REST API** | HTTP queries to node endpoints — see [API docs](/docs/api) |
 | **gRPC** | Typed queries — see [gRPC endpoints](/docs/api/grpc) |
 | **CosmJS** | JS/TS library for programmatic interaction — see [Libraries](/docs/resources/libraries) |
-| **cw-orchestrator** | Rust library for multi-contract deployment — see [Development tools](/docs/resources/development/tools) |
+| **cw-orchestrator** | Rust library for multi-contract deployment — see [Development tools](/docs/resources/development) |
 
 The most common pattern: use Keplr/Leap for wallet connection to a dApp, which uses CosmJS under the hood to sign and broadcast transactions via a public RPC endpoint.
 </Accordion>
@@ -78,7 +78,7 @@ Yes. Terp Network is designed for integration. Common integration patterns:
 - **Accept payments** — receive `uthiol` or IBC tokens via a wallet address or payment contract
 - **Tokenize assets** — use Tokenfactory to create a native denom, or CW20 for a contract-based token
 - **Verifiable records** — store hashes on-chain for audit trails, supply chain, or certification
-- **DAO governance** — launch a DAO for decentralized decision-making ([DAO setup](/guides/cosmwasm/deployed/dao-dao))
+- **DAO governance** — launch a DAO for decentralized decision-making ([DAO setup](/docs/resources/ecosystem/daodao))
 - **IBC interoperability** — bridge assets to/from other Cosmos chains
 - **Smart contract automation** — use the Clock module for scheduled contract execution
 
@@ -176,7 +176,7 @@ The ecosystem includes deployed projects across several categories:
 | **Identity** | Terp Account Billboards, selective disclosure |
 | **Tools** | QMD (semantic indexing), cw-orchestrator, terp.js, type generation |
 
-See [Ecosystem](/docs/ecosystem), [Products](/docs/overview/products), [Deployed contracts](/guides/cosmwasm/deployed)
+See [Ecosystem](/docs/ecosystem), [Products](/docs/overview/products), [Deployed contracts](/docs/guides/cosmwasm)
 </Accordion>
 
 </Accordions>

@@ -1,12 +1,13 @@
 ---
 title: 1. introduction
+description: IBC handles the authentication and transport of data between blockchains, enabling cross-chain communication and interoperability.
+status: partial
 ---
-# Relaying
+## Relaying
 
 ## IBC
 
 IBC handles the authentication and transport of data between blockchains, enabling cross-chain communication and interoperability.
- 
 
 The IBC protocol provides a reliable, secure and permissionless way for relaying data packets between blockchains, and the security of IBC reduces to the security of the participating chains.
 
@@ -27,7 +28,6 @@ Because of IBC's neutrality for cross-chain communication, two sets of standards
 **IBC/TAO:** Standards defining the Transport, Authentication, and Ordering of packets, i.e. the infrastructure layer (Core, Client, Relayer).
 
 **IBC/APP:** Standards defining the application handlers for the data packets being passed over the transport layer (ICS-20, ICS-721,ICS-27..).
-
 
 ## Relayers
 Relayers ensure the relaying of IBC packets between chains, as they have access to full nodes of both chains and  they can query and submit messages. Relayers are constantly monitoring channels for events to relay, and they are able rebuild IBC packets along with the proof.

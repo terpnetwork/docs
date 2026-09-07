@@ -3,8 +3,8 @@ title: IBC Hooks
 description: Call CosmWasm contracts on ICS-20 packet receipt using wasm memo hooks on Terp Network
 status: complete
 ---
-import { Callout } from 'fumadocs-ui/components/callout';
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Callout } from '#vocs-compat';
+import { Tab, Tabs } from '#vocs-compat';
 
 **IBC Hooks** (from [cosmos/ibc-apps `ibc-hooks`](https://github.com/cosmos/ibc-apps/tree/main/modules/ibc-hooks)) sit in Terp’s ICS-20 transfer stack so a successful IBC transfer can **execute a CosmWasm message on the receiving chain**. The hook payload lives in the transfer **memo**.
 
@@ -110,7 +110,7 @@ terpd tx wasm instantiate <CODE_ID> '{"count":0}' \
   -y
 ```
 
-### 2. Transfer with wasm memo (chain A)
+## 2. Transfer with wasm memo (chain A)
 
 ```bash
 CONTRACT=terp1…   # contract on B
@@ -127,7 +127,7 @@ terpd tx ibc-transfer transfer transfer "$CHANNEL" "$CONTRACT" "$amount" \
   -y
 ```
 
-### 3. Relay and wait for ack
+## 3. Relay and wait for ack
 
 Run your relayer (Hermes or Go relayer) and wait until the packet is acknowledged. See [Relay overview](/docs/guides/ibc/relay/relay) and [Basic Hermes](/docs/guides/ibc/relay/basic-hermes).
 

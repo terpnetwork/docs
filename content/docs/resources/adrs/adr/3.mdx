@@ -1,9 +1,9 @@
 ---
 title: "ADR-3: Agent, LLM, and Automation Participation Expectations"
-description: Expectations for Terp Network community members and systems when interfacing with LLMs, agents, robots, and automation
+description: "Expectations for Terp Network community members and systems when interfacing with LLMs, agents, robots, and automation"
+status: "partial"
 ---
-
-# ADR 3: Agent, LLM, and Automation Participation Expectations
+## ADR 3: Agent, LLM, and Automation Participation Expectations
 
 ## Changelog
 
@@ -143,7 +143,7 @@ title: "ADR-9: LM-Augmented Development and Semantic Tooling Integration Surface
 description: How Terp Network uses language models, semantic search, and code graph analysis to contribute to the protocol — transparently, verifiably, and with human accountability
 ---
 
-# ADR 9: LM-Augmented Development and Semantic Tooling
+## ADR 9: LM-Augmented Development and Semantic Tooling
 
 ## Changelog
 
@@ -274,7 +274,7 @@ The following tools constitute the Terp Network developer workspace for LM-augme
 **Adding a new project to the pipeline:**
 
 1. Run `trailmark parse` on the new repository
-2. Run `qmd-bulk-ingest.py --src-dir <repo>/src --collection <name>` to index source
+2. Run `qmd-bulk-ingest.py --src-dir &lt;repo>/src --collection &lt;name>` to index source
 3. Index any documentation into the appropriate QMD collection
 4. Create TensorZero function definitions for LM tasks specific to the project
 5. Document the new collection and its purpose in this ADR's collection table
@@ -334,11 +334,10 @@ Fully additive. No existing code, APIs, or on-chain behavior changes. This ADR d
 - Trailmark skill documentation (Hermes skill: trailmark)
 - QMD setup notes: Homebrew Python 3.13 venv at `~/.oline/venv/`, global DB at `~/.oline/semantic/qmd-global.db`
 
-
 ---
 ---
 
-# ADR 11: Developer Tooling Integration Surface and Agent Onboarding
+## ADR 11: Developer Tooling Integration Surface and Agent Onboarding
 
 ## Changelog
 
@@ -398,7 +397,7 @@ We adopt the **schema-driven pipeline** as the standard integration method. The 
 
 All CosmWasm contract types and Cosmos SDK module types are generated from a single canonical source:
 
-```
+```bash
 cargo schema
     │
     ▼
@@ -483,7 +482,7 @@ A final step produces human-readable markdown tables documenting every message t
 schema-to-md --input ./schemas --output ./docs/api-reference.md
 ```
 
-### Track 2: Discovery and Onboarding
+## Track 2: Discovery and Onboarding
 
 An agent or developer entering the Terp Network ecosystem follows this workflow:
 
@@ -504,7 +503,7 @@ oline tx register-name agent-name --from agent-key
 
 The integration surface is enumerated through three discovery mechanisms:
 
-1. **Contract registry**: `oline query wasm list-contract-by-code <code-id>` lists all deployed contract instances
+1. **Contract registry**: `oline query wasm list-contract-by-code &lt;code-id>` lists all deployed contract instances
 2. **Schema endpoint**: each CosmWasm contract exposes a `/schema` query returning its JSON Schema definitions
 3. **QMD search**: `oline-qmd search 'smart account authentication' -c abstract` returns relevant ADRs, module specs, and source files
 
@@ -543,7 +542,7 @@ Follow ADR-3 participation expectations:
 - Submit PRs with ADR references and TensorZero episode metadata
 - Apply the same quality gates as human contributions
 
-### Integration Surface Inventory
+## Integration Surface Inventory
 
 The following table enumerates every integration surface currently available:
 

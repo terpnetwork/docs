@@ -1,3 +1,5 @@
 ---
 title: Nft
+status: stub
 ---
+

@@ -3,6 +3,8 @@
 # Creates minimal meta.json in every subfolder under content/docs/ that lacks one,
 # or replaces empty meta.json files with a default {}
 
+# Fumadocs-only (meta.json). Vocs uses vocs.config.ts sidebar.
+# Pass content/docs explicitly if you still need this on the archive tree.
 TARGET_DIR="${1:-content/docs}"
 DRY_RUN=false
 if [[ "${2:-}" == "--dry-run" || "${2:-}" == "-n" ]]; then

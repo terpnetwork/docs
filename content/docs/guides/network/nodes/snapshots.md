@@ -1,20 +1,18 @@
 ---
 title: automate compressed snapshot creation
+description: "- Ensures regular backups of the node's data, reducing the risk of data loss - Automates the process, saving time and effort for node operators - Helps..."
+status: partial
 ---
-
-
-### Benefits of Creating Snapshots
+## Benefits of Creating Snapshots
 - Ensures regular backups of the node's data, reducing the risk of data loss
 - Automates the process, saving time and effort for node operators
 - Helps maintain a consistent and up-to-date snapshot of the blockchain, making it easier to restore the node in case of issues
-
 
 ### Prerequisites:
 
 The script assumes that the Terp service is installed and running on the system
 The script requires jq, tar, and systemctl commands to be available on the system
 The script uses a specific log file and snapshot directory, which can be modified as needed
-
 
 ### Usage:
 
@@ -66,5 +64,5 @@ log_this "Done\n---------------------------\n"
 ```
 Make the script executable by running `chmod +x create_snapshot.sh`, and then run the script by executing `./create_snapshot.sh`.
 
-To setup a cron job service to run this once a day 
+To setup a cron job service to run this once a day
 

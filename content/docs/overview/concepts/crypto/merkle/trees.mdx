@@ -1,15 +1,13 @@
 ---
 title: Merkle Trees
 description: Standard Merkle trees — binary hashed data structures for efficient verification of large datasets
+status: partial
 ---
-
-# Merkle Trees
-
 A Merkle tree is a binary tree where each leaf is a hash of a data block and each internal node is the hash of its two children. The root hash summarizes the entire dataset — change any leaf and the root changes.
 
 ## Structure
 
-```
+```text
                 Root
                /    \
         Hash(A)      Hash(B)
@@ -32,7 +30,7 @@ A Merkle proof for leaf B consists of the sibling hashes needed to reconstruct t
 Proof for B: [Hash(A), Hash(B)]
               + B                → Hash(A+B)
               + Hash(D)          → Root
-  
+
 Verification: hash(Hash(A + hash(B)) + Hash(D)) == stored_root
 ```
 

@@ -1,7 +1,9 @@
 ---
 title: 6 - building the binary
----   
-# Preparing the Wasm bytecode for production
+description: Before we upload it to a chain, we need to ensure the smallest output size possible, as this will be included in the body of a transaction. We also want to...
+status: partial
+---
+## Preparing the Wasm bytecode for production
 
 Before we upload it to a chain, we need to ensure the smallest output size possible,
 as this will be included in the body of a transaction. We also want to have a

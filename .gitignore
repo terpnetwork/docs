@@ -3,6 +3,10 @@
 
 # generated content
 .source
+.vocs
+/dist
+# synced product docs (source of truth lives next to the code; see scripts/sync-product-docs.py)
+src/pages/guides/validators/frost-privval.mdx
 
 # test & build
 /coverage

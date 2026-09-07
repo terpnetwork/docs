@@ -1,7 +1,8 @@
 ---
 title: run a relayer via go-rly
+description: A relayer communicates with 2 networks in order for packets (msgs) to be sent between them sercurely & with finality.
+status: partial
 ---
-
 A relayer communicates with 2 networks in order for packets (msgs) to be sent between them sercurely & with finality.
 
 ## GUIDE
@@ -40,7 +41,7 @@ make install
 
 ```bash
 # replace <release-version> with desired value
-wget https://github.com/cosmos/relayer/releases/download/v2.5.2/Cosmos.Relayer_2.5.2_linux_amd64.tar.gz 
+wget https://github.com/cosmos/relayer/releases/download/v2.5.2/Cosmos.Relayer_2.5.2_linux_amd64.tar.gz
 # decompress file & move to go folder
 tar -xvf Cosmos.Relayer_2.5.2_linux_amd64.tar.gz && mv 'Cosmos Relayer_2.5.2_linux_amd64'/rly /usr/local/go/bin/
 ```
@@ -60,7 +61,7 @@ go: go1.21.5 linux/amd64
 
 *If you get an output like `'rly' not found` you should probably add `/srv/rly/go/bin` to your PATH*
 
-# Step 2: Configure Relayer
+## Step 2: Configure Relayer
 
 First, we need to init rly so it will create the default configuration `$HOME/.relayer/config/config.yaml` maybe with a custom memo that will be written on relayed transactions
 
@@ -91,7 +92,7 @@ rly keys restore terpnetwork headstash "$MNEMONIC"
 For each network keys, edit the configuration file (under `$HOME/.relayer/config/config.yaml`) changing the key values according to the you had defined above. Example:
 
 ```sh
-# install yaml -> jq tool: sudo apt install yq  
+# install yaml -> jq tool: sudo apt install yq
 yq -i -y  '.chains[].value.key = "headstash"' .relayer/config/config.yaml
 
 ```
@@ -110,7 +111,7 @@ to add a new path between Terp Network and another blockchain:
 rly paths new <terp-chain-id> <linked-chain-id> custom-alias-to-reference-specific-connection
 ```
 
-### linking two blockchains
+## linking two blockchains
 
 Linking two blockchains for the first times requires the creation & acknowledgement of client-ids, channel-ids, and connection-ids from both protocols. You can review [basic IBC specifics here](./basic-ibc-overview).
 
@@ -122,19 +123,19 @@ It is reccommended to check for existing clients and connections before creating
  rly transact clients path_name [flags]
 ```
 
-### B. Create Connections
+## B. Create Connections
 
 ```sh
 rly transact connection path_name [flags]
 ```
 
-### C. Create Channels
+## C. Create Channels
 
 ```sh
 rly transact channel demo-path --src-port transfer --dst-port transfer --order unordered --version ics20-1
 ```
 
-### OR
+## OR
 
 ### ABC. Create Clients,Connections,Channels in 1 Tx
 
@@ -148,7 +149,7 @@ This will allow your relayer to run continuously on your server.
 Update the following configuration with your parameters to `/etc/systemd/system/rly.service`
 
 ```sh
-sudo tee /etc/systemd/system/rly.service > /dev/null <<EOF  
+sudo tee /etc/systemd/system/rly.service > /dev/null <<EOF
 [Unit]
 Description=Rly IBC relayer
 ConditionPathExists=/root/go/bin/rly

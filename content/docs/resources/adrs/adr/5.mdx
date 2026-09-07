@@ -1,8 +1,9 @@
 ---
 title: hash-market
+description: hash-market on Terp Network
+status: partial
 ---
-
-# ADR-001: HashMerchant — Verifiable Merkle Reflection Market
+## ADR-001: HashMerchant — Verifiable Merkle Reflection Market
 
 ## Status
 Proposed
@@ -50,7 +51,7 @@ Implement x/hashmerchant as a new Cosmos SDK module with:
 `hashmerchant` — store key: `hashmerchant`
 
 ## Store Layout
-```
+```text
 hashmerchant/
   registered_chains/    prefix 0x01 | chainUID → RegisteredChain JSON
   registered_contracts/ prefix 0x02 | contractAddr → RegisteredContract JSON

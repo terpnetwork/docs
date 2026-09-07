@@ -6,7 +6,6 @@ import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { LLMCopyButton, ViewOptions } from '@/components/ai/page-actions';
 import { gitConfig } from '@/lib/layout.shared';
-import { APIPage } from '@/lib/openapi';
 
 export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const params = await props.params;
@@ -19,6 +18,8 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
     : page.data;
 
   if ('getAPIPageProps' in data && typeof data.getAPIPageProps === 'function') {
+    // Lazy-load OpenAPI UI only for API routes — not every MDX doc page
+    const { APIPage } = await import('@/lib/openapi');
     const apiPageProps = data.getAPIPageProps();
     const operations = apiPageProps.operations ?? [];
     const webhooks = apiPageProps.webhooks ?? [];

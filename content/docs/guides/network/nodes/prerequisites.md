@@ -1,11 +1,8 @@
 ---
 title: Prerequisites
+description: This guide explains what the requirements are to install and run an Terp Network full node. We assume that you are on a linux distrubtion with atleast 100GB...
+status: partial
 ---
-
----
-title: Prerequisites
----
- 
 This guide explains what the requirements are to install and run an Terp Network full node. We assume that you are on a linux distrubtion with atleast 100GB of storage, 1 CPU, and 16GB of RAM.
 
 To quickly spin up a linux testing environment, Akash Console, or Digital Ocean, are two options available to spin up a linux envoronment.
@@ -20,7 +17,7 @@ sudo apt-get update && sudo apt upgrade -y
 sudo apt-get install make build-essential gcc git jq chrony lz4 -y
 ```
 
-### Go
+## Go
 
 Follow the instructions [here](https://go.dev/doc/install) to install Go.
 

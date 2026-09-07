@@ -1,10 +1,8 @@
 ---
 title: Patricia Merkle Tries
 description: Radix-encoded Merkle trie optimized for key-value state storage — used in Ethereum and adapted for Terp Network's IBC light clients
+status: partial
 ---
-
-# Patricia Merkle Tries
-
 A **Patricia Merkle trie** (also called a Merkle Patricia Trie or MPT) combines a radix tree (compressed prefix tree) with Merkle hashing. Each key-value pair is stored at a leaf determined by the key's path through the tree, and every internal node is hashed to produce a root commitment.
 
 ## Why Patricia?
@@ -22,7 +20,7 @@ Standard Merkle trees pack leaves densely and order them by index. Patricia trie
 
 A Patricia trie has three node types:
 
-```
+```text
 Root
   │
   ├── Branch Node (16 children + value)

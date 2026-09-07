@@ -1,11 +1,9 @@
 ---
 title: IBC Info Checksums
 description: Use the ibc-info script to query IBC channel metadata, generate verifiable checksums, and confirm integrity
+status: partial
 ---
-
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-
-# IBC Info Checksums
+import { Tab, Tabs } from '#vocs-compat';
 
 IBC channel metadata — port bindings, client states, connection handshakes, channel capabilities — must be verified independently rather than trusted from a single source. The **ibc-info** workflow queries raw on-chain state, generates checksums from the exported data, and lets you compare against published references.
 

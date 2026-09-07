@@ -1,10 +1,8 @@
 ---
 title: P2P Networking
 description: How Terp Network nodes communicate — CometBFT, peer discovery, gossip protocol, network topology
+status: partial
 ---
-
-# P2P Networking
-
 Terp Network uses CometBFT (formerly Tendermint Core) for peer-to-peer networking. Nodes discover each other, gossip transactions and blocks, and maintain the network topology without central coordination.
 
 ## CometBFT P2P Layer
@@ -32,11 +30,11 @@ persistent_peers = "id@host:26656"
 pex = true
 ```
 
-### Peer Addressing
+## Peer Addressing
 
 Peers are identified by their **node ID** (first 20 bytes of the node's Ed25519 public key, hex-encoded) and IP address:
 
-```
+```html
 <node-id>@<host>:<p2p-port>
 ```
 
@@ -50,7 +48,7 @@ Terp Network recommends a **sentry node** architecture for validators:
 - **Sentry nodes** — public, connect to the wider network, relay traffic to the validator
 - **Full nodes** — public, sync chain state, serve RPC queries
 
-```
+```text
          Internet
      ┌─────┴─────┐
    Sentry 1   Sentry 2     ← public, DDoS-resistant

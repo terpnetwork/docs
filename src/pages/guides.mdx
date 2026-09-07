@@ -1,0 +1,31 @@
+---
+title: Guides
+description: Run a node and operate a validator on Terp Network
+---
+
+import { Card, Cards } from 'vocs'
+
+# Guides
+
+Start here if you want a machine on the network.
+
+<Cards>
+  <Card title="Install terpd" description="Build or install the node binary." to="/guides/nodes/install" />
+  <Card title="Prepare a node" description="Init, genesis, peers, and first start." to="/guides/nodes/prepare-node" />
+  <Card title="State sync" description="Catch up in minutes instead of replaying history." to="/guides/nodes/state-sync" />
+  <Card title="Run a validator" description="Create-validator, sentries, upgrades, and ops." to="/guides/validators" />
+</Cards>
+
+## Node
+
+1. [Prerequisites](/guides/nodes/prerequisites)
+2. [Install](/guides/nodes/install)
+3. [Prepare the node](/guides/nodes/prepare-node)
+4. [Configure](/guides/nodes/configure)
+5. [Keys](/guides/nodes/keys)
+6. Sync with [state sync](/guides/nodes/state-sync), a [snapshot](/guides/nodes/snapshots), or [bootstrap](/guides/nodes/bootstrap)
+7. Keep it running with a [process supervisor](/guides/nodes/systemd) (systemd or pm2) and optionally [Cosmovisor](/guides/nodes/cosmovisor)
+
+## Validator
+
+Follow the [validator sequence](/guides/validators): overview → requirements → setup → sentry → monitoring → upgrades.

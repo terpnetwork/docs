@@ -3,7 +3,7 @@ title: IBC Transfers
 description: Send ICS-20 token transfers on Terp Network and link to wasm memo hooks for contract execution on receive
 status: complete
 ---
-import { Callout } from 'fumadocs-ui/components/callout';
+import { Callout } from '#vocs-compat';
 
 Move tokens between Terp Network and a counterparty chain over an open ICS-20 channel.
 

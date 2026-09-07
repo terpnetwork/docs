@@ -1,7 +1,8 @@
 ---
 title: install keplr
+description: Go to https://wallet.keplr.app/ and click Install for Chrome
+status: partial
 ---
-
 Go to [https://wallet.keplr.app/](https://wallet.keplr.app/) and click ** Install for Chrome **
 
 ![](../assets/install-keplr-1.png)

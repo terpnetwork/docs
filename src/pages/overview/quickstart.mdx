@@ -1,0 +1,73 @@
+---
+title: Quickstart
+description: Install terpd and talk to Terp Network in a few minutes
+---
+
+import { Card, Cards } from 'vocs'
+
+# Quickstart
+
+Three short paths. Pick one.
+
+## 1. Talk to a public node
+
+No local binary required. Public RPC is `https://rpc.terp.network` (cosmos.directory is stale — do not use it).
+
+```bash
+curl -s https://rpc.terp.network/status | jq .result.node_info.network
+```
+
+You should see `morocco-1` (mainnet). Public testnet is `120u-1`:
+
+```bash
+curl -s https://testnet-rpc.terp.network/status | jq .result.node_info.network
+```
+
+More queries: [API playground](/api) and [public endpoints](/resources/public).
+
+## 2. Install `terpd` with the get script
+
+The supported install path is the script at `https://terp.network/get`. It downloads a release binary for your platform (Linux/macOS, amd64/arm64) and can run the interactive bootstrap wizard (`terpd bootstrap`: init, genesis, state-sync, pruning, Cosmovisor, process supervisor).
+
+```bash
+# Interactive wizard (mainnet by default)
+curl -sL https://terp.network/get | bash
+
+# Public testnet (120u-1)
+curl -sL https://terp.network/get | bash -s -- --network 120u-1
+
+# Download the binary only — skip bootstrap
+curl -sL https://terp.network/get | bash -s -- --setup-only
+```
+
+Pin a binary version with `TERPD_VERSION` (the script default is the current release, e.g. `5.2.0`):
+
+```bash
+TERPD_VERSION=5.2.0 curl -sL https://terp.network/get | bash -s -- --setup-only
+```
+
+Verify, then point the client at public RPC:
+
+```bash
+terpd version
+terpd config set client chain-id morocco-1
+terpd config set client node https://rpc.terp.network:443
+terpd status
+```
+
+Integrity notes for the installer: [verify checksums](/resources/integrity). Build-from-source and Docker: [Install](/guides/nodes/install).
+
+## 3. Run your own node
+
+1. [Prerequisites](/guides/nodes/prerequisites)
+2. [Prepare the node](/guides/nodes/prepare-node) — or stay in the get-script wizard
+3. Catch up with [state sync](/guides/nodes/state-sync) or a [snapshot](/guides/nodes/snapshots)
+4. Keep it running with a [process supervisor](/guides/nodes/systemd) (systemd, pm2, or Cosmovisor)
+
+Local disposable chains (not public testnet): [Local network](/guides/nodes/local). Promoting a synced node to a validator: [validator setup](/guides/validators/setup).
+
+<Cards>
+  <Card title="What is Terp?" description="Mission and architecture." to="/overview" />
+  <Card title="Products" description="Onramps, ZK-VM, composability." to="/overview/products" />
+  <Card title="Join a network" description="Mainnet vs testnet connection." to="/connect/network" />
+</Cards>

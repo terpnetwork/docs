@@ -1,10 +1,8 @@
 ---
 title: Tokens
 description: Token types on Terp Network — native, CW20, CW721, IBC vouchers, Tokenfactory denoms
+status: partial
 ---
-
-# Tokens
-
 Tokens are on-chain records of value, access, or information. Terp Network supports multiple token standards across modules.
 
 ## Native Token: `uthiol`
@@ -49,13 +47,13 @@ The IBC standard for transferring NFTs between chains. Enables cross-chain NFT t
 ### IBC Vouchers
 
 When tokens arrive via IBC from another chain, they appear as IBC vouchers:
-```
+```text
 ibc/<hash-of-transfer-port-and-channel>/<original-denom>
 ```
 
 These vouchers are native representations of the original token. They can be transferred, swapped, and staked (if the receiving chain supports it).
 
-### Tokenfactory Denoms
+## Tokenfactory Denoms
 
 The `x/tokenfactory` module allows any account to create a **native denomination** — not a smart contract token, but a first-class native token managed by the `x/bank` module.
 

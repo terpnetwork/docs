@@ -1,0 +1,68 @@
+---
+title: "Snapshots"
+description: "Download a live chain snapshot and restore your node in minutes"
+---
+
+import { SnapshotPanels } from '../../_components/snapshot-panel'
+
+Daily snapshots are published for every network. Restoring from the latest pruned snapshot is the fastest way to sync a node — minutes instead of replaying the full chain.
+
+<SnapshotPanels />
+
+> The panel above reads the live catalog (`pruned/snapshot.json`) straight from the bucket. If it fails to load, the URLs below follow the same layout.
+
+## Download and restore (mainnet)
+
+```bash
+CHAIN_ID="morocco-1"
+BASE="https://s3.terp.network/snapshots/mainnet/${CHAIN_ID}"
+
+# Resolve the latest published snapshot
+LATEST_URL=$(curl -s ${BASE}/pruned/snapshot.json | jq -r .latest)
+echo "Latest: ${LATEST_URL}"
+
+# Stop the node, clear state, fetch and extract
+sudo systemctl stop terpd
+rm -rf $HOME/.terpd/data $HOME/.terpd/wasm
+curl -sL "${LATEST_URL}" | lz4 -dc | tar -x -C $HOME/.terpd
+
+# Restart and let it catch up to head
+sudo systemctl start terpd
+terpd status | jq .sync_info.catching_up
+```
+
+Use `https://minio.terp.network/snapshots/...` as an alternate host for the same paths.
+
+Testnet (`120u-1`) does not publish a daily pack — sync testnet from genesis plus [state sync](./state-sync) instead.
+
+Each tarball is named `{chain_id}_{height}_{UTC}Z.tar.lz4` and bundles `data/` plus `wasm/`. The height is right in the filename — confirm it is recent before restoring:
+
+```bash
+curl -s ${BASE}/pruned/snapshot.json | jq -r .latest
+# .../morocco-1_22945782_2026-09-03T13-03-09Z.tar.lz4  →  height 22945782
+```
+
+## Snapshot tiers
+
+`terpd snapshot` produces local snapshots in tiers; the published daily pack is the **pruned** tier:
+
+| Tier | Pruning | Use for |
+|---|---|---|
+| pruned (published daily) | default (recent states kept) | Everyday node syncs |
+| full | nothing (everything kept) | Archive / RPC nodes with history |
+| minimal | everything (2 states) | Lightweight sentries |
+| sentry | everything minus blockstore | Edge sentries |
+
+Archive packs (full history) are published under `archive/` on the same layout when available. See [State sync](./state-sync) for the no-download alternative and [Archive](./archive) for running a history node.
+
+## Roll your own
+
+To snapshot your own node instead of downloading, stop it first so `data/` is consistent, then archive:
+
+```bash
+sudo systemctl stop terpd
+tar -C $HOME/.terpd -cf - data wasm | lz4 -c > $HOME/morocco-1_$(date '+%Y-%m-%d').tar.lz4
+sudo systemctl start terpd
+```
+
+Never restore a snapshot onto a running node, and never copy a live `data/` directory without stopping the process — you will get a corrupt state.

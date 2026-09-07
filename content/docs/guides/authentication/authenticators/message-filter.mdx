@@ -1,11 +1,9 @@
 ---
 title: MessageFilter Authenticator
 description: Authorize transactions by matching the message against a JSON pattern — permissionless utility accounts, faucets, and automated agents
+status: partial
 ---
-
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-
-# MessageFilter Authenticator
+import { Tab, Tabs } from '#vocs-compat';
 
 The **MessageFilter** authenticator authorizes a transaction when the message matches a predefined JSON pattern. This enables **permissionless utility accounts** — accounts that can execute specific operations without requiring a signature from the account owner.
 
@@ -75,7 +73,7 @@ terpd tx smart-account add-authenticator \
 ```
 
 Sample output:
-```
+```text
 txhash: 1234ABCD...
 authenticator_id: 5
 ```

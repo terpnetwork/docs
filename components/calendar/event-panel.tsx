@@ -1,36 +1,53 @@
 'use client';
 
+import { useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  useCalendarEvents,
   useCalendarGroups,
   nanosToTimeString,
   type EventFilter,
 } from '@/lib/hooks/use-calendar';
+import { useMeshEvents } from '@/lib/hooks/use-mesh-events';
+import type { ResolvedMesh } from '@/lib/mesh';
 import { EventPanelSkeleton } from './calendar-skeleton';
 
 interface EventPanelProps {
   selectedDate: Date;
   selectedGroup: string;
+  /** When provided, list events from HTTP query plane (preferred). */
+  mesh?: ResolvedMesh;
 }
 
-export function EventPanel({ selectedDate, selectedGroup }: EventPanelProps) {
+export function EventPanel({
+  selectedDate,
+  selectedGroup,
+  mesh,
+}: EventPanelProps) {
   const dayStart = new Date(selectedDate);
   dayStart.setHours(0, 0, 0, 0);
   const dayEnd = new Date(selectedDate);
   dayEnd.setHours(23, 59, 59, 999);
 
-  const filter: EventFilter = {
-    by_time_range: {
-      start_after: (BigInt(dayStart.getTime()) * 1_000_000n).toString(),
-      end_before: (BigInt(dayEnd.getTime()) * 1_000_000n).toString(),
-    },
-    ...(selectedGroup !== 'all' && {
-      by_groups: { groups: [selectedGroup] },
+  const filter: EventFilter = useMemo(
+    () => ({
+      by_time_range: {
+        start_after: (BigInt(dayStart.getTime()) * 1_000_000n).toString(),
+        end_before: (BigInt(dayEnd.getTime()) * 1_000_000n).toString(),
+      },
+      ...(selectedGroup !== 'all' && {
+        by_groups: { groups: [selectedGroup] },
+      }),
     }),
-  };
+    [selectedDate.getTime(), selectedGroup],
+  );
 
-  const { data, isLoading } = useCalendarEvents(filter, undefined, 20); // Cap day view to 20 events
+  const {
+    data,
+    isLoading,
+    queryUnavailable,
+    productMessage,
+  } = useMeshEvents(mesh, filter, 20);
+
   const { data: groupsData } = useCalendarGroups();
 
   const groupColorMap = new Map(
@@ -48,6 +65,11 @@ export function EventPanel({ selectedDate, selectedGroup }: EventPanelProps) {
       <p className="text-sm font-medium text-fd-muted-foreground">{dateStr}</p>
       {isLoading ? (
         <EventPanelSkeleton />
+      ) : queryUnavailable ? (
+        <p className="text-sm text-orange-800 dark:text-orange-200">
+          {productMessage ||
+            'Query plane unavailable — day events cannot be listed right now.'}
+        </p>
       ) : !data?.events.length ? (
         <p className="text-sm text-fd-muted-foreground">
           No events on this day.
@@ -79,9 +101,9 @@ export function EventPanel({ selectedDate, selectedGroup }: EventPanelProps) {
                         )}
                       </p>
                       <p className="mt-0.5 text-xs text-fd-muted-foreground">
-                        {nanosToTimeString(er.event.start_time)}
+                        {safeTime(er.event.start_time)}
                         {' \u2013 '}
-                        {nanosToTimeString(er.event.end_time)}
+                        {safeTime(er.event.end_time)}
                         {er.event.timezone && (
                           <span className="ml-1 font-mono text-[10px] text-fd-muted-foreground/60">
                             {er.event.timezone}
@@ -109,4 +131,18 @@ export function EventPanel({ selectedDate, selectedGroup }: EventPanelProps) {
       )}
     </div>
   );
+}
+
+function safeTime(nanosOrIso: string): string {
+  try {
+    return nanosToTimeString(nanosOrIso);
+  } catch {
+    const d = new Date(nanosOrIso);
+    if (Number.isNaN(d.getTime())) return nanosOrIso;
+    return d.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
 }

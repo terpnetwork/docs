@@ -1,8 +1,8 @@
 ---
 title: scavenger hunt
+description: The program is limited to the top 100 members and involves 3 challenges. Each challenge has a corresponding reward, for a total of ! PERSY, with bonuses of !...
+status: partial
 ---
-
-
 ## Scavenger Hunt Challenge Level 2: Reflection
 
 The program is limited to the top 100 members and involves 3 challenges. Each challenge has a corresponding reward, for a total of ***!*** PERSY, with bonuses of ! TERP & ! PERSY.
@@ -25,7 +25,7 @@ To learn more and participate, check out our Founding Member Rewards First Chall
 
 REPO: [Link](https://github.com/terpnetwork/scavenger-hunt/tree/main/challenge-2)
 
-# Create a new file called `<your-moniker>-contributions.json`
+## Create a new file called `&lt;your-moniker>-contributions.json`
 
 Following this example, please add all contributions you have made during the test network phase of Terp Network:
 
@@ -46,17 +46,17 @@ Following this example, please add all contributions you have made during the te
 }
 ```
 
-# Fork the REPO
+## Fork the REPO
 
 [Repository Link](https://github.com/terpnetwork/scavenger-hunt)
 
 learn about forking repositories here: [Link](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
 
-# Add your contribution details in your forked repo
+## Add your contribution details in your forked repo
 
 Add your new contributions file to the [2nd challenge folder](https://github.com/terpnetwork/scavenger-hunt/tree/main/challenge-2/contributions)
 
-# Open new PR to add your Contributions details
+## Open new PR to add your Contributions details
 
 Once your forked changes are pushed to github, follow these steps to opening a new PR in the source repository [here](https://github.com/terpnetwork/scavenger-hunt)
 

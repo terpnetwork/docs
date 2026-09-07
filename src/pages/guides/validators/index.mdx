@@ -1,0 +1,39 @@
+---
+title: "Validators"
+description: "Run a Terp Network validator \u2014 setup, sentry array, monitoring, upgrades, and ops"
+status: "complete"
+---
+import { Card, Cards } from 'vocs'
+
+
+Direct entry for **validator operators**. These pages used to hide under numbered filenames (`1.overview`, …); they are now first-class under **Network → Validators**.
+
+## Start here
+
+| Step | Page |
+|------|------|
+| 1. Role, slashing, ops mindset | [Overview](/guides/validators/overview) |
+| 2. Hardware & software requirements | [Requirements](/guides/validators/requirements) |
+| 3. Create and run the validator | [Setup](/guides/validators/setup) |
+| 4. Hide validator IP (sentry array) | [Sentry / oline array](/guides/validators/sentry) |
+| 5. Prometheus + Grafana | [Monitoring](/guides/validators/monitoring) |
+| 6. Key / host migration | [Migration](/guides/validators/migration) |
+| 7. Chain upgrades | [Chain upgrades](/guides/validators/chain-upgrades) |
+| 8. Upgrade history | [Upgrades history](/guides/validators/upgrades-history) |
+| 9. Common failures | [Troubleshooting](/guides/validators/troubleshooting) |
+
+<Cards>
+  <Card title="Setup validator" description="Create-validator flow and production process" to="/guides/validators/setup" />
+  <Card title="Sentry array" description="Oline / multi-sentry topology to protect the signer" to="/guides/validators/sentry" />
+  <Card title="Monitoring" description="Prometheus metrics and Grafana for validators" to="/guides/validators/monitoring" />
+  <Card title="Join via state sync" description="Fast node sync before you promote to validator" to="/guides/nodes/state-sync" />
+</Cards>
+
+## Related network guides
+
+- [Install terpd](/guides/nodes/install)
+- [Configure](/guides/nodes/configure)
+- [Bootstrap](/guides/nodes/bootstrap)
+- [State sync](/guides/nodes/state-sync)
+- [Process supervisor](/guides/nodes/systemd)
+- [Threshold signing](/guides/nodes/threshold-signing)

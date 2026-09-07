@@ -1,12 +1,9 @@
 ---
 title: Prepare Node
+description: A moniker is a human-readable name that represents the validator node. It's a way to identify your validator to other participants in the network, much like a...
+status: partial
 ---
-
----
-title: Prepare Node
----
- 
-# Initialize a node
+## Initialize a node
 
 A **moniker** is a human-readable name that represents the validator node. It's a way to identify your validator to other participants in the network, much like a username or a handle. It's intended to be easier to remember and recognize than the validator's public key or operator address, which are long and difficult to distinguish at a glance. The moniker shows the activity of your node on the block explorer.
 

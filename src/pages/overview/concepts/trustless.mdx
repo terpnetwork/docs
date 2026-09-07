@@ -1,0 +1,280 @@
+---
+title: "Trustlessness"
+description: "The Trustlessness Manifesto, verification pipelines, certified deployments, and how Terp Network minimizes trust assumptions"
+status: "partial"
+---
+Trustlessness is the property of a system where participants do not need to rely on any single entity acting honestly. Instead, verification is built into the protocol itself — users can independently verify every claim the system makes.
+
+## The Trustlessness Manifesto
+
+Terp Network operates under a trustlessness mandate:
+
+> **No user should be required to trust a third party to verify the integrity of the network, its software, or its state.**
+
+This means:
+- Every software release must be **reproducible** — anyone can build the same binary from source
+- Every state transition must be **verifiable** — run a node and see for yourself
+- Every "official" deployed contract must be **auditable** — source code is available and verifiable on-chain
+- Every network upgrade must be **transparent** — governance procedures and upgrade proposals are public
+
+> **Manifesto signature scaffold** — wallet integration for users to sign the trustlessness manifesto on-chain. The signed attestation serves as a commitment to trust-minimized principles. Implementation: a CosmWasm contract that records signatures + a minimal frontend component.
+
+## Verification Pipelines
+
+### Reproducible Builds
+
+Terp Network uses deterministic build environments (Docker-based) to ensure that the compiled binary from source code matches the published release binary.
+
+```bash
+# Verify a release build yourself
+git checkout v5.2.0
+make build  # produces terpd binary
+sha256sum build/terpd
+# Compare with published checksum
+```
+
+Compare artifact hashes against published release checksums — see [Integrity verification](/resources/integrity).
+
+## Release Curation Pipeline
+
+Terp Network follows a multi-stage pipeline for releases:
+
+1. **Development** — PRs merged to main branch
+2. **Testnet deployment** — O-Line deploys ephemeral nodes running the candidate
+3. **Integration tests** — CI runs full test suite against testnet
+4. **Governance vote** — if changes require parameter or state migrations
+5. **Tagged release** — signed git tag + Docker image push
+6. **Verification** — published checksums + reproducible build artifacts
+
+> **Pipeline flow scaffold** — a flowchart showing the release curation pipeline from development through governance to release. Each stage can link to the relevant CI configuration or governance proposal.
+
+### Certified Deployments
+
+Smart contracts deployed via certain tools (O-Line, cw-orchestrator using Terp test infrastructure) can produce a **verification proof** that the on-chain code hash matches a known source build.
+
+The verification flow:
+```text
+Source code → compile + optimize → code_hash
+                                        ↓
+Deploy tx → on-chain code_id + code_hash
+                                        ↓
+Verify: does chain's code_hash match your local build?
+```
+
+## Trust Minimization in Practice
+
+| Surface | Trust Assumption | How Terp Minimizes It |
+|---------|-----------------|----------------------|
+| Node software | Binary is correct | Reproducible builds + checksums |
+| Chain state | State is valid | Run your own full node |
+| Smart contract | Code does what it says | Source verification + on-chain code hash |
+| IBC packet | Packet was delivered correctly | Light client verification |
+| Governance | Proposal passes legitimately | On-chain vote tally, verifiable |
+| Deployment | Deployed artifact matches source | CI pipeline + hash comparison |
+
+## Further Reading
+
+- [Integrity verification](/resources/integrity) — verify binaries and deployments step-by-step
+- [Build pipelines](/overview/concepts/trustless) — deep dive into the automation
+- [Integrity resources](/resources/integrity) — checksums, signatures, attestations
+
+---
+
+## The Trustless Manifesto
+
+**Authors: Yoav Weiss, Vitalik Buterin, Marissa Posner**
+
+*Special thanks to pcaversaccio, Tim Clancy, and Dror Tirosh for feedback and review.*
+
+---
+
+## I. Why trustlessness matters
+
+Every system begins with good intentions.
+A hosted node here, a whitelisted relayer there.
+Each is harmless on its own - and together they become habit.
+
+Gateways become platforms.
+Platforms become landlords.
+Landlords decide who may enter and what they may do.
+
+The only defense is *trustless design*: systems whose correctness and fairness depend only on math and consensus, never on the goodwill of intermediaries.
+
+Trustlessness is not a feature to add after the fact.
+It is **the** thing itself.
+Without it, everything else - efficiency, UX, scalability - is decoration on a fragile core.
+
+Trustlessness is how credible neutrality is achieved.
+Without it, the system becomes one that depends on intermediaries.
+
+---
+
+## II. Why we build on Ethereum
+
+We build on Ethereum because we choose verification over blind trust.
+We write code so that power cannot hide behind policy.
+We design protocols so that freedom does not depend on permission.
+
+Ethereum was not created to make finance efficient or apps convenient.
+It was created to set people free - to empower anyone, anywhere to coordinate without permission and without trusting anyone they cannot hold accountable.
+
+Ethereum is the path to trustlessness.
+That promise must not be lost as we scale.
+
+---
+
+## III. What trustlessness means
+
+A system is trustless when any honest participant can join, verify, and act **without permission and without fear**.
+
+This requires:
+
+1. **Self-sovereignty** - each user authorizes their own actions; no one acts on their behalf.
+2. **Verifiability** - anyone can confirm what happened from public data.
+3. **Censorship resistance** - any valid action can be included, within a reasonable timeframe and without undue cost.
+4. **Walkaway test** - if one operator disappears or misbehaves, another can step in without approval.
+5. **Accessibility** - participation must be within reach of ordinary users, not only experts with servers and capital.
+6. **Transparency of incentives** - participants are governed by protocol rules, not private contracts or opaque APIs.
+
+Remove any of these, and the system drifts from protocol to platform - from neutral ground to private property.
+
+---
+
+## IV. What trustlessness demands
+
+Trustlessness is expensive.
+It requires redundancy, openness, and complexity.
+It requires mempools that anyone can use, even if that invites spam.
+It requires clients that anyone can run, even if few will.
+It requires governance that moves slowly, because no one can override consensus.
+
+Every shortcut that assumes trust eventually costs freedom.
+Trustlessness depends on free open source software - not only code that can be read, but code that can be freely run, verified, and improved.
+
+A trustless design must therefore obey three laws:
+
+1. **No critical secrets.**
+   No step of a protocol should depend on private information held by a single actor - except the user themselves.
+
+2. **No indispensable intermediaries.**
+   Anyone who forwards, executes, or attests must be replaceable by any other participant following the same rules.
+   "Anyone can run one" is not enough - participation must be *practically* open, not reserved for those with servers, funding, and DevOps skills.
+   A system that depends on intermediaries most users cannot realistically replace is not trustless; it merely concentrates trust in the hands of a smaller class of operators.
+
+3. **No unverifiable outcomes.**
+   Every effect on state must be reproducible and checkable from public data.
+
+These laws are harsh. They limit what we can build easily.
+But they are the only guarantee that what we build belongs to **everyone**.
+
+---
+
+## V. The drift toward dependence on trust
+
+The drift is not theoretical. It is already here.
+Hosted RPCs are the default.
+If AWS, GCP, and Cloudflare went dark, most apps would too.
+Sequencing is centralized by design in many rollups.
+Upgrade keys still exist. "Training wheels" are used as an excuse to delay decentralization.
+"Self-custody" is delegated to CEXes.
+Cross-chain interoperability has begun to mirror the very centralization it was meant to overcome - solvers and relayers act as gatekeepers of execution, deciding which transactions succeed and which fail.
+
+Trust does not return all at once.
+It returns through defaults slowly.
+Each choice feels harmless, temporary - not like centralization.
+
+No capture, no coup - just comfort.
+Help becomes habit; habit becomes dependence.
+Soon participation depends on infrastructure that only a few can run, and verification becomes the privilege of specialists.
+
+This is how decentralization erodes - not in theory, but in production.
+Not tomorrow, but **today**.
+
+Decentralization erodes not through capture, but through convenience.
+It drifts - automatically, continually - toward dependence on trust.
+
+---
+
+## VI. The limits of delegation
+
+Delegation may exist. Dependence must not.
+Users may choose convenience - a hosted node, a friendly UI, a service that helps them - the protocol must never require it.
+
+If inclusion requires an intermediary, it is not trustless.
+If that intermediary must be trusted, it is not neutral.
+If users can "theoretically" run their own intermediary but in practice never will, the system has replaced permissionless access with *technical gatekeeping.*
+
+A permissionless protocol must not only be *open in code*, but *open in cost, accessibility, and comprehension.*
+
+We have seen this pattern before.
+Email was once fully open - anyone could run their own mailserver.
+In theory, you still can.
+But in practice, spam filters, blocklists, and reputation systems make it nearly impossible for ordinary users.
+Email became effectively centralized - not because the protocol was closed, but because **practical trustlessness was lost**.
+
+We must not let Ethereum's access layer follow the same path.
+
+---
+
+## VII. The duty of builders
+
+We who design protocols are stewards, not gatekeepers.
+Our duty is not to build what is easiest, but what remains open and self-sovereign.
+
+When complexity tempts us to centralize, we must remember: every line of convenience code can become a choke point.
+When critics ask why our designs are complicated, we should ask them what - or **whom** - they are trusting instead.
+If simplicity comes from trust, it is not simplicity. It is surrender.
+
+Trustlessness costs computation, latency, and mental effort.
+It buys resilience, longevity, neutrality, and freedom.
+
+Trustlessness also requires viable incentives.
+Systems must reward those who sustain them without turning them into gatekeepers.
+A protocol that relies on unpaid altruism will decay.
+A protocol that rewards control will centralize.
+The only stable equilibrium is one where neutrality is profitable.
+
+---
+
+## VIII. The way forward
+
+Ethereum has scaled - now it must stay honest.
+
+As we build new layers, new accounts, and new ways to interact, we must preserve the properties that made Ethereum matter:
+
+- Users initiate their own actions.
+- Anyone can verify and participate.
+- No one can be silently excluded.
+- Logic lives in code, not in contracts of trust.
+- Inclusion depends on incentives, not on reputation or permission.
+
+Trustlessness is not perfection.
+It is a system that fails publicly, transparently, and recoverably - rather than privately and silently.
+
+---
+
+## IX. The pledge
+
+We choose to build trustless systems even when it is harder.
+We pay the cost of openness over the convenience of control.
+We do not outsource neutrality to anyone who can be bribed, coerced, or shut down.
+We measure success not by transactions per second, but by **trust reduced per transaction**.
+
+We refuse to build on infrastructure we cannot replace.
+We refuse to call a system "permissionless" when only the privileged can participate.
+We refuse to trade autonomy for polish, or freedom for frictionless UX.
+Trustlessness is not preserved by consensus alone - it is preserved by resistance.
+
+If your protocol requires faith in an intermediary, change it.
+If it relies on a private gateway, replace it.
+If it hides critical state or logic offchain, expose it.
+
+In the end, the world does not need more efficient middlemen.
+It needs fewer reasons to trust them.
+
+---
+
+### Trustlessness is the foundation.
+Everything else is construction on top of it.
+
+The designs will change. The principles will not.

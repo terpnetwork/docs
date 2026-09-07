@@ -1,11 +1,9 @@
 ---
 title: Compile & Verify Code ID
 description: Reproduce a CosmWasm contract build from source and verify the on-chain code hash matches
+status: partial
 ---
-
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-
-# Compile & Verify Code ID
+import { Tab, Tabs } from '#vocs-compat';
 
 Every CosmWasm smart contract deployed on Terp Network has an on-chain **code hash** (SHA-256 of the compiled WASM binary). If you can reproduce that hash from the contract's source code, you know the deployed bytecode is exactly what the source claims — no tampering, no backdoors inserted during deployment.
 
@@ -91,7 +89,7 @@ docker run --rm -v "$(pwd)":/code \
   cosmwasm/workspace-optimizer:0.16.0
 ```
 
-This produces `artifacts/<contract_name>.wasm`.
+This produces `artifacts/&lt;contract_name>.wasm`.
 
 ## Step 4: Compute the Local Hash
 
@@ -191,7 +189,7 @@ fi
 
 ## Expected Results
 
-```
+```text
 On-chain: 7f6c9b9a6b8c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2
 Local:    7f6c9b9a6b8c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2
 ✓ VERIFIED — code_id 42 matches artifacts/mycontract.wasm

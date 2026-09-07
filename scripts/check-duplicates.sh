@@ -5,7 +5,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOCS_DIR="${1:-$(cd "$SCRIPT_DIR/../content/docs" && pwd)}"
+DOCS_DIR="${1:-$(cd "$SCRIPT_DIR/../src/pages" && pwd)}"
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'

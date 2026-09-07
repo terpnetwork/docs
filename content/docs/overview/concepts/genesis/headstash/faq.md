@@ -1,25 +1,27 @@
 ---
-title:  FAQ
+title: FAQ
+description: Get questions answered about workflow leading up to the airdrop, during the airdrop, and possibilities for after the airdrop of TERP & THIOL tokens.
+status: partial
 ---
 *Get questions answered about workflow leading up to the airdrop, during the airdrop, and possibilities for after the airdrop of TERP & THIOL tokens.*
 ___
 
 Welcome! Terp Network is preparing for another push for decentralizing direct ownership of the protocol.
 
-### Hasn’t there already been an airdrop for Terp Network?
+## Hasn’t there already been an airdrop for Terp Network?
 
 Yes! During the rollout of the network, the initial distribution of TERP & *(formerly named PERSY*) THIOL’s were vested to:
 -  **$ATOM** holders, the staking token for Cosmos Network
 -  **$BITCANNA** holders, the staking token for another cannabis focused blockchain project.
-- **Testnet Scavengers** 
+- **Testnet Scavengers**
 - **Testnet OG's**
 - **TerpNET Foundation**
 
-Along with the initial distribution, a governance proposal passed that approved an airdrop to a number of cannabis & web3 focused communities. This airdrop is currently active and available to be claimed through a smart contract deployed onto main-net of Terp Network. 
+Along with the initial distribution, a governance proposal passed that approved an airdrop to a number of cannabis & web3 focused communities. This airdrop is currently active and available to be claimed through a smart contract deployed onto main-net of Terp Network.
 
 ### Can my favorite cannabis web-3 project also be included in the Terp Network Headstash?
 
-If you would like to see a cannabis & web3 project included in the airdrop, please reach out to the community! A governance proposal is required in order to make any decision on the included communities, and a snapshot export that can be verified of its authenticity is required. 
+If you would like to see a cannabis & web3 project included in the airdrop, please reach out to the community! A governance proposal is required in order to make any decision on the included communities, and a snapshot export that can be verified of its authenticity is required.
 
 ### When will the airdrop be able to be claimed?
 
@@ -35,7 +37,7 @@ There are a number of compatible wallets to claim your secret headstash airdrop.
 
 ### Where and when can I buy additional TERP & THIOL?
 
-At the time of writing, there are no active liquidity pools for TERP or THIOL available. There are a number of viable paths in order to bootstrap liquidity, however open discussions with community members is still needed. 
+At the time of writing, there are no active liquidity pools for TERP or THIOL available. There are a number of viable paths in order to bootstrap liquidity, however open discussions with community members is still needed.
 
 ### I want to test out claiming the airdrop. When can I do this?
 

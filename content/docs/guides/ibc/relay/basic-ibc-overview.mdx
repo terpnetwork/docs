@@ -1,8 +1,9 @@
 ---
 title: grasping ibc channels, clients, connections and more.
+description: "- describe how ibc protocol works - describe the lifecycle of an ibc transaction - describe ibc-denoms"
+status: partial
 ---
-
-## Goals 
+## Goals
 
 - describe how ibc protocol works
 - describe the lifecycle of an ibc transaction
@@ -17,7 +18,7 @@ The transport layer consists of 4 specific items:
 - ports
 
 ### Light Clients
-IBC clients are able to track and effeciently vverify the validity of cross-chain transactions, without the need for an intermediary. A client can be associated with any number of connections to a counterparty chain. 
+IBC clients are able to track and effeciently vverify the validity of cross-chain transactions, without the need for an intermediary. A client can be associated with any number of connections to a counterparty chain.
 
 #### Client State
 - proofs - block of recent proof must be in a light client state.
@@ -36,7 +37,7 @@ Just like connections, channels are established with a handshake.
 `UNORDERED` channels process packets in order they arrive.
 
 ### Ports
-IBC modules can bind to any number of ports. Each port is identified by unique portID. the `portId` denotes the type of application. 
+IBC modules can bind to any number of ports. Each port is identified by unique portID. the `portId` denotes the type of application.
 
 `transfer` is the `portID` for fungible token transfers
 
@@ -49,8 +50,8 @@ Establishing an IBC connection (for example, between chain A and chain B) requir
 - `OpenAck`
 - `OpenConfirm`
 
-### Initialize Connection A  
-`OpenInit` initializes any connection which may occur. It is like an identifying announcement from the IBC module on chain A which is submitted by a relayer. 
+### Initialize Connection A
+`OpenInit` initializes any connection which may occur. It is like an identifying announcement from the IBC module on chain A which is submitted by a relayer.
 
 ### Try Open Conection B
 `OpenTry` is where chain B verifies the identity of chain A according to information that chain B has about chain A in its light client (the algorithm and the last snapshot of the consensus state containing the root hash of the latest height as well as the next validator set). It also responds to some of the information about its own identity in the OpenInit announcement from chain A.
@@ -61,12 +62,10 @@ Establishing an IBC connection (for example, between chain A and chain B) requir
 ### Confirm Open Connection B
 `OpenConfirm` is the final handshake, in which chain B confirms that both self-identification and counterparty identification were successful.
 
-
-## New Channel Workflow 
+## New Channel Workflow
 Similarly to how connections are established, channels are established through a four-way handshake, in which each step is initiated by a relayer:
 
-
-### Initialize Channel A 
+### Initialize Channel A
 `ChanOpenInit`: will set the chain A into `INIT` state. This will call `OnChanOpenInit` so application A can apply the custom callback that it has set on `INIT`, e.g. check if the port has been set correctly, the channel is indeed unordered/ordered as expected, etc. An application version is also proposed in this step.
 
 ### Try Open Channel B

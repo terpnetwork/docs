@@ -35,3 +35,5 @@ export { default as Transaction } from './Transaction';
 export { default as Contribute } from './Contribute';
 export { default as Guide } from './Guide';
 export { default as Chainregistry } from './Chainregistry';
+export { default as Chain } from './ChainIcon';
+export { default as localterp } from './LocalTerp';

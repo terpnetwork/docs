@@ -1,0 +1,64 @@
+---
+title: Playbooks
+description: Recover from sidecar, stale root, escrow, and chain_uid failures
+status: partial
+---
+## Support playbooks
+
+Short recovery runbooks for Path B. Full copies live in the monorepo under `tools/hashmerchant-support/playbooks/` and `docs/hashmerchant/playbooks/`.
+
+## Sidecar down
+
+**Symptoms:** no new roots; logs mention sidecar fetch failure; `/health` fails.
+
+**Actions:**
+
+1. `curl -sf $HASHMERCHANT_SIDECAR_URL/health`
+2. Restart process/container; fix network path from validator to sidecar
+3. Validate `/vote-extension` JSON
+4. Prolonged outage: leave empty VE (safe) or clear URL intentionally
+
+**Do not:** paste emergency roots into consensus; disable VE verification.
+
+## Root stale / missing
+
+**Symptoms:** root query lagging; contracts on old sudo roots; mint demos reject height.
+
+**Actions:**
+
+1. Confirm chain registered and enabled
+2. Sidecar `chain_uid` / `algo` / root match registration
+3. Quorum: enough validators share the **same** root
+4. VE enable height reached
+5. Contract escrow still active
+
+**Mint demos:** fail closed on stale price; oracle bounds price only — does not invent supply.
+
+## Escrow expired
+
+**Symptoms:** roots confirm but contract receives no sudo; escrow query past `paid_until`.
+
+**Actions:**
+
+```bash
+terpd q hashmerchant escrow <contract>
+terpd tx hashmerchant refill-escrow <contract> <amount> --from <operator> --gas auto -y
+```
+
+Then wait for the next confirmed root.
+
+## Wrong chain_uid / algo
+
+**Symptoms:** healthy sidecar, no root for expected pair; registration vs VE strings differ.
+
+**Actions:**
+
+1. `terpd q hashmerchant chains`
+2. Align sidecar, registration, and contract to one canonical `chain_uid` + `algo`
+3. Fix demo env vars; do not assume aliases (`ethereum-lab` ≠ `ethereum-mainnet`)
+
+## Further reading
+
+- [Golden path](./golden-path)
+- [Configuration](./config)
+- Module spec: `x/hashmerchant/spec/` in terp-core

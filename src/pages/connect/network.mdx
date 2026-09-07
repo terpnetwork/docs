@@ -1,0 +1,49 @@
+---
+title: "Join a Network"
+description: "Chain IDs, genesis, endpoints, and sync paths for mainnet and testnet"
+---
+
+import { Tabs, Tab } from 'vocs'
+
+Connecting to Terp Network is permissionless. Pick your network below, then follow the sync path that fits.
+
+<Tabs>
+<Tab title="Mainnet (morocco-1)">
+
+**Chain ID:** `morocco-1`
+
+**Install:** `curl -sL https://terp.network/get | bash` — or [build from source](/guides/nodes/install).
+
+**Genesis:** `https://raw.githubusercontent.com/terpnetwork/networks/main/mainnet/morocco-1/genesis.json` (mirror: `https://s3.terp.network/snapshots/mainnet/morocco-1/genesis.json`)
+
+**RPC:** `https://rpc.terp.network:443`
+
+**Fast sync:** [download a daily snapshot](/guides/nodes/snapshots) — the live catalog sits at `https://s3.terp.network/snapshots/mainnet/morocco-1/pruned/snapshot.json`.
+
+</Tab>
+<Tab title="Testnet (120u-1)">
+
+**Chain ID:** `120u-1`
+
+**Install:** `curl -sL https://terp.network/get | bash -s -- --network 120u-1`
+
+**Genesis:** `https://s3.terp.network/snapshots/testnet/120u-1/genesis.json`
+
+**RPC:** `https://testnet-rpc.terp.network:443`
+
+**Faucet:** `https://testnet-faucet.terp.network` (`GET /status`, `GET /faucet?address=`)
+
+**Fast sync:** testnet publishes no daily pack — sync from genesis plus [state sync](/guides/nodes/state-sync).
+
+</Tab>
+</Tabs>
+
+## Common workflow
+
+1. Install (`terpd init <moniker> --chain-id <chain-id>`)
+2. Drop in the genesis file above
+3. Sync via [snapshot](/guides/nodes/snapshots) or [state sync](/guides/nodes/state-sync)
+4. Start with `terpd start` — or supervised under [systemd](/guides/nodes/systemd) / [Cosmovisor](/guides/nodes/cosmovisor)
+5. To validate: [create a validator](/guides/validators/setup) once fully synced
+
+Full detail lives in the [node guides](/guides) (hardware, config, sentries) and every endpoint on [Public endpoints](/resources/public).

@@ -12,12 +12,15 @@ const OPENAPI_INPUT = {
 
 export type OpenAPIDocumentId = keyof typeof OPENAPI_INPUT;
 
+/**
+ * Flat API files under /docs/api/<slug> — one file per surface, no tag folders.
+ */
 export const OPENAPI_SPECS = [
-  { id: 'OPENAPI', slug: 'openapi', title: 'OpenAPI Reference' },
-  { id: 'RPC', slug: 'rpc', title: 'RPC Reference' },
-  { id: 'IBCGO', slug: 'ibcgo', title: 'IBC-GO Reference' },
-  { id: 'LCD', slug: 'lcd', title: 'LCD Reference' },
-  { id: 'DATA', slug: 'data', title: 'Historical Data Reference' },
+  { id: 'OPENAPI', slug: 'openapi', title: 'OpenAPI (gRPC-gateway)' },
+  { id: 'RPC', slug: 'rpc', title: 'CometBFT RPC' },
+  { id: 'LCD', slug: 'lcd', title: 'LCD / REST' },
+  { id: 'IBCGO', slug: 'ibcgo', title: 'IBC-Go' },
+  { id: 'DATA', slug: 'data', title: 'Historical data' },
 ] as const satisfies ReadonlyArray<{
   id: OpenAPIDocumentId;
   slug: string;
@@ -52,6 +55,10 @@ export async function getOpenAPIDocument(id: OpenAPIDocumentId) {
   return openapiServer.getSchema(id);
 }
 
+/**
+ * One OpenAPI page per YAML file at /docs/api/<slug>.
+ * Operation/tag folder trees intentionally omitted — APIs stay file-level.
+ */
 export async function getOpenAPIDocsSource(): Promise<Source> {
   const sources: Record<string, Source> = {};
 
@@ -60,33 +67,11 @@ export async function getOpenAPIDocsSource(): Promise<Source> {
       input: () => ({ [spec.id]: OPENAPI_INPUT[spec.id] }),
     });
 
-    sources[`openapi-${spec.slug}-index`] = await openapiSource(server, {
+    sources[`openapi-${spec.slug}`] = await openapiSource(server, {
       per: 'file',
-      // baseDir: 'api',
-      name: () => `${spec.slug}/index`,
+      // Flat path: content merges under /docs/api/<slug>
+      name: () => `api/${spec.slug}`,
     });
-
-    const operationsSource = await openapiSource(server, {
-      per: 'operation',
-      groupBy: 'tag',
-      baseDir: `api/${spec.slug}`,
-    });
-
-    sources[`openapi-${spec.slug}-operations`] = {
-      files: operationsSource.files.map((file) => {
-        if (file.type !== 'page') return file;
-
-        if (file.path.endsWith('/index.mdx')) return file;
-
-        return {
-          ...file,
-          data: {
-            ...file.data,
-            description: undefined,
-          },
-        };
-      }),
-    };
   }
 
   return multiple(sources);

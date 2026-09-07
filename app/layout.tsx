@@ -1,6 +1,4 @@
 import { RootProvider } from 'fumadocs-ui/provider/next';
-import { QueryProvider } from '@/lib/queries/provider';
-import { WalletProvider } from '@/lib/wallet/provider';
 import '@/public/global.css';
 import { Inter } from 'next/font/google';
 import type { Metadata } from 'next';
@@ -31,16 +29,16 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Docs-only root: no React Query, no wallet, no calendar.
+ * Wallet content is written guides under /docs/guides/authentication/wallets.
+ */
 export default function Layout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="en" className={inter.className} suppressHydrationWarning>
       <body className="flex flex-col min-h-screen">
         <div aria-hidden="true" className="glyph-bg" />
-        <QueryProvider>
-          <WalletProvider>
-            <RootProvider>{children}</RootProvider>
-          </WalletProvider>
-        </QueryProvider>
+        <RootProvider>{children}</RootProvider>
       </body>
     </html>
   );

@@ -1,0 +1,140 @@
+---
+title: "Genesis"
+description: "The genesis file defines the initial state of the blockchain. This guide explains how to download and set up the genesis file for Terp Network."
+status: "partial"
+---
+## Download Genesis File
+
+The genesis file defines the initial state of the blockchain. This guide explains how to download and set up the genesis file for Terp Network.
+
+## What is the Genesis File?
+
+The genesis file contains:
+- Initial chain parameters
+- Initial token distribution
+- Validator set at chain start
+- Chain ID and other network configuration
+
+## Download Genesis File
+
+### Mainnet (morocco-1)
+
+```bash
+# Create config directory if it doesn't exist
+mkdir -p $HOME/.terpd/config
+
+# Download genesis file (canonical copy in the networks repo)
+curl -Ls https://raw.githubusercontent.com/terpnetwork/networks/main/mainnet/morocco-1/genesis.json > $HOME/.terpd/config/genesis.json
+
+# A mirror lives next to the snapshots
+# https://s3.terp.network/snapshots/mainnet/morocco-1/genesis.json
+
+# Verify the download
+ls -la $HOME/.terpd/config/genesis.json
+```
+
+## Testnet (120u-1)
+
+```bash
+# Create config directory if it doesn't exist
+mkdir -p $HOME/.terpd/config
+
+# Download genesis file
+curl -Ls https://s3.terp.network/snapshots/testnet/120u-1/genesis.json > $HOME/.terpd/config/genesis.json
+
+# Verify the download
+ls -la $HOME/.terpd/config/genesis.json
+```
+
+## Verify Genesis File
+
+Always verify the genesis file after downloading:
+
+```bash
+# Check it's valid JSON
+jq '.' $HOME/.terpd/config/genesis.json
+
+# Verify chain ID
+jq '.chain_id' $HOME/.terpd/config/genesis.json
+
+# Verify initial height
+jq '.initial_height' $HOME/.terpd/config/genesis.json
+```
+
+## Genesis Locations
+
+| Network | Chain ID | Genesis URL |
+|---------|----------|--------------|
+| Mainnet | morocco-1 | https://raw.githubusercontent.com/terpnetwork/networks/main/mainnet/morocco-1/genesis.json |
+| Testnet | 120u-1 | https://s3.terp.network/snapshots/testnet/120u-1/genesis.json |
+
+## Manual Node Initialization
+
+If you're starting from scratch:
+
+```bash
+# 1. Initialize the node
+terpd init <your-moniker> --chain-id <chain-id>
+
+# 2. Download the appropriate genesis file (see above)
+
+# 3. Verify the genesis file matches your chain
+terpd validate-genesis $HOME/.terpd/config/genesis.json
+```
+
+## Genesis for different use cases
+
+Validators: verify the genesis before initializing — check the chain ID and compare the SHA256 against the [networks repository](https://github.com/terpnetwork/networks) tag for your network:
+
+```bash
+jq -r .chain_id $HOME/.terpd/config/genesis.json
+sha256sum $HOME/.terpd/config/genesis.json
+```
+
+Testnet developers: same flow with the testnet URL above (`jq` should report `"120u-1"`).
+
+## Troubleshooting
+
+### Invalid Genesis JSON
+
+If you get a JSON parsing error:
+
+```bash
+# Re-download the genesis file
+rm $HOME/.terpd/config/genesis.json
+curl -Ls https://raw.githubusercontent.com/terpnetwork/networks/main/mainnet/morocco-1/genesis.json > $HOME/.terpd/config/genesis.json
+
+# Verify it's valid JSON
+jq '.' $HOME/.terpd/config/genesis.json > /dev/null && echo "Valid JSON"
+```
+
+## Chain ID Mismatch
+
+If you see "chain ID mismatch" error:
+
+```bash
+# Make sure you're using the correct genesis for your network
+# Check what chain ID your terpd is configured for
+grep 'chain-id' $HOME/.terpd/config/client.toml
+
+# If needed, re-initialize with correct chain ID
+terpd init <moniker> --chain-id <correct-chain-id>
+```
+
+## Network Upgrade
+
+When a network upgrade requires a new genesis file:
+
+1. Stop your node
+2. Backup the existing genesis: `cp $HOME/.terpd/config/genesis.json $HOME/.terpd/config/genesis.json.backup`
+3. Download the new genesis file
+4. Restart your node
+
+## Next Steps
+
+After setting up the genesis file:
+
+1. [Configure your node](/guides/nodes/configure)
+2. [Add persistent peers](/guides/validators/sentry) to help your node discover peers
+3. [Start your node](/guides/nodes/bootstrap)
+4. [Set up systemd](/guides/nodes/systemd) for production use

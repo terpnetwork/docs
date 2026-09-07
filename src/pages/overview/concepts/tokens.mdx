@@ -1,0 +1,102 @@
+---
+title: "Tokens"
+description: "Token types on Terp Network \u2014 native, CW20, CW721, IBC vouchers, Tokenfactory denoms"
+status: "partial"
+---
+
+# Tokens
+
+Tokens are on-chain records of value, access, or information. Terp Network supports multiple token standards across modules.
+
+## Native Token: `uthiol`
+
+`uthiol` is the native fee token of Terp Network. It is used for:
+- Transaction fees (gas)
+- Staking (bonded proof-of-stake)
+- Governance voting weight
+- Drip/airdrop distributions
+
+**Denomination:** `uthiol` (10^-6 THIOL). The base unit is `uthiol`; human-readable amounts use `THIOL`.
+
+```bash
+# Check balance
+terpd query bank balances terp1...
+
+# Send tokens
+terpd tx bank send <from> <to> 1000000uthiol
+```
+
+## Token Standards
+
+### CW20 (Fungible Tokens)
+
+The CosmWasm standard for fungible tokens — analogous to ERC-20 on Ethereum. CW20 tokens are deployed as smart contracts and support:
+- Transfers, approvals, allowances
+- Minting and burning (if enabled in contract)
+- Custom logic (tax, time-locks, whitelists)
+
+### CW721 (Non-Fungible Tokens)
+
+The CosmWasm standard for NFTs. Each token has a unique ID and metadata. Use cases include:
+- Collectibles and art
+- Membership tokens
+- Verifiable credentials
+- IBC-compatible via ICS-721
+
+### ICS-721 (IBC NFTs)
+
+The IBC standard for transferring NFTs between chains. Enables cross-chain NFT transfers using the same IBC transport layer as fungible tokens.
+
+### IBC Vouchers
+
+When tokens arrive via IBC from another chain, they appear as IBC vouchers:
+```text
+ibc/<hash-of-transfer-port-and-channel>/<original-denom>
+```
+
+These vouchers are native representations of the original token. They can be transferred, swapped, and staked (if the receiving chain supports it).
+
+## Tokenfactory Denoms
+
+The `x/tokenfactory` module allows any account to create a **native denomination** — not a smart contract token, but a first-class native token managed by the `x/bank` module.
+
+```bash
+# Create a new denom
+terpd tx tokenfactory create-denom <subdenom>
+
+# Mint tokens
+terpd tx tokenfactory mint <amount><denom>
+
+# Transfer admin
+terpd tx tokenfactory change-admin <denom> <new-admin>
+```
+
+Tokenfactory denoms benefit from:
+- Lower gas costs than CW20
+- Native IBC support (no contract needed)
+- Bank module integrations (automatically in balances, supply queries)
+
+## Token Types Comparison
+
+| Type | Creation | IBC Native | Gas Cost | Example |
+|------|----------|-----------|----------|---------|
+| Native (`uthiol`) | Genesis | Yes | Lowest | Fee token |
+| Tokenfactory | `create-denom` tx | Yes | Low | `factory/terp1.../mytoken` |
+| CW20 | Contract deploy | No (needs ICS-20 adapter) | Medium | Custom fungible tokens |
+| CW721 | Contract deploy | No (needs ICS-721) | Medium | NFTs |
+| IBC Voucher | IBC transfer | Yes | Low | `ibc/...` |
+
+> **Token type diagram scaffold** — a visual taxonomy of token types on Terp Network, showing how each is created, transferred, and connected to modules.
+
+## Token Use Cases
+
+| Use Case | Standard | Example |
+|----------|----------|---------|
+| Transaction fees | Native `uthiol` | Any tx |
+| Staking & security | Native `uthiol` | Validator delegation |
+| Governance | Native `uthiol` | Proposal voting weight |
+| Custom economy | Tokenfactory | Community currency |
+| Smart contract token | CW20 | Governance token for DAO |
+| Collectible | CW721 | Membership badge |
+| Cross-chain asset | IBC voucher | ATOM, OSMO on Terp |
+| Cross-chain NFT | ICS-721 | Artwork ported from another chain |

@@ -52,14 +52,18 @@ This section describes how you can get our documentation portal up and running o
 
 ### Installation
 
+This site is built with [Vocs](https://vocs.dev) (Vite + Waku). Pages live in `content/docs` and are mounted as `src/pages`.
+
 ```sh
 # 1. Clone the repo
 git clone https://github.com/terpnetwork/docs.git
 # 2. Install NPM packages
 pnpm install
-# 3. Run the app
+# 3. Run the app (http://localhost:5173)
 pnpm run dev
 ```
+
+Production build: `pnpm build`. Preview: `pnpm preview`. The previous Next/Fumadocs app is still in the tree (`pnpm next:dev`) while the migration finishes.
 
 <!-- USAGE EXAMPLES -->
 

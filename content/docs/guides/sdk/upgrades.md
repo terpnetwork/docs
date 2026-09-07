@@ -1,7 +1,7 @@
 ---
 title: Upgrading Terp
+status: stub
 ---
+## Adding Modules
 
-## Adding Modules 
-
-## Removing Modules 
+## Removing Modules

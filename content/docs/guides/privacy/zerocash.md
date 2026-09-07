@@ -1,3 +1,5 @@
 ---
 title: Zerocash
+status: stub
 ---
+

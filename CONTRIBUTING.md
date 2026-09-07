@@ -14,11 +14,79 @@ Be respectful. With our documentation, comes the relance on a stable, veriiable 
 - Interactive components must be `'use client'` and wrapped in `not-prose` when used inside MDX.
 - Keep PRs focused. One feature or fix per branch.
 
+## Page status and completeness
+
+Frontmatter `status` tells readers (and CI) how ready a page is:
+
+| Value | Meaning |
+|-------|---------|
+| `complete` | Runnable steps or full reference; links work |
+| `partial` | Real prose but gaps, TODOs, or scaffold markers |
+| `stub` | Heading outline only — **required** if the body is headings without substantive content |
+
+```yaml
+---
+title: Example
+description: One-line expectation for the reader
+status: complete
+---
+```
+
+**Every non-stub page should include:**
+
+- Accurate `description` (sets expectations; no “10 minutes” if empty)
+- `## Related Concepts` and/or `## Further Reading` with **real** links (siblings + cross-section when relevant)
+- For on-chain operations: a short verify habit — build/compare/decide (see trustlessness guides)
+
+**Heading-only pages** must set `status: stub`. Prefer linking the front door to complete pages instead of promising depth that does not exist.
+
+```bash
+# Detect unlabeled heading-only pages (exit 1 if any)
+bash scripts/check-stubs.sh
+
+# Frontmatter-only empties
+pnpm check-empty
+```
+
+### Scaffold markers (interactive TODOs)
+
+When a diagram/demo is planned but not built, use **exactly** this line form (machine-scanned):
+
+```markdown
+> **Scaffold:** `diagram` · id:`stable-kebab-id` · P2 · one-line purpose
+```
+
+| Field | Values |
+|-------|--------|
+| type | `diagram`, `flow`, `visualizer`, `demo`, `chart`, `other` |
+| id | unique kebab-case (`scf-…` auto-ids are fine) |
+| priority | `P1` front-door, `P2` core, `P3` polish |
+
+| Type | When | Prefer |
+|------|------|--------|
+| `diagram` | Static structure | Mermaid / `DynamicMermaidDiagram` |
+| `flow` | Ordered steps over time | Mermaid sequence/flowchart |
+| `visualizer` | User-tweaked inputs → outputs | `components/diagrams/` |
+| `demo` | Live chain/API interaction | Client component + query hooks |
+| `chart` | Distribution / timeline | Chart component or static SVG |
+
+```bash
+# List / fail on unlabeled scaffolds
+pnpm check-scaffolds
+
+# Auto-label + regenerate inventory page
+pnpm check-scaffolds --label --write
+# → content/docs/resources/scaffolds.md
+# → scripts/scaffold-inventory.json
+```
+
+Do not invent product behavior on stub pages. Fill content only from source of truth (chain params, shipped tools, existing complete guides).
+
 ## Project Layout
 
 ```
 app/
-  layout.tsx       — root layout, providers (QueryProvider + RootProvider)
+  layout.tsx       — root layout (QueryProvider + RootProvider only — no wallet)
   global.css       — all CSS: Tailwind imports, fumadocs + shadcn vars, brand theme
   docs/            — Next.js route for doc pages
 
@@ -54,6 +122,13 @@ Create `lib/hooks/use-<domain>.ts`. See `lib/hooks/README.md` for the pattern.
 3. Export a composite component from `index.tsx`.
 4. Register it in `mdx-components.tsx` so MDX pages can use `<YourComponent />`.
 5. Wrap the outermost element in `not-prose` to prevent fumadocs prose styles from bleeding in.
+
+**Keep the root layout light.** Do not mount wallet (`@goblinhunt/cosmes`, ~77MB), calendar, or tree demos on `app/layout.tsx`. Patterns:
+
+- Diagrams / trees → import a **per-demo** file, e.g. `@/components/diagrams/dynamic/merkle-proof` (not the barrel `dynamic.tsx`, or one page compiles every visualizer)
+- **No nested wallets / dApps in MDX** — do not mount `ConnectCalendar`, `WalletProvider`, Keplr connect buttons, or similar on docs pages. Wallet content is **written guides** under `/docs/guides/authentication/wallets` only. Users open extensions themselves.
+- OpenAPI UI → lazy `import()` only on API doc routes
+- Never put cosmes / wallet / calendar on `app/layout.tsx`
 
 ### New shadcn primitive
 

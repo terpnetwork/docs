@@ -1,7 +1,7 @@
 ---
-title: Disclaimers for Terp Network 
+title: Disclaimers for Terp Network
+status: stub
 ---
-
 ## Disclaimer
 
 The public Terms of Service for Terp Network can be found on IPFS, located here:

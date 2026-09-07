@@ -1,11 +1,9 @@
 ---
 title: SignatureVerification Authenticator
 description: Register a secp256k1 public key as an authenticator — the simplest account-level authentication override
+status: partial
 ---
-
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-
-# SignatureVerification Authenticator
+import { Tab, Tabs } from '#vocs-compat';
 
 The **SignatureVerification** authenticator verifies that a transaction is signed by a specific secp256k1 public key registered for the account. This is the default authenticator type and the simplest to understand — it replaces the implicit account key with an explicit authenticator entry.
 
@@ -128,7 +126,7 @@ terpd tx smart-account add-authenticator \
 ```
 
 Sample output:
-```
+```text
 txhash: ABCDEF1234...
 height: 12345678
 authenticator_id: 3

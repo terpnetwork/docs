@@ -1,12 +1,8 @@
 ---
 title: Cosmovisor
+description: Cosmovisor is a powerful utility for managing the binary version of Cosmos SDK-based chains. Its primary function is to enable seamless binary upgrades...
+status: partial
 ---
-
----
-title: Cosmovisor
----
- 
-
 ## What is cosmovisor?
 
 Cosmovisor is a powerful utility for managing the binary version of Cosmos SDK-based chains. Its primary function is to enable seamless binary upgrades without requiring a full node restart or manual intervention. In essence, Cosmovisor provides for automated processes to handle upgrades, reducing downtime or manual intervention.
@@ -18,7 +14,6 @@ While Cosmovisor can **also** automate the process of downloading and installing
 In cases where a node operator prefers or requires a greater degree of control, manual upgrades are preferable.
 
 Make sure you have backed up the key mnemonic before removing any of your keys, as there will be no way to recover your key without the mnemonic.
-
 
 ## Install
 
@@ -32,7 +27,6 @@ go install github.com/cosmos/cosmos-sdk/cosmovisor/cmd/cosmovisor@v1.0.0
 ```
 
 When using cosmovisor, make sure that you do not have auto download of binaries on. Ensure you have the environment variable `DAEMON_ALLOW_DOWNLOAD_BINARIES` set to `false`.
-
 
 Your installation can be confirmed with:
 
@@ -63,7 +57,7 @@ source ~/.profile
 
 You can confirm success like so:
 
-```
+```text
 echo $DAEMON_NAME
 ```
 
@@ -91,7 +85,7 @@ Don't worry about `current` - that is simply a symlink used by Cosmovisor. The o
 mkdir -p $DAEMON_HOME/cosmovisor/genesis/bin && mkdir -p $DAEMON_HOME/cosmovisor/upgrades
 ```
 
-### Set up genesis binary
+## Set up genesis binary
 
 Cosmovisor needs to know which binary to use at genesis. We put this in `$DAEMON_HOME/cosmovisor/genesis/bin`.
 
@@ -133,11 +127,11 @@ Change the contents of the below to match your setup - `cosmovisor` is likely at
 
 **Note** `cosmovisor run start` is only for the latest versions of cosmovisor. For earlier versions that line should be:
 
-```
+```bash
 ExecStart=/home/<your-user>/go/bin/cosmovisor start
 ```
 
-```
+```bash
 [Unit]
 Description=Terp Network  (cosmovisor)
 After=network-online.target
@@ -160,9 +154,7 @@ WantedBy=multi-user.target
 
 ## Sync With Snapshot
 
-
 > If syncing from a snapshot, do not start Cosmovisor yet.
-
 
 ## Start Cosmovisor
 
@@ -177,7 +169,7 @@ sudo systemctl start terpd
 
 Check it is running using:
 
-```
+```bash
 sudo systemctl status terpd
 ```
 

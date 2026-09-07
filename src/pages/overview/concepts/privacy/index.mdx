@@ -1,0 +1,45 @@
+---
+title: "Privacy"
+description: "Privacy on Terp Network \u2014 selective disclosure, storage access patterns, zero-knowledge proofs, and private agreements"
+status: "partial"
+---
+Privacy is essential for freedom in a digital world. Terp Network provides tools and patterns for privacy-preserving interactions.
+
+## Why Privacy Matters
+
+Without privacy:
+- All transaction history is publicly linked to identities
+- Mass surveillance of financial activity is trivial
+- Users cannot selectively reveal information
+- Coercion and discrimination become easier
+
+## Privacy Methods on Terp Network
+
+| Method | What It Protects | How |
+|--------|-----------------|-----|
+| Selective disclosure | Identity attributes | Commit-reveal, Merkle proofs, ZK |
+| Storage access patterns | Contract data | Encrypted storage, off-chain references |
+| Private payments | Transaction details | Future: ZK-based private transfers |
+| Private votes | Voting choices | ZK-vote tallying (PollRegistry) |
+| Private agreements | Contract terms | Encrypted state with selective reveals |
+
+## Tools
+
+- **Selective Disclosure** — prove attributes without revealing data ([more](/overview/concepts/privacy/disclosure))
+- **Storage Access Patterns** — understand data visibility and query privacy ([more](/overview/concepts/privacy))
+- **zk-CosmWasm** — zero-knowledge contract execution (infrastructure)
+- **PollRegistry** — verifiable, private vote aggregation
+
+> **Privacy architecture diagram scaffold** — a visual showing different privacy layers and where they apply (identity, transaction, contract state, governance voting).
+
+## Further Reading
+
+- [Selective disclosure concepts](/overview/concepts/privacy/disclosure)
+- [Storage patterns](/overview/concepts/privacy)
+- [Privacy guides](/overview/concepts/privacy)
+
+---
+
+## Cypherpunk Manifesto
+
+Read [The Cypherpunk Manifesto](https://nakamotoinstitute.org/cypherpunk-manifesto/).

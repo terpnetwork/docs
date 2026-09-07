@@ -1,7 +1,8 @@
 ---
 title: add terp
+description: From your installed Keplr-Wallet
+status: partial
 ---
-
 From your installed [Keplr-Wallet](https://wallet.keplr.app/)
 
 ![](../assets/install-keplr-1.png)

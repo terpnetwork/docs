@@ -1,10 +1,8 @@
 ---
 title: Tax & Fees
 description: Transaction fees, gas, minimum fee policy, and economic sustainability on Terp Network
+status: partial
 ---
-
-# Tax & Fees
-
 Transactions on Terp Network require fees to compensate validators for computational resources. Fees are denominated in `uthiol`.
 
 ## Gas
@@ -16,7 +14,7 @@ Every transaction consumes gas proportional to the computational work required. 
 terpd tx bank send <from> <to> 1000000uthiol --dry-run
 ```
 
-### Gas Components
+## Gas Components
 
 - **Base fee** — overhead per transaction
 - **Contract execution** — CosmWasm VM gas (instructions, storage reads/writes)
@@ -27,7 +25,7 @@ terpd tx bank send <from> <to> 1000000uthiol --dry-run
 
 Terp Network uses the `x/globalfee` module to enforce a **minimum gas fee**. All transactions must specify a gas price at or above this minimum:
 
-```
+```text
 Minimum gas price: 0.05uthiol
 ```
 

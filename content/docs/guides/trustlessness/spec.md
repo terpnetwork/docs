@@ -1,3 +1,5 @@
 ---
 title: Spec
+status: stub
 ---
+

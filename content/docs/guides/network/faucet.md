@@ -7,7 +7,7 @@ A **faucet** sends a small amount of test tokens to an address so you can pay fe
 
 | Environment | How you get tokens | Typical endpoint |
 |-------------|--------------------|------------------|
-| Public testnet (`90u-4`) | Hosted faucet HTTP GET | `https://faucet.terp.network/90u-4/<address>` |
+| Public testnet (`90u-4`) | Hosted faucet HTTP GET | `https://faucet.terp.network/90u-4/&lt;address>` |
 | Docker `localterp` image | Process on port **5000** | `http://localhost:5000/faucet?address=…` |
 | `terpd testnet create --faucet` | Embedded HTTP server (default port **5000**) | `http://localhost:5000/faucet?address=…` |
 | Single-node manual localnet | No public faucet — genesis balances + bank send | See [Local network](/docs/guides/network/deploy/local) |
@@ -45,7 +45,7 @@ docker run --rm -it \
   terpnetwork/terp-core:localterp
 ```
 
-### Status and fund
+## Status and fund
 
 ```bash
 curl -sS localhost:5000/status
@@ -55,7 +55,7 @@ curl -sS "localhost:5000/faucet?address=terp1youraddr"
 ## {"txhash":"…"}
 ```
 
-### Environment variables (image)
+## Environment variables (image)
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -137,10 +137,10 @@ The [single-node local guide](/docs/guides/network/deploy/local) funds via genes
 
 | Check | Command |
 |-------|---------|
-| Public faucet responds | `curl -sS -o /dev/null -w '%{http_code}\n' https://faucet.terp.network/90u-4/<addr>` |
+| Public faucet responds | `curl -sS -o /dev/null -w '%{http_code}\n' https://faucet.terp.network/90u-4/&lt;addr>` |
 | Local status | `curl -sS localhost:5000/status \| jq .` |
-| Balance after drip | `terpd query bank balances <addr> --node …` |
-| Tx landed | `terpd query tx <hash> --node …` |
+| Balance after drip | `terpd query bank balances &lt;addr> --node …` |
+| Tx landed | `terpd query tx &lt;hash> --node …` |
 
 ## Related concepts
 

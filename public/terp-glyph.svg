@@ -1,25 +1,25 @@
 <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <filter id="neonglow" x="-90%" y="-90%" width="280%" height="280%">
-      <feDropShadow dx="0" dy="0" stdDeviation="2.0" flood-color="#cfffcf" flood-opacity="0.96"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="4.6" flood-color="#cfffcf" flood-opacity="0.68"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="9.2" flood-color="#cfffcf" flood-opacity="0.36"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="2.0" flood-color="#5dce8a" flood-opacity="0.96"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="4.6" flood-color="#5dce8a" flood-opacity="0.68"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="9.2" flood-color="#5dce8a" flood-opacity="0.36"/>
     </filter>
   </defs>
 
   <g filter="url(#neonglow)">
-    <circle cx="100" cy="100" r="8.7" fill="#cfffcf"/>
-    <circle cx="52" cy="100" r="8.7" fill="#cfffcf"/>
-    <circle cx="148" cy="100" r="8.7" fill="#cfffcf"/>
-    <circle cx="100" cy="52" r="8.7" fill="#cfffcf"/>
-    <circle cx="100" cy="148" r="8.7" fill="#cfffcf"/>
-    <circle cx="75" cy="100" r="8.7" fill="#cfffcf"/>
-    <circle cx="125" cy="100" r="8.7" fill="#cfffcf"/>
-    <circle cx="100" cy="75" r="8.7" fill="#cfffcf"/>
-    <circle cx="100" cy="125" r="8.7" fill="#cfffcf"/>
-    <circle cx="75" cy="75" r="8.7" fill="#cfffcf"/>
-    <circle cx="75" cy="125" r="8.7" fill="#cfffcf"/>
-    <circle cx="125" cy="75" r="8.7" fill="#cfffcf"/>
-    <circle cx="125" cy="125" r="8.7" fill="#cfffcf"/>
+    <circle cx="100" cy="100" r="8.7" fill="#5dce8a"/>
+    <circle cx="52" cy="100" r="8.7" fill="#5dce8a"/>
+    <circle cx="148" cy="100" r="8.7" fill="#5dce8a"/>
+    <circle cx="100" cy="52" r="8.7" fill="#5dce8a"/>
+    <circle cx="100" cy="148" r="8.7" fill="#5dce8a"/>
+    <circle cx="75" cy="100" r="8.7" fill="#5dce8a"/>
+    <circle cx="125" cy="100" r="8.7" fill="#5dce8a"/>
+    <circle cx="100" cy="75" r="8.7" fill="#5dce8a"/>
+    <circle cx="100" cy="125" r="8.7" fill="#5dce8a"/>
+    <circle cx="75" cy="75" r="8.7" fill="#5dce8a"/>
+    <circle cx="75" cy="125" r="8.7" fill="#5dce8a"/>
+    <circle cx="125" cy="75" r="8.7" fill="#5dce8a"/>
+    <circle cx="125" cy="125" r="8.7" fill="#5dce8a"/>
   </g>
 </svg>

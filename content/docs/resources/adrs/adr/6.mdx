@@ -1,9 +1,9 @@
 ---
-title: "ADR-6: zk-cosmwasmvm — Custom WASM Module for Zero-Knowledge Proof Verification"
-description: Extending the CosmWasm VM with native halo2 proof verification, enabling ZK authentication, private transaction validation, and identity verification without revealing credentials
+title: "ADR-6: zk-cosmwasmvm \u2014 Custom WASM Module for Zero-Knowledge Proof Verification"
+description: "Extending the CosmWasm VM with native halo2 proof verification, enabling ZK authentication, private transaction validation, and identity verification without revealing credentials"
+status: "partial"
 ---
-
-# ADR 6: zk-cosmwasmvm — Custom WASM Module for Zero-Knowledge Proof Verification
+## ADR 6: zk-cosmwasmvm — Custom WASM Module for Zero-Knowledge Proof Verification
 
 ## Changelog
 
@@ -30,7 +30,6 @@ This ADR defines the zk-cosmwasmvm module: a forked CosmWasm virtual machine ext
 The module introduces a host function `deps.api.verify_proof_instances()` that smart contracts call to verify zero-knowledge proofs on-chain, plus a parallel storage layer for verifying keys, a caching system, and binary format conventions. The core use cases are ZK authentication proofs (enabling the dual-mode authentication pattern in ADR-4), private transaction validation (nullifier-based claims without revealing recipient identity), and identity verification without credential disclosure. The MVP targets a single halo2 circuit running in-browser WASM via wasm-pack, with proof submission to a CosmWasm contract for on-chain verification through the 5-phase lifecycle (build, upload, cache, pin, verify).
 This ADR defines the end-user workflow and metadata specification for zero-knowledge circuits within the Terp Network's ZK-WASM module. It establishes the Circuit Footer Specification—a 32-byte metadata trailer appended to circuit binaries that enables generic deserialization by the on-chain virtual machine without requiring the original Rust circuit type. The ADR describes the lifecycle of a circuit from definition through deployment, the validation workflow that ensures circuit binaries meet the VM's requirements, and the macro interface that abstracts these concerns for circuit developers.
 
-
 ## Context and Problem Statement
 
 The ZK-WASM module (ADR-6) requires circuit binaries to be uploaded on-chain for proof verification. However, the on-chain virtual machine faces a fundamental bootstrapping problem: to deserialize and verify a proof, it must know the constraint system's structure (column counts, gate degrees, lookup arguments), but this information has historically been embedded in Rust code that cannot run on-chain.
@@ -43,11 +42,9 @@ Without a standardized metadata format, the VM cannot:
 
 Additionally, circuit developers face friction when managing the artifacts produced by key generation scripts. Separate verifying key, proving key, and constraint system files must be combined in a specific format before deployment, and the current workflow provides no validation until upload time—often resulting in cryptic on-chain errors.
 
-
 Terp Network's smart account system (ADR-4) requires a mechanism for privacy-preserving authentication. The `ConfirmExecution` slow path must verify that a user holds a valid credential (e.g., membership in a genesis merkle tree, ownership of a private key, or authorization from a threshold committee) without revealing the credential itself. Standard CosmWasm provides no native ZK capability — a contract cannot verify a SNARK proof without shipping the verifier as WASM bytecode, which is prohibitively expensive in gas and binary size.
 
 The broader problem: possible bloat of native contract library compilation in contract blobs, slow on memory for contracts.
-
 
 The specific forces:
 
@@ -74,8 +71,6 @@ The specific forces:
 - **Deterministic verification**: The footer must unambiguously specify constraint system parameters so that any compliant VM can verify proofs
 - **Backward compatibility**: Existing circuits without footers should be detectable and upgradable, not silently broken
 
-
-
 ## Considered Options / Alternatives
 
 ### Option A: No metadata footer (status quo)
@@ -95,7 +90,6 @@ A fixed 32-byte footer is appended to the circuit binary containing all constrai
 
 **Pros**: Self-contained single file; VM can deserialize without external registry; validation catches errors early; footer is machine-readable and compact
 **Cons**: Requires tooling to append footer; slightly larger binary; footer format must be versioned for future changes
-
 
 - **Pure CosmWasm verifier contract**: ship the halo2 verifier as WASM bytecode inside a CosmWasm contract. Gas cost is 700k–1M per verification. Binary size is large. No host-function acceleration. Simple to deploy but economically infeasible for authentication-grade proofs.
 - **IBC-mediated verification**: relay proofs to a chain with native ZK support (e.g., Ethereum with Groth16 precompile) and relay the result back. Introduces latency (minutes), trust assumptions (the relayer, the verifying chain), and IBC channel overhead. Defeats the purpose of on-chain verification.
@@ -145,7 +139,6 @@ We adopt the **forked CosmWasm VM with host function** approach. The zk-cosmwasm
 - Runs plonk verification against the vesta/pallas curve
 - Public instances must be `pasta_curves::Fp` values
 - Contracts derive instances from on-chain state: block heights, light client headers, application data
-
 
 We adopt Option C: embedded footer with validation workflow.
 
@@ -204,11 +197,11 @@ When both `summary_json` and `has_lookups` are provided, the macro auto-implemen
 
 **Exit criteria**: Struct compiles, implements `CircuitUploadable`, `CircuitInstance`, `CircuitPathValidator`, and conditionally `CircuitFooterSpec`.
 
-#### Phase 2: Key Generation
+## Phase 2: Key Generation
 
 The developer runs the key generation script for their circuit:
 
-```
+```bash
 cargo run --bin gen_headstash_keys
 ```
 
@@ -238,11 +231,11 @@ The summary JSON contains:
 
 **Exit criteria**: All three artifacts exist on disk; summary JSON is valid.
 
-#### Phase 3: Footer Append & Binary Combination
+## Phase 3: Footer Append & Binary Combination
 
 The developer combines the separate artifacts into a single self-describing binary:
 
-```
+```bash
 cargo run --bin combine_circuit_binary --circuit headstash
 ```
 
@@ -255,7 +248,7 @@ This:
 
 **Exit criteria**: `vk_combined.bin` exists with valid footer; file size equals `params_len + vk_len + cs_len + 32`.
 
-#### Phase 4: Deployment
+## Phase 4: Deployment
 
 The developer uploads the circuit to the chain:
 
@@ -270,7 +263,7 @@ If validation passes, the circuit binary is uploaded. If validation fails, a des
 
 **Exit criteria**: Circuit binary is stored on-chain; code is registered for proof verification.
 
-### Path Resolution
+## Path Resolution
 
 Circuit paths support both absolute and relative paths:
 
@@ -308,7 +301,7 @@ layouter.constrain_instance(public_hash.cell(), primary, 0)?;
 
 The contract verifies only one public input (the hash of all values). Off-chain verifiers reconstruct and re-hash to validate correctness. This reduces gas to ~120–180k per verification (75–80% reduction).
 
-#### Smart Account Integration (ADR-4)
+## Smart Account Integration (ADR-4)
 
 The `CosmwasmAuthenticatorV1` interface uses zk-cosmwasmvm in the `ConfirmExecution` slow path:
 
@@ -318,7 +311,7 @@ The `CosmwasmAuthenticatorV1` interface uses zk-cosmwasmvm in the `ConfirmExecut
 | `ConfirmExecution` | Halo2/Plonk proof + nullifier verification | Slow path (ZK + BLS) |
 | `OnAuthenticatorAdded` | Validates operator PoPs, stores `WavsOperatorSet` | No ZK |
 
-#### In-Browser Proof Generation (MVP)
+### In-Browser Proof Generation (MVP)
 
 The norick demo page pattern: a halo2 WASM circuit loaded via `wasm-pack build --target web`, running proof generation entirely in the browser. The generated proof is submitted to a CosmWasm contract for on-chain verification. This enables:
 
@@ -369,7 +362,6 @@ Without mode switching, cargo resolves to upstream CosmWasm, which compiles but 
 - The macro interface hides path resolution and footer complexity from circuit developers
 - Summary JSON enables reproducible footer generation without recompilation
 
-
 ### Negative
 
 - Fork maintenance: the ZK fork (zk-cosmwasmvm, zk-wasmd, zk-cosmos-sdk, zk-ibc-go) diverges from upstream CosmWasm. Every upstream release requires a rebase.
@@ -387,7 +379,6 @@ Without mode switching, cargo resolves to upstream CosmWasm, which compiles but 
 - The `just deps-zk-*` mode switching is a deliberate trade-off: maintaining the fork as a separate mode avoids polluting the standard build, but adds cognitive overhead for developers.
 - The footer does not include the full constraint system; it only specifies dimensions. The actual CS bytes must still be present in the binary. This trades off binary size (CS can be large) against the VM's ability to verify without external data.
 - CRC32 is a weak checksum but sufficient for detecting corruption. It does not provide cryptographic integrity guarantees.
-
 
 ### Backwards Compatibility
 
@@ -427,9 +418,7 @@ Existing circuits can be upgraded by:
 9. **Macro without footer attributes**: Define circuit with only `id`, verify it compiles and implements `CircuitUploadable` but not `CircuitFooterSpec`
 10. **Macro with footer attributes**: Define circuit with `summary_json` and `has_lookups`, verify it implements `CircuitFooterSpec`
 
-
 ## Further Discussions / Open Questions
-
 
 - Should the footer include a circuit version hash to detect when binaries are regenerated from modified circuits?
 - Should the VM validate the CRC32 on upload, or only use it for client-side integrity checks?
@@ -461,8 +450,6 @@ Existing circuits can be upgraded by:
 - Halo2 circuit construction: https://github.com/privacy-scaling-explorations/halo2
 - ZIP-225: Block Commitments (NU5) — footer design influenced by Zcash's commitment structure
 - PLONKish arithmetization — constraint system column model
-
-
 
 ## Context and Problem Statement
 

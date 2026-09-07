@@ -1,0 +1,59 @@
+---
+title: Support role
+description: Boundaries for support systems wiring HashMerchant Path B
+status: partial
+---
+## Mission
+
+Help operators **wire and verify** Path B (foreign-root mirror) without owning customer databases or inventing protocol behavior.
+
+## Owns
+
+- Host readiness after terpd exists
+- Sidecar health and config alignment
+- Contract register + escrow coaching
+- Smoke evidence (root age, escrow, health)
+- Playbook-driven recovery
+
+## Does not own
+
+| Out of scope | Redirect |
+|--------------|----------|
+| Installing terpd | [terp-installer](/docs/ecosystem/terp-installer), network guides |
+| Customer loyalty CRM (Path A) | Operator systems |
+| Protocol / quorum governance | Module spec + chain governance |
+| “Private payments” product claims | Not what HashMerchant ships |
+| Rebuilding the support install CLI | Separate monorepo tooling card |
+
+## Path B vs Path A
+
+| Path | Job | Support v0 |
+|------|-----|------------|
+| **B** Foreign-root mirror | Sidecar → VE → HashRoot → sudo | **In scope** |
+| **A** Operator program tree | DB → leaves/root → claims | Document / thin demos only |
+
+## Honest framing
+
+HashMerchant is **Merkle reflection**, not merchant private payments. Optional ZK-friendly rehash supports privacy-preserving **proofs about foreign state** (for example membership without revealing an address). It is not a settlement rail.
+
+## Engagement stages
+
+```text
+Prepare → Install → Authenticate → Configure → Deploy → Integrate → Smoke/Monitor
+```
+
+| Stage | Exit |
+|-------|------|
+| Prepare | chain_uid, algo, key owners, Path B scope |
+| Install | Artifacts / checksums |
+| Authenticate | Operator keyring only |
+| Configure | `/health` + sample VE JSON |
+| Deploy | code_id + address recorded |
+| Integrate | Escrow query OK |
+| Smoke | Root advanced; log kept |
+
+## Related
+
+- [Golden path](./golden-path)
+- [Configuration](./config)
+- [Playbooks](./playbooks)

@@ -1,11 +1,9 @@
 ---
 title: Verify Circuit Integrity
 description: Validate that zero-knowledge circuit artifacts (proving keys, verification keys, WASM circuits) are authentic and match their source
+status: partial
 ---
-
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-
-# Verify Circuit Integrity
+import { Tab, Tabs } from '#vocs-compat';
 
 Zero-knowledge circuits used on Terp Network — whether for private voting, selective disclosure, or zk-CosmWasm — must be verifiable independently. Users should never trust a circuit artifact (proving key, verification key, compiled WASM) without confirming it was produced by the published source code.
 
@@ -174,7 +172,7 @@ snarkjs zkey verify \
 
 ## Expected Results
 
-```
+```text
 === Circuit Verification ===
   ✓ proving_key.bin
   ✓ verification_key.json

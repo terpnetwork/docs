@@ -1,3 +1,5 @@
 ---
 title: New
+status: stub
 ---
+

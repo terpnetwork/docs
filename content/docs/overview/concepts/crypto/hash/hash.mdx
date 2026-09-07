@@ -1,11 +1,9 @@
 ---
 title: Hash Functions
 description: Cryptographic hash functions used in Terp Network — SHA-256, BLAKE3, Poseidon — properties, uses, and interactive hash explorer
+status: partial
 ---
-
-import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
-
-# Hash Functions
+import { Accordion, Accordions } from '#vocs-compat';
 
 A hash function takes an input of any size and produces a fixed-size output (the **digest** or **hash**) that uniquely represents the input. Hash functions are the building blocks of blockchain integrity — every block, transaction, and state root is a hash.
 
@@ -35,7 +33,7 @@ Used in:
 SHA-256("Hello") = 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
 ```
 
-### BLAKE3
+## BLAKE3
 
 Used in:
 - **CosmWasm contract code hash** — fast verification during node startup
@@ -50,7 +48,7 @@ echo -n "Hello" | b3sum
 # Output: 6671090d8c6b3b3d3c4f5e6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6
 ```
 
-### Poseidon
+## Poseidon
 
 Used in:
 - **ZK circuit hashing** — Poseidon is designed for efficient use inside zero-knowledge proofs

@@ -1,17 +1,15 @@
 ---
 title: Storage Access Patterns
 description: How data is stored, accessed, and queried on Terp Network — KV store, IAVL tree, CosmWasm storage, and privacy considerations
+status: partial
 ---
-
-# Storage Access Patterns
-
 Understanding how data flows through Terp Network's storage layers is essential for building efficient and private applications.
 
 ## The Storage Stack
 
 Terp Network uses a multi-layered storage architecture:
 
-```
+```rust
 ┌────────────────────────────────────────┐
 │           Application Layer            │  ← Smart contracts, modules
 ├────────────────────────────────────────┤

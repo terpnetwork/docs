@@ -1,4 +1,5 @@
 ---
 title: production build
+status: stub
 ---
-# Building Your Apps Binary 
+## Building Your Apps Binary

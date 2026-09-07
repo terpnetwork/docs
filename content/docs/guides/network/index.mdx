@@ -1,13 +1,13 @@
 ---
 title: Connect
+description: There are multiple ways to synchronize a Terp Network node depending on your needs for speed, storage, and security. This guide covers all available methods...
+status: partial
 ---
-
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-import { Files, Folder, File } from 'fumadocs-ui/components/files';
+import { Tab, Tabs } from '#vocs-compat';
+import { Files, Folder, File } from '#vocs-compat';
 import { Database, FileJson, Tags, Globe, Layers, Archive, ExternalLink } from 'lucide-react';
 
-
-# Many Ways to Connect to Terp Network
+## Many Ways to Connect to Terp Network
 
 There are multiple ways to synchronize a Terp Network node depending on your needs for speed, storage, and security. This guide covers all available methods to get your node up and running.
 
@@ -15,10 +15,10 @@ There are multiple ways to synchronize a Terp Network node depending on your nee
 
 | Method | Time to Sync | Storage Required | Security Level |
 |--------|-------------|------------------|----------------|
-| [State Sync](/guides/network/connect/state-sync) | Minutes | Low (~2GB) | High |
+| [State Sync](/docs/guides/network/state-sync) | Minutes | Low (~2GB) | High |
 | [Snapshots](/guides/network/nodes/snapshots) | 15-30 min | Medium (~10-20GB) | High |
-| [Bootstrap](/guides/network/connect/bootstrap) | Hours | Full (~100GB+) | Highest |
-| [Genesis](/guides/network/connect/genesis) | Hours | Full (~100GB+) | Manual |
+| [Bootstrap](/docs/guides/network/bootstrap) | Hours | Full (~100GB+) | Highest |
+| [Genesis](/docs/guides/network/genesis) | Hours | Full (~100GB+) | Manual |
 
 ## Choosing the Right Method
 
@@ -48,12 +48,12 @@ There are multiple ways to synchronize a Terp Network node depending on your nee
 
 For most use cases, we recommend starting with either **State Sync** or **Snapshots**:
 
-1. **Fastest**: Use [State Sync](/guides/network/connect/state-sync) to get a working node in minutes
-2. **Standard**: Use [Snapshots](/guides/network/nodes/snapshots) for a balance of speed and functionality  
-3. **Production Validators**: Use [Bootstrap](/guides/network/connect/bootstrap) with [Systemd Service](/guides/network/connect/systemd-service) for production setups
+1. **Fastest**: Use [State Sync](/docs/guides/network/state-sync) to get a working node in minutes
+2. **Standard**: Use [Snapshots](/guides/network/nodes/snapshots) for a balance of speed and functionality
+3. **Production Validators**: Use [Bootstrap](/docs/guides/network/bootstrap) with [Systemd Service](/docs/guides/network/systemd-service) for production setups
 
 ## Next Steps
 
-- [Set up State Sync](/guides/network/connect/state-sync) - Quickest way to get a running node
-- [Download Genesis File](/guides/network/connect/genesis) - For manual sync
-- [Configure Systemd Service](/guides/network/connect/systemd-service) - For production deployments
+- [Set up State Sync](/docs/guides/network/state-sync) - Quickest way to get a running node
+- [Download Genesis File](/docs/guides/network/genesis) - For manual sync
+- [Configure Systemd Service](/docs/guides/network/systemd-service) - For production deployments

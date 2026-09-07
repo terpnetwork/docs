@@ -1,10 +1,8 @@
 ---
 title: Verify Website Content
 description: Validate that static website pages served by Terp Network infrastructure have not been tampered with
+status: partial
 ---
-
-# Verify Website Content
-
 Static websites published by Terp Network — including this documentation site, installer pages, and community portals — are built deterministically from source repositories. You can verify that the served content matches the published source.
 
 ## Verification Methods
@@ -85,7 +83,7 @@ The `ETag` header often matches the file's content hash.
 
 ## Expected Results
 
-```
+```text
 ✓ Checksum match — page content is verified
 ✓ Source rebuild — output matches live deployment
 ✓ Signed tag — deployment tagged by a known maintainer

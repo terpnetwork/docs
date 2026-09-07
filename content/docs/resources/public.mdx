@@ -1,14 +1,14 @@
 ---
 title: Public Endpoints
+description: href={href} target="blank" rel="noopener noreferrer" className="group flex items-start gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800...
+status: partial
 ---
-
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-import { Files, Folder, File } from 'fumadocs-ui/components/files';
+import { Tab, Tabs } from '#vocs-compat';
+import { Files, Folder, File } from '#vocs-compat';
 import { Database, FileJson, Tags, Globe, Layers, Archive, ExternalLink } from 'lucide-react';
 
-
 export const ResourceCard = ({ href, title, description, icon: Icon }) => (
-  <a 
+  <a
     href={href}
     target="_blank"
     rel="noopener noreferrer"
@@ -37,39 +37,39 @@ export const ResourceGrid = ({ baseUrl, chainId }) => (
       <span className="text-slate-300">|</span>
       <span className="truncate">{baseUrl}</span>
     </div>
-    
+
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <ResourceCard 
+      <ResourceCard
         href={`${baseUrl}/addrbook.json`}
         title="Address Book"
         description="Public peer addresses and node endpoints for quick network synchronization"
         icon={Database}
       />
-      <ResourceCard 
+      <ResourceCard
         href={`${baseUrl}/chain.json`}
         title="Chain Info"
         description="Chain metadata including chain ID, denominations, and bech32 prefixes"
         icon={Globe}
       />
-      <ResourceCard 
+      <ResourceCard
         href={`${baseUrl}/versions.json`}
         title="Version Info"
         description="Required software versions and upgrade compatibility data"
         icon={Tags}
       />
-      <ResourceCard 
+      <ResourceCard
         href={`${baseUrl}/genesis.json`}
         title="Genesis File"
         description="Initial blockchain state for validator initialization and sync"
         icon={FileJson}
       />
-      <ResourceCard 
+      <ResourceCard
         href={`${baseUrl}/assetlist.json`}
         title="Asset List"
         description="Registered tokens, IBC assets and denomination metadata"
         icon={Layers}
       />
-      <ResourceCard 
+      <ResourceCard
         href={`${baseUrl}/snapshot_full.json`}
         title="Snapshot Info"
         description="Latest snapshot metadata with pruning and archive details"
@@ -79,8 +79,6 @@ export const ResourceGrid = ({ baseUrl, chainId }) => (
   </div>
 );
 
-
-
 ## Network Resources
 
 Access all Terp Network configuration files, snapshots, and chain metadata from our distributed S3 infrastructure.
@@ -88,15 +86,15 @@ Access all Terp Network configuration files, snapshots, and chain metadata from 
 <Tabs groupId="network" items={['Mainnet', 'Testnet']} defaultIndex={0} persist>
 
   <Tab value="Mainnet">
-    <ResourceGrid 
-      baseUrl="https://s3.terp.network/snapshots/mainnet/morocco-1" 
+    <ResourceGrid
+      baseUrl="https://s3.terp.network/snapshots/mainnet/morocco-1"
       chainId="morocco-1"
     />
   </Tab>
 
   <Tab value="Testnet">
-    <ResourceGrid 
-      baseUrl="https://s3.terp.network/snapshots/testnet/120u-1" 
+    <ResourceGrid
+      baseUrl="https://s3.terp.network/snapshots/testnet/120u-1"
       chainId="120u-1"
     />
   </Tab>
@@ -108,7 +106,6 @@ Access all Terp Network configuration files, snapshots, and chain metadata from 
 ## S3 Bucket Structure
 
 All resources are hosted on Terp Network's public S3 storage following this hierarchy:
-
 
 <Files>
   <Folder name="s3.terp.network" defaultOpen disabled>
@@ -143,12 +140,11 @@ If you prefer direct access, resources follow this pattern:
 # Mainnet
 https://s3.terp.network/snapshots/mainnet/morocco-1/{filename}
 
-# Testnet  
+# Testnet
 https://s3.terp.network/snapshots/testnet/120u-1/{filename}
 ```
 
 ---
-
 
 ## Support Your Public Resource Provider
 

@@ -1,9 +1,9 @@
 ---
 title: "ADR-4: Sovereign Custody & Authentication Specifications"
-description: Sovereign custody principles, smart account authentication, key rotation, non-custodial recovery, and authentication gradient design for Terp Network
+description: "Sovereign custody principles, smart account authentication, key rotation, non-custodial recovery, and authentication gradient design for Terp Network"
+status: "partial"
 ---
-
-# ADR 4: Sovereign Custody & Authentication Specifications
+## ADR 4: Sovereign Custody & Authentication Specifications
 
 ## Changelog
 
@@ -74,7 +74,7 @@ These principles must be embedded into every Terp Network application. They are 
 
 The x/smart-account module replaces the standard Cosmos SDK AnteHandler signature verification with a pluggable authenticator system. The authentication flow proceeds as follows:
 
-```
+```bash
 Transaction arrives at AnteHandler
          |
          v
@@ -118,7 +118,7 @@ sig verify  KVStore
 
 **Key data structures** (from `terp-auth` crate):
 
-```
+```rust
 AccountAuthenticator {
     id: u64,          // unique instance identifier
     r#type: String,   // "SignatureVerification",
@@ -157,7 +157,7 @@ The `AllOf` and `AnyOf` types allow authenticators to be combined:
 
 Child authenticators are addressed by a dotted path notation: `CompositeId { root, path }`. For example, `5.0.2` means authenticator ID 5, child index 0, sub-child index 2.
 
-```
+```rust
 AllOf [
     SignatureVerification { pubkey },
     CosmwasmAuthenticatorV1 {
@@ -168,7 +168,7 @@ AllOf [
 ]
 ```
 
-#### 3. Key Rotation
+## 3. Key Rotation
 
 Key rotation is achieved through the authenticator lifecycle, not through a special "rotate key" transaction:
 
@@ -181,13 +181,13 @@ Key rotation is achieved through the authenticator lifecycle, not through a spec
 
 **Atomic rotation (future)**: a composite `MsgRotateKey` could atomically add a new authenticator and remove the old one in a single transaction, preventing a window where both keys are active. This is not required for the initial design but is identified as a future improvement.
 
-#### 4. Non-Custodial Recovery
+### 4. Non-Custodial Recovery
 
 Recovery mechanisms use the same authenticator composition model — no custodian is involved:
 
 **Multi-signature fallback**: an `AnyOf` authenticator that includes the primary key and a multi-sig contract:
 
-```
+```text
 AnyOf [
     SignatureVerification { primary_pubkey },
     AllOf [
@@ -211,7 +211,7 @@ The user can authenticate with their primary key for normal operations, or with 
 
 **Important**: recovery authenticators are standard CosmWasm authenticator contracts. The x/smart-account module has no special recovery logic. This ensures that recovery mechanisms are upgradeable (deploy new contracts) without modifying the module.
 
-#### 5. Authentication Gradients
+## 5. Authentication Gradients
 
 Not all operations require the same level of authentication. Terp Network defines three authentication gradients, implemented through authenticator composition:
 
@@ -219,13 +219,13 @@ Not all operations require the same level of authentication. Terp Network define
 
 **Gradient 2 — Transacting (standard operations)**: signature verification is sufficient. This is the default gradient for sending tokens, interacting with CosmWasm contracts, and performing IBC transfers. Implemented as:
 
-```
+```text
 SignatureVerification { pubkey }
 ```
 
 Or with additional constraints:
 
-```
+```text
 AllOf [
     SignatureVerification { pubkey },
     SpendLimitParams { limit: "1000000", reset_period: "day" }
@@ -234,7 +234,7 @@ AllOf [
 
 **Gradient 3 — Governance (high-value operations)**: multi-factor authentication required for governance votes, parameter changes, and other high-impact operations. Implemented by composing message-type-aware authenticators:
 
-```
+```rust
 AllOf [
     SignatureVerification { pubkey },
     AnyOf [
@@ -256,7 +256,7 @@ AllOf [
 
 **Agent-scoped gradients**: for automated systems (per ADR-3), an agent's authenticator can include a `MessageFilter` that restricts it to specific message types:
 
-```
+```text
 AllOf [
     SignatureVerification { agent_pubkey },
     MessageFilter { @type: "/cosmos.bank.v1beta1.MsgSend" },
@@ -266,11 +266,11 @@ AllOf [
 
 This gives the agent transacting capability within bounded limits, but no governance or parameter-change capability.
 
-#### 6. Module Parameters and Circuit Breaker
+## 6. Module Parameters and Circuit Breaker
 
 The x/smart-account module includes a circuit breaker for emergency deactivation:
 
-```
+```text
 Params {
     maximum_unauthenticated_gas: u64,    // gas cap for ante handler before fee-payer auth
     is_smart_account_active: bool,       // global toggle; false = standard Cosmos SDK auth
@@ -280,7 +280,7 @@ Params {
 
 If `is_smart_account_active` is set to `false` (by a circuit breaker controller or via governance), the entire smart account module is bypassed and standard Cosmos SDK signature verification is used. This provides an escape hatch for critical bugs without requiring a hard fork.
 
-#### 7. Credential Types
+## 7. Credential Types
 
 The `smart-account-auth` library supports multiple credential types, each mapping to a CosmWasm authenticator:
 
@@ -294,7 +294,7 @@ The `smart-account-auth` library supports multiple credential types, each mappin
 
 The `CredentialData` wrapper allows multiple credentials to be verified in a single call:
 
-```
+```text
 CredentialData {
     with_caller: false,           // allow sender address as authority?
     credentials: [ethCredential, passkeyCredential],
