@@ -1,0 +1,159 @@
+---
+title: State Sync
+description: State Sync allows your node to quickly synchronize by downloading a snapshot of the application state at a recent block height, rather than replaying the...
+status: partial
+---
+## State Sync Guide
+
+State Sync allows your node to quickly synchronize by downloading a snapshot of the application state at a recent block height, rather than replaying the entire blockchain history. This is the fastest way to get a running node.
+
+## When to Use State Sync
+
+- You need a working node quickly (minutes instead of hours)
+- You don't need historical data before a recent block
+- You're setting up an RPC node or sentry node
+- You want minimal disk space usage
+
+## How State Sync Works
+
+1. Your node connects to the network and finds state sync peers
+2. It downloads a snapshot of the application state at a recent height
+3. It downloads the corresponding blocks to verify consistency
+4. Your node is ready to participate in the network
+
+## Prerequisites
+
+- [Terp Core installed](/guides/network/nodes/install)
+- [Node configured](/guides/network/nodes/configure)
+- At least 2GB of free disk space
+
+## Step 1: Enable State Sync
+
+Edit your `app.toml` configuration:
+
+```bash
+# Enable state sync
+sed -i 's/enable = false/enable = true/' $HOME/.terpd/config/app.toml
+
+# Configure snapshot interval (in blocks)
+sed -i 's/snapshot-interval = 0/snapshot-interval = 500/' $HOME/.terpd/config/app.toml
+
+# Configure how many snapshots to keep
+sed -i 's/snapshot-keep-recent = 2/snapshot-keep-recent = 5/' $HOME/.terpd/config/app.toml
+```
+
+## Step 2: Configure State Sync Servers
+
+Add state sync RPC servers to your `config.toml`:
+
+```bash
+# Edit config.toml
+nano $HOME/.terpd/config/config.toml
+```
+
+Find the `[statesync]` section and add:
+
+```toml
+[statesync]
+enable = true
+
+# RPC servers for state sync
+rpc_servers = "https://rpc-terp.nodeist.net:443,https://terp-rpc.stakeangle.io:443"
+
+# Trust height and hash (these should be updated periodically)
+trust_height = 0
+trust_hash = ""
+
+# Trust period (must be within unbonding period)
+trust_period = "168h"
+```
+
+## Step 3: Find Current State Sync Info
+
+For the latest snapshot, you can use public RPC endpoints:
+
+```bash
+# Get state sync info from a public RPC
+curl -s https://rpc-terp.nodeist.net:443/status | jq '.result.sync_info'
+```
+
+You'll need to note:
+- `latest_block_height` - Use a height a few hundred blocks behind
+- `block_id.hash` - The hash at that height
+
+## Step 4: Update Trust Configuration
+
+```bash
+# Set trust height (e.g., 5000 blocks behind current)
+TERP_HEIGHT=1000000
+TERP_HASH="<hash-from-rpc>"
+
+sed -i "s/trust_height = .*/trust_height = $TERP_HEIGHT/" $HOME/.terpd/config/config.toml
+sed -i "s/trust_hash = .*/trust_hash = \"$TERP_HASH\"/" $HOME/.terpd/config/config.toml
+```
+
+## Step 5: Start the Node
+
+```bash
+# Start with state sync enabled
+terpd start
+```
+
+The node will:
+1. Discover state sync servers
+2. Download the application state snapshot
+3. Fetch blocks to verify the state
+4. Begin normal operation
+
+This typically takes 5-10 minutes.
+
+## Verification
+
+Check your node is working:
+
+```bash
+# Check status
+terpd status
+
+# Verify you're not catching up
+# Should show "catching_up": false after sync completes
+```
+
+## Manual State Sync (Alternative)
+
+If automatic state sync doesn't work, you can manually trigger it:
+
+```bash
+# Stop the node
+sudo systemctl stop terpd
+
+# Reset state
+terpd tendermint unsafe-reset-all --keep-addr-book
+
+# Update config with state sync servers
+# (same as above)
+
+# Start the node
+sudo systemctl start terpd
+```
+
+## Common Issues
+
+### "State sync not available"
+- The network may not support state sync
+- Try different RPC servers
+- Ensure you're using a recent version of terpd
+
+### "Trusted hash mismatch"
+- Update to a more recent trusted height
+- Reset the node and try again with new trust parameters
+
+### Slow state sync
+- Use geographically closer RPC servers
+- Ensure good network bandwidth
+
+## Next Steps
+
+- [Configure your node](/guides/network/nodes/configure) for optimal performance
+- [Set up systemd service](/docs/guides/network/systemd-service) for production
+- [Join as a validator](/guides/network/validators/overview) if you want to participate in consensus

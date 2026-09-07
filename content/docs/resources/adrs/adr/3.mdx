@@ -1,0 +1,631 @@
+---
+title: "ADR-3: Agent, LLM, and Automation Participation Expectations"
+description: "Expectations for Terp Network community members and systems when interfacing with LLMs, agents, robots, and automation"
+status: "partial"
+---
+## ADR 3: Agent, LLM, and Automation Participation Expectations
+
+## Changelog
+
+- 2026-03-16: Initial stub with section headings
+- 2026-05-12: Expanded to full ADR-1 template format
+
+## Status
+
+DRAFT
+
+## Dependencies
+
+- **ADR-1**: Standard Template and Design Guidelines — this ADR follows the format defined in ADR-1
+- **ADR-4**: Sovereign Custody & Authentication — agent authentication and key management must follow ADR-4 custody principles
+- **ADR-9**: LM-Augmented Development and Semantic Tooling — defines the tooling pipeline (QMD, Trailmark, TensorZero) that agents use for Terp-aware contributions
+
+## Abstract
+
+This ADR establishes the behavioral expectations for any automated system — LLMs, agents, robots, botnets, or automation pipelines — that participates in the Terp Network ecosystem. It defines four core principles: prioritize trustlessness and permissionlessness, opt into transparency when using automation, value and respect the individual, and participate by the same rules expected of providers. These principles create a social and technical contract that ensures automated participation enhances rather than degrades the network's properties.
+
+## Context and Problem Statement
+
+Terp Network is a trustless, permissionless blockchain. As LLMs and automated agents become more capable of contributing code, documentation, governance votes, and on-chain transactions, the network needs clear expectations about how these systems participate. Without defined boundaries:
+
+- Agents could generate contributions that are technically valid but socially harmful (e.g., spam governance, flood PR reviews)
+- Botnet operators could extract value without contributing back or disclosing their automated nature
+- Individual contributors could be displaced or overwhelmed by automated volume
+- The network's trustlessness property could be undermined if agents operate with privileges that human contributors lack
+
+The problem: how do we define participation norms for automated systems that preserve Terp Network's core properties while enabling the efficiency gains that automation provides?
+
+## Decision Drivers
+
+- Trustlessness: automated participation must not create new trust requirements
+- Permissionlessness: agents must not need special authorization beyond what any contributor requires
+- Transparency: the community should be able to discover when automation is in use
+- Fairness: automated participants should not gain systemic advantage over human contributors
+- Composability: the expectations must work across all Terp Network surfaces (code, governance, documentation, on-chain)
+- Individual dignity: automation must not undermine the value of individual human contribution
+
+## Considered Options / Alternatives
+
+- **No policy (status quo)**: agents participate without any stated expectations. Maximum flexibility, but risks the problems described above.
+- **Mandatory disclosure + verification**: every automated contribution must be cryptographically attested as machine-generated. Strong audit trail but creates permissioning (agents need a disclosure mechanism) and friction.
+- **Principle-based expectations with opt-in transparency (selected)**: define behavioral principles that apply equally to human and automated participants. Transparency is opt-in (encouraged, not enforced), but violations of the principles are grounds for community governance action. Preserves permissionlessness while establishing norms.
+
+## Decision Outcome
+
+We adopt the **principle-based expectations with opt-in transparency** model. Four core principles govern all automated participation:
+
+### 1. Prioritize Trustlessness & Permissionlessness
+
+Any agent or automation participating in Terp Network must preserve the network's trustless and permissionless properties. Specifically:
+
+- Automated contributions must not require privileged access that a human contributor could not obtain
+- Agents must not create implicit trust relationships (e.g., a bot that signs transactions on behalf of others without their key material)
+- Automation must not introduce gatekeeping mechanisms — any contributor should be able to replicate an agent's actions manually
+- Smart contract interactions by agents must use the same entry points and pay the same fees as human-initiated transactions
+
+### 2. Opt-Into Transparency When Making Use of Botnets or Agents/LLMs for Contributing
+
+Contributors using automation are encouraged — but not required — to disclose this fact:
+
+- **Encouraged disclosures**: PR descriptions noting LM assistance (per ADR-9 TensorZero episode references), governance votes indicating automated analysis, documentation commits noting AI-assisted drafting
+- **Opt-in mechanism**: ADR-9's TensorZero episode tracking provides a built-in audit trail for LM-assisted work. Contributors using this pipeline automatically generate transparency metadata
+- **No penalty for non-disclosure**: choosing not to disclose automation use does not violate this principle. The principle is about creating a culture of transparency, not a surveillance requirement
+- **Community norms**: over time, the community should develop expectations around disclosure similar to how open-source communities expect commit signing — encouraged, normalized, but not gatekept
+
+### 3. Value & Respect The Individual
+
+Automation must not undermine the value of individual human contribution:
+
+- Agents must not be used to flood governance, PR reviews, or discussion channels in ways that overwhelm individual voices
+- Automated volume is not a substitute for considered judgment — a thousand bot votes do not outweigh a single well-reasoned human position
+- Individual contributors retain the right to interact with human reviewers and maintainers, even in projects with significant automation
+- Agents must not impersonate individuals — automated contributions should be identifiable as automated if disclosed
+
+### 4. Participate By Same Rules Expected By Providers
+
+Any system providing services to the Terp Network (validators, RPC nodes, relayers, API providers) participates under the same expectations:
+
+- An agent running a validator must follow the same uptime, security, and slashing rules as a human-operated validator
+- An LLM providing code review must apply the same quality standards regardless of whether the author is human or automated
+- A botnet providing RPC access must meet the same reliability and latency requirements as a manually operated node
+- Automation does not create exemption from operational responsibilities — it may change how they are met, but not that they must be met
+
+## Consequences
+
+### Positive
+
+- Clear expectations prevent "grey area" disputes about automated participation
+- Opt-in transparency preserves permissionlessness while building cultural norms toward disclosure
+- Principle-based approach is adaptable to new automation paradigms without requiring ADR amendments
+- ADR-9's TensorZero episode tracking provides a natural transparency mechanism for compliant agents
+
+### Negative
+
+- Opt-in transparency means some automation will remain undisclosed — the community must accept this trade-off
+- Principle-based rules require judgment calls in edge cases (e.g., what counts as "flooding" governance?)
+- No enforcement mechanism beyond community governance — violating these expectations has no automated penalty
+
+### Neutral / Trade-offs
+
+- The four principles are deliberately general — they require interpretation per context (code contribution, governance, on-chain interaction)
+- The boundary between "assisted" and "automated" is fuzzy — a human using LM suggestions is different from a fully autonomous agent, and both are covered by this ADR
+- Community enforcement (governance votes, social norms) is the primary compliance mechanism, not technical controls
+
+### Backwards Compatibility
+
+Fully additive. No existing code, contracts, or on-chain behavior changes. This ADR defines social and behavioral expectations — it does not modify any software. Contributors not using automation are unaffected. Contributors already using ADR-9's TensorZero pipeline are partially compliant (transparency principle).
+
+## Test Cases
+
+- Verify that an agent submitting a PR with TensorZero episode metadata in the description satisfies the transparency principle
+- Verify that a human contributor using LM-assisted suggestions in their editor is not required to disclose (opt-in, not mandatory)
+- Verify that a bot flooding governance proposals with low-quality votes violates the "value the individual" principle regardless of transparency status
+- Verify that a validator operated by an automation system is subject to the same slashing conditions as a human-operated validator
+- Verify that an agent's smart contract interaction using the same entry points and fees as a human transaction satisfies the trustlessness principle
+
+## Further Discussions / Open Questions
+
+- Should the community establish disclosure norms per contribution type (e.g., mandatory for governance, optional for code)?
+- What governance actions are appropriate when an agent violates these principles?
+- Should there be a "verified agent" registration that provides stronger transparency guarantees in exchange for community trust?
+- How do these expectations interact with ADR-10 working group governance — do working groups set their own automation policies?
+- What constitutes "flooding" in the governance context — is it volume, quality, or both?
+
+## References
+
+- ADR-1: Standard Template and Design Guidelines
+- ADR-4: Sovereign Custody & Authentication Specifications
+- ADR-9: LM-Augmented Development and Semantic Tooling
+- ADR-10: Community Working Groups and Resource Coordination
+- Michael Nygard, "Documenting Architecture Decisions" (2011)
+---
+title: "ADR-9: LM-Augmented Development and Semantic Tooling Integration Surface and Agent Onboarding"
+description: How Terp Network uses language models, semantic search, and code graph analysis to contribute to the protocol — transparently, verifiably, and with human accountability
+---
+
+## ADR 9: LM-Augmented Development and Semantic Tooling
+
+## Changelog
+
+- 2026-05-11: Initial draft
+
+## Status
+
+DRAFT
+
+## Dependencies
+
+- **ADR-1**: Standard Template and Design Guidelines — this ADR follows the format defined in ADR-1
+- **ADR-2**: Expected Testing Library Design — TensorZero prompt templates encode testing patterns from ADR-2; LM-generated code must pass ADR-2 test gates
+- **ADR-5**: HashMerchant — QMD collections include HashMerchant contract source and documentation; Trailmark blast radius analysis covers HashMerchant's privilege boundaries
+
+## Abstract
+
+This ADR defines integrates language models (LMs), semantic **search**, and code graph analysis into the development workflow. It establishes the toolchain, data flow, and accountability requirements for any LM-assisted contribution — whether from internal agents, community participants, or automated pipelines. The goal is transparency: anyone interacting with Terp Network through LM tooling should understand what surfaces exist, how semantic data is curated, and how contributions are verified before merging.
+
+## Context and Problem Statement
+
+Terp Network operates across a complex software surface: a Cosmos SDK chain (terp-core), CosmWasm contracts (cw-infuser, cw-shitstrap), deployment orchestration (o-line), frontend applications (terp-gui, terp-web-ui), and documentation. This surface exceeds what any single contributor can hold in working memory. Language models can accelerate development, but only if they have accurate, current context about the codebase and protocol decisions. Without a defined pipeline, LM contributions risk being untraceable, based on stale information, or inconsistent with settled architectural decisions.
+
+The core problem: how do we make LM-assisted development transparent, auditable, and effective — so that the community can see what tooling is in use, what data feeds it, and how outputs are verified?
+
+## Decision Drivers
+
+- Transparency: LM usage in development must be discoverable and auditable by the community
+- Accuracy: LMs must operate on current, verified context — not stale or hallucinated state
+- Reproducibility: Any semantic query or code graph analysis must be reproducible by another party
+- Minimal friction: The pipeline must not add bureaucratic overhead that discourages adoption
+- Composability: Each tool in the pipeline must be usable independently and in combination
+- Security: LM-generated code and documentation must pass the same review gates as human-generated content
+- Multi-repo awareness: The pipeline must span terp-core, CosmWasm contracts, o-line, and documentation simultaneously
+
+## Considered Options / Alternatives
+
+- Ad-hoc LM usage per contributor: no shared context, no audit trail. Fast but unaccountable and inconsistent.
+- Centralized RAG service: single hosted vector DB that all contributors query. Consistent but creates a trust bottleneck and single point of failure.
+- **Federated semantic pipeline with local-first tooling (selected)**: each contributor runs QMD locally against shared collection schemas; Trailmark builds reproducible code graphs; TensorZero orchestrates LM inference with verifiable prompt templates. Transparent, auditable, and no central trust requirement.
+
+## Decision Outcome
+
+We adopt the **federated semantic pipeline** as the standard for LM-augmented development on Terp Network. This consists of three layers:
+
+### Layer 1: QMD — Semantic Search and Data Curation
+
+QMD (Query Markdown Documents) is the primary semantic search engine for all Terp Network knowledge. It indexes:
+
+- **Source code** — Rust (.rs), Go (.go), and other source files wrapped in markdown code fences before ingestion (QMD is markdown-native; non-markdown files require wrapping)
+- **Documentation** — ADRs, module specs, guides, brain notes
+- **Configuration** — TOML, YAML, JSON config files (wrapped in markdown fences)
+
+**Collections and their purposes:**
+
+| Collection | Content | Document Count | Purpose |
+|---|---|---|---|
+| oline-rust | O-line Rust source (wrapped) | 74 | Deployment orchestration codebase |
+| oline-docs | O-line documentation | 9 | Operational procedures |
+| oline-configs | Configuration files (wrapped) | 5 | Deployment and node configuration |
+| oline-sdls | SDL templates (wrapped) | 19 | Akash deployment manifests |
+| abstract | Cosmos SDK ADRs, IBC-go ADRs, ziavl ADRs, terp-core module specs | 90+ | Upstream decision landscape |
+
+**Data curation workflow:**
+
+1. Source files are wrapped as markdown via `qmd-bulk-ingest.py` (handles .rs, TOML, YAML)
+2. Documents are ingested into named collections via `oline-qmd` wrapper script
+3. Collections are queryable via BM25 keyword search (`oline-qmd search`) or hybrid semantic search (`oline-qmd query`)
+4. All collections follow a shared schema convention — document IDs are path-based, enabling cross-referencing between code and documentation
+
+**Local-first, reproducible:** Every contributor runs QMD against the same collection definitions. The global DB lives at `~/.oline/semantic/qmd-global.db`. Collection contents can be rebuilt from source at any time using the bulk ingest scripts.
+
+### Layer 2: Trailmark — Code Graph Analysis
+
+Trailmark builds multi-language source code graphs from Terp Network repositories. It provides:
+
+- **Structural analysis**: call graphs, class hierarchies, module dependency maps, complexity heatmaps
+- **Security analysis**: blast radius calculation, taint propagation, privilege boundary mapping, entry point enumeration
+- **Evolution tracking**: graph comparison between commits/tags to surface security-relevant structural changes
+- **Audit augmentation**: overlays SARIF findings and weAudit annotations onto code graph nodes
+
+**Integration with QMD:** Trailmark output (structural summaries, taint paths, blast radii) can be ingested into QMD collections, making graph-derived context available to semantic search alongside raw source code.
+
+**Pipeline for new projects:**
+
+1. Run Trailmark parse on the repository (auto-detects languages)
+2. Run structural analysis to identify hotspots, taint, and blast radius
+3. Ingest Trailmark summaries + raw source into QMD collections
+4. Query QMD to surface architectural context during development
+
+### Layer 3: TensorZero — LM Inference Orchestration
+
+TensorZero provides structured, verifiable LM inference through:
+
+- **Prompt templates** (MiniJinja): version-controlled prompt definitions that separate system instructions from variable context
+- **Functions and episodes**: defined inference workflows with explicit input/output schemas
+- **Provider hooks**: pluggable LM backends (local, remote, distributed) that can be swapped without changing prompt logic
+- **Episode tracking**: each LM interaction is logged with its template, inputs, model, and output — creating an auditable trail
+
+**Integration pattern:**
+
+1. TensorZero function definitions reference QMD query results as context variables
+2. Prompt templates encode Terp Network conventions (ADR format, module spec structure, testing patterns from ADR-2)
+3. Provider hooks route to the TensorZero inference server layer, which abstracts LM backend selection (local, remote API, distributed) from prompt logic
+4. Every LM-assisted contribution includes a reference to the TensorZero function/episode that generated it
+
+**Inference server layer:** TensorZero's provider hook architecture separates prompt definitions from inference routing. The inference server layer handles:
+
+- Backend selection and failover across LM providers
+- Request routing based on function type and model capabilities
+- Session-aware context management across multiple LM interactions within a workflow
+
+### Developer Tooling Specification
+
+The following tools constitute the Terp Network developer workspace for LM-augmented development:
+
+| Tool | Path | Purpose |
+|---|---|---|
+| oline CLI | `~/.cargo/bin/oline` | Deployment orchestration, node management, IBC relayer ops |
+| QMD CLI | `~/.oline/venv/bin/qmd` | Semantic search and document indexing |
+| oline-qmd wrapper | `~/.oline/scripts/oline-qmd` | QMD with o-line venv + global DB preconfigured |
+| qmd-bulk-ingest.py | `~/.oline/scripts/qmd-bulk-ingest.py` | Bulk source file ingestion (Rust, TOML, YAML) |
+| Trailmark | pip install | Code graph construction and security analysis |
+| TensorZero | config/tensorzero.toml | LM inference orchestration and prompt management |
+| terp-brain | Obsidian vault | Operational knowledge graph linking all domains |
+| oline config | `~/.oline/config.toml` | Chain, deployment, and node configuration |
+
+**Adding a new project to the pipeline:**
+
+1. Run `trailmark parse` on the new repository
+2. Run `qmd-bulk-ingest.py --src-dir &lt;repo>/src --collection &lt;name>` to index source
+3. Index any documentation into the appropriate QMD collection
+4. Create TensorZero function definitions for LM tasks specific to the project
+5. Document the new collection and its purpose in this ADR's collection table
+
+## Consequences
+
+### Positive
+
+- LM contributions are transparent and auditable — every output traces back to a TensorZero episode with known inputs
+- Semantic search across the entire Terp surface eliminates stale-context errors
+- Trailmark security analysis catches architectural issues before they reach review
+- Local-first design means no central trust bottleneck — anyone can reproduce any query
+- The pipeline composes: QMD ↔ Trailmark ↔ TensorZero can be used independently or end-to-end
+
+### Negative
+
+- Local QMD + Trailmark setup requires initial effort per contributor (venv, collections, ingestion)
+- TensorZero prompt template maintenance is ongoing work
+- Federated model means collection schemas must be documented and followed consistently
+
+### Neutral / Trade-offs
+
+- QMD's markdown-only requirement means non-markdown files always need wrapping — this is a deliberate trade-off for index simplicity
+- Trailmark analysis adds latency to the onboarding of new repositories, but pays off in reduced review cycles
+- The inference server layer architecture may evolve as provider hook configurations stabilize
+
+### Backwards Compatibility
+
+Fully additive. No existing code, APIs, or on-chain behavior changes. This ADR defines a workflow and toolchain specification — it does not modify terp-core, CosmWasm contracts, or any deployed software. Existing contributors not using LM tooling are unaffected.
+
+## Test Cases
+
+- QMD: verify `oline-qmd search 'store migrations' -c abstract` returns ADR-041 and related documents
+- QMD: verify `oline-qmd collection list` returns all documented collections with expected document counts
+- Trailmark: verify `trailmark parse` on o-line source produces a graph with expected node/edge counts
+- Trailmark: verify blast radius analysis identifies the upgrade handler as a high-centrality node
+- TensorZero: verify a function definition with MiniJinja template renders correctly with variable substitution
+- Integration: verify QMD query results can be passed as context to a TensorZero function and produce a valid LM output
+- Bulk ingest: verify `qmd-bulk-ingest.py --dry-run` lists expected .rs files without writing to DB
+
+## Further Discussions / Open Questions
+
+- Should QMD collections be version-locked to git commits/tags for full reproducibility?
+- What is the minimum TensorZero episode metadata that must accompany an LM-assisted PR?
+- Should inference server session logs be ingested into QMD for after-action review?
+- How to handle QMD collection schema migrations when the ingestion format changes?
+- Community contribution guidelines: what disclosure is required when using LM tooling?
+
+## References
+
+- ADR-1: Standard Template and Design Guidelines
+- ADR-2: Expected Testing Library Design
+- `~/.oline/scripts/oline-qmd` — QMD wrapper script
+- `~/.oline/scripts/qmd-bulk-ingest.py` — bulk ingestion script
+- `~/.oline/config.toml` — o-line configuration
+- TensorZero documentation: https://www.tensorzero.com/docs
+- Trailmark skill documentation (Hermes skill: trailmark)
+- QMD setup notes: Homebrew Python 3.13 venv at `~/.oline/venv/`, global DB at `~/.oline/semantic/qmd-global.db`
+
+---
+---
+
+## ADR 11: Developer Tooling Integration Surface and Agent Onboarding
+
+## Changelog
+
+- 2026-05-12: Initial draft
+
+## Status
+
+DRAFT
+
+## Dependencies
+
+- **ADR-1**: Standard Template and Design Guidelines — this ADR follows the format defined in ADR-1
+- **ADR-3**: Agent Participation Expectations — agents integrating with Terp must follow the four principles defined in ADR-3
+- **ADR-4**: Sovereign Custody & Authentication — agent authentication uses smart account authenticators defined in ADR-4
+- **ADR-5**: HashMerchant — agents querying external chain data use HashMerchant interfaces
+- **ADR-9**: LM-Augmented Development and Semantic Tooling — QMD, Trailmark, and TensorZero pipeline available to agents
+- **ADR-10**: Community Working Groups — agents coordinate with relevant working groups per ADR-10 structure
+
+## Abstract
+
+This ADR defines the complete integration surface for external agents, developers, and automated systems to interact with Terp Network. It specifies two layers: the **technical surface** (what APIs, client libraries, CLI tools, contract interfaces, and generated type packages exist) and the **integration workflow** (how a new agent or developer discovers these surfaces, authenticates, and begins contributing effectively). The schema-driven type generation pipeline — `cargo schema -> ts-cosmwasm-codegen -> zod objects -> proto format -> go-package, rust crate types -> python binding types -> md table` — ensures that every integration surface is derived from a single canonical source, maintaining consistency across all language targets. This ADR serves as the entry point for any system that needs to make effective contact with Terp Network.
+
+## Context and Problem Statement
+
+Terp Network exposes a complex software surface: a Cosmos SDK chain with gRPC/REST endpoints, CosmWasm smart contracts with JSON-based execute/query interfaces, a CLI tool (o-line) for deployment orchestration, semantic search (QMD) for knowledge retrieval, and code graph analysis (Trailmark) for architectural understanding. Each of these surfaces has its own authentication model, data format, and interaction pattern.
+
+For a new agent or developer, the questions are:
+
+1. **What exists?** What APIs, contracts, and tools are available?
+2. **How do I authenticate?** How do I prove identity and authorization?
+3. **What types do I use?** How do I get type-safe access in my preferred language?
+4. **How do I discover context?** How do I understand the codebase and protocol without reading every file?
+5. **How do I contribute?** What is the path from first contact to productive contribution?
+
+Without a defined integration surface and onboarding workflow, each agent must reverse-engineer these answers independently, leading to inconsistent integrations, stale type definitions, and duplicated discovery effort.
+
+## Decision Drivers
+
+- Single source of truth: all client types must derive from the canonical schema, not manual definitions
+- Language parity: agents should have equally capable client libraries in TypeScript, Go, Rust, and Python
+- Discoverability: the integration surface must be self-documenting — an agent should be able to enumerate available interfaces programmatically
+- Authentication consistency: all surfaces should use the same authentication model (ADR-4 smart accounts)
+- Minimal friction: onboarding a new agent should take minutes, not days
+- Reproducibility: any agent should be able to reproduce the type generation pipeline from source
+
+## Considered Options / Alternatives
+
+- **Ad-hoc integrations per agent**: each agent discovers and wraps APIs independently. No shared types, no consistency. Fast to start but diverges quickly.
+- **Centralized SDK with auto-generated clients**: single maintained SDK that all agents consume. Consistent but creates a maintenance bottleneck and coupling.
+- **Schema-driven pipeline with per-language outputs (selected)**: one canonical schema (from `cargo schema`) feeds a generation pipeline that produces type-safe packages in each target language. Agents consume the generated packages. Consistent types, no coupling to a single SDK implementation, and the pipeline is reproducible.
+
+## Decision Outcome
+
+We adopt the **schema-driven pipeline** as the standard integration method. The pipeline has two tracks: the **type generation track** (producing client packages) and the **discovery track** (providing context and onboarding).
+
+### Track 1: Type Generation Pipeline
+
+All CosmWasm contract types and Cosmos SDK module types are generated from a single canonical source:
+
+```bash
+cargo schema
+    │
+    ▼
+JSON Schema files (*.json)
+    │
+    ├─► ts-cosmwasm-codegen ─► TypeScript client + zod validators
+    │
+    ├─► proto format ─► .proto files
+    │       │
+    │       ├─► go-package (cosmos-sdk-go proto generation)
+    │       │
+    │       ├─► rust crate types (prost-build)
+    │       │
+    │       └─► python binding types (betterproto)
+    │
+    └─► md table ─► human-readable API reference in docs
+```
+
+**Step 1: cargo schema**
+
+Each CosmWasm contract exposes a `schema` command that generates JSON Schema files for its instantiate, execute, query, and sudo messages. These schemas are the canonical type definitions.
+
+```bash
+# Generate schemas from contract source
+cd contracts/cw-infuser && cargo schema
+cd contracts/cw-shitstrap && cargo schema
+cd contracts/terp721-account && cargo schema
+```
+
+**Step 2: ts-cosmwasm-codegen**
+
+The JSON schemas are consumed by `@cosmwasm/ts-codegen` to produce TypeScript client classes with full type safety and zod runtime validators.
+
+```bash
+# Generate TypeScript clients
+cosmwasm-ts-codegen generate \
+  --schema ./schemas \
+  --out ./ts-clients \
+  --name terp-contracts
+```
+
+Outputs:
+- `ts-clients/cw-infuser/CwInfuserClient.ts` — execute and query methods
+- `ts-clients/cw-shitstrap/CwShitstrapClient.ts` — execute and query methods
+- `ts-clients/terp721-account/Terp721AccountClient.ts` — execute and query methods
+- `ts-clients/index.ts` — barrel export
+- Zod validators for each message type (runtime validation)
+
+**Step 3: proto format**
+
+Cosmos SDK module types are defined as Protocol Buffer messages. The `cargo schema` JSON is transformed into `.proto` definitions for chain-level modules.
+
+```bash
+# Generate proto definitions from schema
+schema-to-proto --input ./schemas --output ./proto/terp
+```
+
+**Step 4: per-language package generation**
+
+From the `.proto` files:
+
+- **Go**: `buf generate` with `buf.gen.yaml` → Go module with gRPC client stubs
+- **Rust**: `prost-build` → Rust crate with proto-derived types and client
+- **Python**: `betterproto` → Python package with async gRPC client
+
+```bash
+# Go package
+buf generate --template buf.gen.yaml ./proto
+
+# Rust crate
+cargo build --features proto-gen
+
+# Python bindings
+python -m betterproto ./proto --output ./python-clients/terp
+```
+
+**Step 5: md table generation**
+
+A final step produces human-readable markdown tables documenting every message type, field, and type annotation. These tables are ingested into the Terp documentation site.
+
+```bash
+schema-to-md --input ./schemas --output ./docs/api-reference.md
+```
+
+## Track 2: Discovery and Onboarding
+
+An agent or developer entering the Terp Network ecosystem follows this workflow:
+
+**Phase 1: Authenticate**
+
+1. Generate or import a keypair using the o-line CLI or Keplr wallet
+2. Register a Terp Account name via the Billboard minter (tabs.html)
+3. The account is now a smart account (ADR-4) with configurable authenticators
+4. For automated agents: use the o-line CLI to configure key material non-interactively
+
+```bash
+# Agent onboarding via o-line CLI
+oline keys add agent-key --from-mnemonic "your mnemonic"
+oline tx register-name agent-name --from agent-key
+```
+
+**Phase 2: Discover the Surface**
+
+The integration surface is enumerated through three discovery mechanisms:
+
+1. **Contract registry**: `oline query wasm list-contract-by-code &lt;code-id>` lists all deployed contract instances
+2. **Schema endpoint**: each CosmWasm contract exposes a `/schema` query returning its JSON Schema definitions
+3. **QMD search**: `oline-qmd search 'smart account authentication' -c abstract` returns relevant ADRs, module specs, and source files
+
+For programmatic discovery, the `terp-actions.json` manifest at `terp.network/public/terp-actions.json` lists all known contract addresses, code IDs, and their associated schema URIs.
+
+**Phase 3: Obtain Typed Access**
+
+```bash
+# Pull latest generated types
+npm install @terp/ts-clients    # TypeScript
+go get github.com/terpnetwork/terp-go  # Go
+pip install terp-py             # Python
+cargo add terp-proto            # Rust
+```
+
+Each package provides:
+- Typed execute/query methods for all CosmWasm contracts
+- gRPC client stubs for all Cosmos SDK modules
+- Zod/validator runtime checks (TypeScript/Python)
+- Full JSDoc/docstring documentation from schema annotations
+
+**Phase 4: Contextual Understanding**
+
+Before contributing, an agent should ingest the Terp codebase into its semantic context:
+
+1. **Trailmark**: build a code graph of the relevant repository
+2. **QMD**: ingest the graph + source into a semantic collection
+3. **Query**: use QMD to surface architectural context relevant to the task
+
+This follows the workflow defined in ADR-9, Section "Adding a new project to the pipeline."
+
+**Phase 5: Contribute**
+
+Follow ADR-3 participation expectations:
+- Use TensorZero for LM-assisted contributions (transparency principle)
+- Submit PRs with ADR references and TensorZero episode metadata
+- Apply the same quality gates as human contributions
+
+## Integration Surface Inventory
+
+The following table enumerates every integration surface currently available:
+
+| Surface | Protocol | Authentication | Types Available | Client Libraries |
+|---|---|---|---|---|
+| Cosmos SDK gRPC | gRPC (port 9090) | ADR-4 smart account | proto-generated | Go, Rust, Python |
+| Cosmos REST API | HTTP/JSON (port 1317) | ADR-4 smart account | JSON Schema | TypeScript |
+| CosmWasm execute | JSON over gRPC/REST | ADR-4 smart account | ts-codegen | TS, Go, Rust, Python |
+| CosmWasm query | JSON over gRPC/REST | None (read-only) | ts-codegen | TS, Go, Rust, Python |
+| HashMerchant proof query | CosmWasm sudo | ADR-4 + escrow | ts-codegen | TS, Go, Python |
+| ZK-WASM verify | CosmWasm sudo | ADR-4 | halo2 proof bytes | WASM (browser), Rust |
+| o-line CLI | Local process | Key file/mnemonic | N/A (CLI) | Shell |
+| QMD semantic search | SQLite + BM25 | Local (no auth) | Markdown | Python |
+| Trailmark code graph | File-based | Local (no auth) | JSON graph | Python |
+| TensorZero inference | HTTP/MiniJinja | Local config | TOML | Rust |
+
+### Adding a New Integration Surface
+
+When a new contract, module, or API is added to Terp Network:
+
+1. Run `cargo schema` on the new contract to generate JSON Schema
+2. Add the schema to the ts-cosmwasm-codegen configuration
+3. Regenerate all language packages (`just gen-types`)
+4. Add the new surface to the Integration Surface Inventory table in this ADR
+5. If the surface requires authentication, document the authentication method referencing ADR-4
+6. Update `terp-actions.json` with the new contract address and schema URI
+7. Ingest the new contract source into the appropriate QMD collection
+
+## Consequences
+
+### Positive
+
+- Single canonical schema ensures type consistency across all language targets
+- Agents can onboard in minutes: authenticate, discover, pull types, contribute
+- Schema-driven pipeline is fully reproducible — any agent can regenerate types from source
+- QMD and Trailmark provide semantic context that raw API docs cannot
+- The inventory table gives agents a single place to discover all available surfaces
+
+### Negative
+
+- Schema pipeline maintenance: changes to `cargo schema` output format require updates to all generators
+- Language parity is aspirational — TypeScript and Go will likely be the most complete; Python and Rust may lag
+- The onboarding workflow assumes local QMD/Trailmark setup, which has an initial cost (per ADR-9 negative consequences)
+
+### Neutral / Trade-offs
+
+- The pipeline is linear (schema → types) — there is no automated reverse path from a type change back to a schema amendment
+- Contract addresses in `terp-actions.json` are per-chain — testnet and mainnet addresses differ, and the manifest must be chain-aware
+- The discovery mechanisms (contract registry, schema endpoint, QMD) serve different audiences — agents may prefer QMD, while traditional developers may prefer the contract registry
+
+### Backwards Compatibility
+
+Fully additive. No existing code, contracts, or on-chain behavior changes. Existing integrations continue to work. This ADR defines a standard and workflow — adopting it is optional but recommended for new integrations.
+
+## Test Cases
+
+- Verify `cargo schema` in cw-infuser produces valid JSON Schema for InstantiateMsg, ExecuteMsg, and QueryMsg
+- Verify ts-cosmwasm-codegen produces TypeScript clients that compile without errors
+- Verify proto-generated Go package compiles and the gRPC client can connect to a testnet node
+- Verify `oline-qmd search 'smart account' -c abstract` returns ADR-4 and related module specs
+- Verify `terp-actions.json` lists all deployed contract addresses for the current chain ID
+- Verify a new agent can authenticate, discover the surface, and execute a query within 30 minutes of starting
+- Verify the Integration Surface Inventory table includes entries for all surfaces listed in the inventory section
+
+## Further Discussions / Open Questions
+
+- Should we publish generated type packages to npm/PyPI/crates.io automatically on contract deployment?
+- How to handle schema versioning when a contract is migrated to a new code ID?
+- Should the terp-actions.json manifest include ABI-like documentation beyond addresses?
+- What is the minimum QMD collection set required for effective agent onboarding?
+- Should there be a "Terp SDK" meta-package that bundles all language targets plus CLI tools?
+
+## References
+
+- ADR-1: Standard Template and Design Guidelines
+- ADR-3: Agent, LLM, and Automation Participation Expectations
+- ADR-4: Sovereign Custody & Authentication Specifications
+- ADR-5: HashMerchant — Verifiable Merkle Reflection Market
+- ADR-9: LM-Augmented Development and Semantic Tooling
+- ADR-10: Community Working Groups and Resource Coordination
+- `@cosmwasm/ts-codegen`: https://github.com/CosmWasm/ts-codegen
+- Cosmos SDK proto generation: https://docs.cosmos.network/main/building-modules/proto-messages
+- Protocol Buffers: https://protobuf.dev
+- o-line CLI: `~/.cargo/bin/oline`
+- QMD wrapper: `~/.oline/scripts/oline-qmd`
+- Project knowledge graph workflow: `~/daily-driver/daily-driver/terp/project-knowledge-graph-creation -workflow.md`

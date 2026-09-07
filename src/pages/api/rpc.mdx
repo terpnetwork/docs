@@ -1,0 +1,19 @@
+---
+title: Interacting with RPC endpoints
+description: How to call Terp Network CometBFT RPC
+status: partial
+---
+
+# Interacting with the RPC endpoints
+
+CometBFT (Tendermint) RPC is HTTP GET and JSON-RPC on port `26657`. Public mainnet:
+
+```text
+https://rpc.terp.network
+```
+
+Try live methods in the [CometBFT playground](/api/cometbft) (`status`, `block`, `tx_search`).
+
+Configure a local node in `config.toml` under `[rpc]`. Default listen address is `tcp://0.0.0.0:26657`.
+
+JSON-RPC POST to the same host also works. See the playground for request and response shapes.

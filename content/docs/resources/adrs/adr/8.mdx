@@ -1,0 +1,267 @@
+---
+title: "ADR-8: Closing the Loop \u2014 Sustainable Revenue and Automation for Terp Network"
+description: "Exploring designs for utilizing the Terp Network stack for automating fair, transparent, and revenue-generating sustainability"
+status: "partial"
+---
+## ADR 8: Closing the Loop — Sustainable Revenue and Automation for Terp Network
+
+## Changelog
+
+- 2026-05-12: Initial draft
+
+## Status
+
+DRAFT
+
+## Dependencies
+
+- **ADR-1**: Standard Template and Design Guidelines — this ADR follows the format defined in ADR-1
+- **ADR-5**: HashMerchant — serves as a primary revenue source; the escrow-gated Merkle reflection market generates validator revenue from on-chain proof queries, which directly feeds the sustainability loop
+- **ADR-9**: LM-Augmented Development and Semantic Tooling — QMD, Trailmark, and TensorZero are the production tools that "close the loop" by being both the infrastructure that builds the network and the products that generate revenue
+- **ADR-10**: Community Working Groups and Resource Coordination — wg-docs, wg-infra, and wg-contracts coordinate revenue allocation and resource curation; working group structure provides the governance layer for fair revenue distribution
+- **Downstream**: ADR-5 escrow revenue flows, ADR-9 tooling monetization, ADR-10 working group budget authority
+
+## Abstract
+
+This ADR defines "closing the loop" for Terp Network: a design for utilizing the same infrastructure that builds and maintains the network (QMD, Trailmark, TensorZero per ADR-9; HashMerchant per ADR-5) to generate sustainable revenue that funds continued development. The core insight is that the tools producing documentation, semantic search, code analysis, and ZK proof verification are themselves valuable services that external consumers will pay for. Closing the loop means identifying revenue models that are fair (contributors are compensated proportionally), transparent (the community can verify revenue flows), and sustainable (revenue persists beyond individual grant cycles). This ADR specifies the revenue channels, the allocation mechanism, and the transparency requirements for each.
+
+## Context and Problem Statement
+
+Terp Network has built a sophisticated development and infrastructure stack:
+
+- **QMD**: semantic search engine indexing source code, documentation, and configuration across the entire Terp surface (terp-core, CosmWasm contracts, o-line, documentation)
+- **Trailmark**: code graph analysis producing structural analysis, security analysis (blast radius, taint propagation, privilege boundaries), and evolution tracking
+- **TensorZero**: LM inference orchestration with verifiable prompt templates, episode tracking, and provider hooks
+- **HashMerchant**: on-chain Merkle reflection market with escrow-gated proof queries (ADR-5)
+
+These tools currently serve internal development. However, they represent production-grade infrastructure that external projects need: documentation generation, semantic code search, security audit augmentation, and cross-chain state verification. The problem is threefold:
+
+1. **Revenue gap**: Terp Network development is currently sustained by grants and token emission. Neither is reliably recurring. Grants expire; token emission dilutes holders. A sustainable protocol needs recurring revenue that scales with usage.
+
+2. **Fairness gap**: When infrastructure generates revenue, who is compensated? The contributor who wrote the code? The validator who runs the node? The working group (ADR-10) that curates the resource? Without a defined allocation mechanism, revenue flows are either ad-hoc (contributors unpaid) or extractive (validators capture all value).
+
+3. **Transparency gap**: The community must be able to verify that revenue is generated fairly, allocated as promised, and spent on its intended purpose. Without on-chain or auditable tracking, revenue models lack legitimacy.
+
+The specific forces:
+
+- Infrastructure tools (QMD, Trailmark, TensorZero) are operational but serve only internal consumers. External demand exists (other Cosmos chains need documentation generation, security analysis, and semantic search).
+- HashMerchant (ADR-5) already generates revenue through escrow-gated proof queries, but this revenue currently flows only to validators. The broader contributor base (documentation authors, circuit developers, tool maintainers) receives nothing.
+- Working groups (ADR-10) provide organizational structure but no budget authority. Revenue allocation currently has no defined governance path.
+- The community expects transparency. Revenue flows that are opaque or unverifiable undermine trust in the protocol.
+
+## Decision Drivers
+
+- Fairness: contributors who produce value (code, documentation, circuits, tooling) must be compensated proportionally
+- Transparency: all revenue flows must be auditable — either on-chain or through publicly verifiable records
+- Sustainability: revenue must be recurring and scale with usage, not dependent on one-time grants or emissions
+- Composability: revenue channels must be independently operable — a failure in one channel does not affect others
+- Minimal overhead: revenue collection and allocation must not add bureaucratic overhead that discourages contribution
+- Alignment with existing infrastructure: leverage HashMerchant escrow, QMD collections, and working group structure rather than building new systems
+- Community governance: revenue allocation decisions must follow the governance process (ADR-10 working groups, governance meetings)
+
+## Considered Options / Alternatives
+
+- **Status quo (grant-dependent)**: continue relying on grants and token emission for development funding. Simple but unsustainable — grants expire, emissions dilute, and neither scales with protocol usage.
+- **Token buyback and burn**: use protocol revenue to buy and burn TERP tokens. Benefits token holders but does not compensate contributors. Does not close the loop — the people building the infrastructure are not the people receiving the value.
+- **Platform fee on HashMerchant only**: extend HashMerchant escrow fees to fund development. Single revenue source, validator-captured. Does not address the contributor fairness gap.
+- **Multi-channel revenue model with working group allocation (selected)**: establish multiple independent revenue channels (HashMerchant escrow, documentation-as-a-service, semantic search API, security audit reports) and allocate revenue through the working group structure defined in ADR-10. Each channel is independently operable. Allocation is transparent and governance-controlled.
+
+## Decision Outcome
+
+We adopt the **multi-channel revenue model with working group allocation**. This establishes four revenue channels, each leveraging existing infrastructure, and an allocation mechanism that flows through the ADR-10 working group structure.
+
+### Revenue Channel 1: HashMerchant Escrow Revenue (ADR-5)
+
+**Mechanism**: HashMerchant already generates revenue through escrow-gated Merkle proof queries. Currently, this revenue flows to validators as a "hash oracle" service fee. Under the closed-loop model, a portion of escrow revenue is allocated to the contributor pool.
+
+**Revenue flow**:
+- 70% to validators (operational cost coverage)
+- 20% to contributor pool (funds wg-docs, wg-contracts, wg-infra)
+- 10% to treasury reserve (emergency fund, grant matching)
+
+**Pricing**: Escrow is already denominated in TERP. The monthly escrow rate is set per registered contract and visible on-chain via the `escrow` prefix store.
+
+**Transparency**: All escrow payments are on-chain. The split allocation is a module parameter (governance-gated).
+
+### Revenue Channel 2: Documentation Generation as a Service
+
+**Mechanism**: QMD + TensorZero produce high-quality documentation from source code, ADRs, and brain notes. External Cosmos chains and projects need this capability — automated documentation generation from their codebases using the same pipeline (QMD ingestion + TensorZero prompt templates + Trailmark structural analysis).
+
+**Product**: A documentation generation service that:
+1. Ingests a project's source code and existing documentation into QMD
+2. Runs Trailmark structural analysis to identify module boundaries, entry points, and security-relevant code paths
+3. Uses TensorZero prompt templates (the same ones that generate Terp Network docs) to produce ADRs, module specs, and developer guides
+4. Outputs structured documentation in the ADR-1 template format
+
+**Pricing**: Per-project, denominated in TERP or stablecoin. Pricing tiers:
+- Single-module documentation: 500 TERP
+- Full codebase documentation (up to 10 modules): 2,000 TERP
+- Ongoing documentation maintenance (monthly): 500 TERP/month
+
+**Revenue flow**:
+- 60% to wg-docs (documentation contributors and tool maintainers)
+- 30% to wg-contracts (QMD/TensorZero integration maintenance)
+- 10% to treasury reserve
+
+**Transparency**: Each documentation project is tracked as a working group deliverable (ADR-10). Revenue allocation is recorded in the wg-docs charter.
+
+### Revenue Channel 3: Semantic Search API Access
+
+**Mechanism**: QMD's semantic search capability is valuable beyond Terp Network. External projects need searchable indices of their own codebases, ADRs, and documentation. The QMD global DB architecture (`~/.oline/semantic/qmd-global.db`) can be extended to serve per-project collections via an API.
+
+**Product**: A semantic search API that:
+1. Hosts per-project QMD collections (ingestion and indexing done by wg-infra)
+2. Exposes BM25 keyword search and hybrid semantic search endpoints
+3. Supports collection-scoped queries with rate limiting
+4. Provides collection management (create, update, delete) via authenticated API
+
+**Pricing**: Subscription-based, denominated in TERP:
+- Community tier (rate-limited, public collections): free
+- Professional tier (higher rate limits, private collections): 200 TERP/month
+- Enterprise tier (dedicated collections, priority support): 1,000 TERP/month
+
+**Revenue flow**:
+- 60% to wg-infra (API hosting, collection management, monitoring)
+- 20% to wg-docs (ingestion pipeline, collection schema maintenance)
+- 20% to treasury reserve
+
+**Transparency**: API access logs and subscription records are maintained by wg-infra. Revenue allocation is reported at governance meetings.
+
+### Revenue Channel 4: Security Audit Reports
+
+**Mechanism**: Trailmark produces code graph analysis including blast radius calculation, taint propagation, and privilege boundary mapping. This is the same analysis used internally for Terp Network security review. External projects need this — automated security analysis that identifies architectural issues before human review.
+
+**Product**: A security audit report that:
+1. Runs Trailmark parse on the target repository
+2. Produces structural analysis (call graphs, class hierarchies, module dependencies)
+3. Identifies security-relevant nodes: blast radius, taint paths, privilege boundaries, entry points
+4. Overlays SARIF findings and weAudit annotations onto the code graph
+5. Generates a structured report with severity ratings and remediation suggestions
+
+**Pricing**: Per-audit, denominated in TERP:
+- Single-module audit: 1,000 TERP
+- Full codebase audit (up to 10 modules): 4,000 TERP
+- Continuous audit (monthly Trailmark runs + diff analysis): 1,500 TERP/month
+
+**Revenue flow**:
+- 50% to wg-contracts (Trailmark maintenance, security analysis expertise)
+- 30% to wg-infra (compute infrastructure for graph analysis)
+- 20% to treasury reserve
+
+**Transparency**: Audit reports are deliverables tracked by wg-contracts. Revenue allocation is recorded in the wg-contracts charter and reported at governance meetings.
+
+### Allocation Mechanism
+
+All revenue flows through the working group structure defined in ADR-10:
+
+1. Revenue is collected into a protocol-controlled address (on-chain, visible)
+2. Working group leads submit allocation proposals at governance meetings
+3. Allocations are recorded in WG charter documents (machine-parseable for QMD ingestion)
+4. Community can verify allocations by querying WG charters and comparing against on-chain revenue
+
+**Contributor compensation model**:
+- Working group members log contributions (PRs merged, documentation written, circuits designed, audits completed)
+- Working group leads allocate revenue proportionally based on contribution logs
+- Compensation is denominated in TERP and distributed via on-chain transfers
+- The model mirrors Akash Network's SIG structure: facilitators, not authorities
+
+### Detailed Design — Key Questions
+
+**User / validator / node operator requirements?**
+- Validators: HashMerchant revenue split changes require a governance vote. No code changes — the split is a module parameter.
+- Node operators: no changes. HashMerchant escrow collection is already operational.
+- Users: new services (documentation, search API, audits) are opt-in. No on-chain changes required to use them.
+
+**Affected systems / modules?**
+- `x/hashmerchant`: escrow split parameter added (governance-gated)
+- No changes to terp-core consensus or state machine
+- QMD, Trailmark, TensorZero: API layer added (off-chain)
+
+**New or changed data structures / state?**
+- HashMerchant `Params`: new field `escrow_split` (validator_pct, contributor_pct, treasury_pct)
+- Working group charters: new `revenue_allocation` section documenting allocation rules
+- No new on-chain stores
+
+**Efficiency considerations?**
+- Revenue collection is passive (HashMerchant escrow) or event-driven (service purchases)
+- No per-block overhead
+- API infrastructure for semantic search adds operational cost (wg-infra bears this)
+
+**Security considerations?**
+- HashMerchant escrow split is a governance-gated parameter — cannot be changed without a governance vote
+- Revenue collection address must be a multisig or module account, not an EOA
+- API authentication must prevent unauthorized access to paid collections
+
+**Privacy considerations?**
+- Revenue flows are on-chain (public by default). Working group allocation records are off-chain but publicly documented.
+- Semantic search API must not leak private collection contents across tenant boundaries.
+
+**Breaking release required?**
+- No. HashMerchant escrow split addition is a parameter change, not a consensus-breaking change.
+- All revenue channels are additive.
+
+**Coordination needed?**
+- wg-infra: API hosting, monitoring, rate limiting
+- wg-docs: documentation service delivery, QMD ingestion
+- wg-contracts: audit service delivery, Trailmark maintenance
+- wg-events: revenue allocation discussion at governance meetings
+
+## Consequences
+
+### Positive
+
+- Terp Network gains sustainable, recurring revenue that scales with protocol usage — not dependent on grants or token emission
+- Contributors are compensated proportionally through the working group allocation model
+- Revenue channels leverage existing infrastructure (QMD, Trailmark, TensorZero, HashMerchant) — no new systems to build
+- Each channel is independently operable — a failure in one does not affect the others
+- Transparency: all revenue flows are on-chain (HashMerchant) or publicly documented (WG charters)
+- External projects benefit from Terp Network's tooling — this grows the ecosystem
+
+### Negative
+
+- Service delivery requires operational capacity (wg-infra must host APIs, wg-docs must deliver documentation, wg-contracts must deliver audits)
+- Pricing in TERP exposes revenue to token volatility — this may deter external consumers
+- Working group allocation is off-chain and relies on lead integrity; no smart contract enforcement of allocation rules
+- Revenue expectations may create pressure to prioritize paid work over community maintenance
+
+### Neutral / Trade-offs
+
+- The multi-channel model is intentionally diverse — no single revenue source dominates. This is resilient but requires coordination across working groups.
+- HashMerchant escrow split (70/20/10) is a starting point. Governance can adjust this at any time.
+- Pricing tiers are initial estimates. Market feedback will determine sustainable pricing.
+- The model does not prescribe on-chain enforcement of contributor compensation — this is a deliberate trade-off to avoid gas overhead and smart contract complexity for what is ultimately a social coordination problem.
+
+### Backwards Compatibility
+
+Fully additive. No changes to on-chain consensus, state machine, or existing contract behavior. HashMerchant escrow split is a new parameter with a default value that preserves the current flow (100% to validators) until governance votes to activate the split. Working group charter additions are documentation-only changes.
+
+## Test Cases
+
+- Verify HashMerchant escrow split parameter defaults to (100, 0, 0) — no revenue diversion until governance activates
+- Verify that a governance proposal to change the escrow split to (70, 20, 10) is processable and results in the new split being applied to subsequent escrow payments
+- Verify that a documentation generation service request can be tracked as a wg-docs deliverable from intake to delivery
+- Verify that QMD semantic search API returns results scoped to the requesting tenant's collections only (no cross-tenant leakage)
+- Verify that Trailmark security audit report output contains all specified sections (structural analysis, blast radius, taint paths, privilege boundaries, severity ratings)
+- Verify that working group revenue allocation records are parseable by QMD (per ADR-9 integration requirements)
+- Verify that the treasury reserve address is a module account or multisig, not an EOA
+
+## Further Discussions / Open Questions
+
+- Should contributor compensation be enforced on-chain (smart contract escrow) or remain off-chain (working group discretion)?
+- Should pricing be denominated in TERP exclusively, or should stablecoin options be available to reduce volatility risk for external consumers?
+- What is the minimum viable API infrastructure for semantic search — can it be served from a single node, or does it require dedicated infrastructure?
+- Should the treasury reserve have a defined spending policy (e.g., only for grant matching, never for operational costs)?
+- How to handle revenue from anonymous or pseudonymous contributors — is KYC required for compensation?
+- Should the documentation-as-a-service and security audit products be offered through a dedicated entity (e.g., a DAO subsidiary) or remain informal working group activities?
+- What disclosure is required when using LM tooling to generate deliverables for paid services (per ADR-9)?
+
+## References
+
+- ADR-1: Standard Template and Design Guidelines
+- ADR-5: HashMerchant — Verifiable Merkle Reflection Market
+- ADR-9: LM-Augmented Development and Semantic Tooling
+- ADR-10: Community Working Groups and Resource Coordination
+- QMD documentation: `~/.oline/scripts/oline-qmd`
+- Trailmark skill documentation (Hermes skill: trailmark)
+- TensorZero documentation: https://www.tensorzero.com/docs
+- Akash Network SIG model (reference for working group revenue allocation)

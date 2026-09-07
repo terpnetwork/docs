@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "index",
+    "overview",
+    "concepts",
+    "community",
+    "resources",
+    "api",
+    "core-apps",
+    "connect/index.mdx",
+    "contribute",
+    "guides",
+    "disclaimers"
+  ]
+}

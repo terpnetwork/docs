@@ -1,0 +1,366 @@
+---
+title: Composite Authenticators
+description: Combine multiple authenticators with AllOf (AND) and AnyOf (OR) logic — multisig, tiered access, and multi-factor authentication
+status: partial
+---
+import { Tab, Tabs } from '#vocs-compat';
+
+Composite authenticators combine **sub-authenticators** into logical groups, enabling multi-factor authentication, multisig, and tiered access patterns without writing custom contracts.
+
+## Available Composite Types
+
+| Type | Logic | Use Case |
+|------|-------|----------|
+| **AllOf** | ALL sub-authenticators must pass | Multisig, 2FA |
+| **AnyOf** | ANY ONE sub-authenticator must pass | Backup key, fallback auth |
+
+## How Composition Works
+
+When you register a composite authenticator, you provide a list of sub-authenticator configurations. Each sub-authenticator has a `type` and a `config` (the data it needs to initialize).
+
+```json
+[
+  {"type": "SignatureVerification", "config": "<pubkey_bytes>"},
+  {"type": "MessageFilter",          "config": "{\"@type\":\"...\"}"}
+]
+```
+
+## Composite IDs
+
+Each composite authenticator gets a global ID. Sub-authenticators are addressed by appending a path:
+
+```text
+Global ID: 10
+  └─ AllOf(10)
+      ├─ SignatureVerification → ID: 10.0
+      └─ MessageFilter         → ID: 10.1
+```
+
+This means you can select individual sub-authenticators when composing more complex hierarchies.
+
+## Example 1: Two-Key Multisig (AllOf)
+
+Require signatures from two different public keys:
+
+<Tabs items={['terpd CLI', 'TypeScript/JS', 'Rust', 'Go', 'Python']}>
+<Tab value="terpd CLI">
+
+```bash
+# The data for AllOf is a JSON array of sub-authenticator configs
+terpd tx smart-account add-authenticator \
+  AllOf \
+  '[
+    {"type":"SignatureVerification","config":"A7YH7q2Xs0mF3G5GhHFX5BgV5KJkWf3Vn9V6P4z2C7Y="},
+    {"type":"SignatureVerification","config":"B8ZJ8r3Yt1nG4H6IiJY6ChW6LKlXg4Wo0W7Q5a3D8Z="}
+  ]' \
+  --from my-account \
+  --chain-id morocco-1 \
+  --fees 5000uthiol
+```
+
+</Tab>
+<Tab value="TypeScript/JS">
+
+```typescript
+import { toBase64 } from '@cosmjs/encoding';
+
+const allOfData = [
+  {
+    type: 'SignatureVerification',
+    config: toBase64(pubkey1Bytes),  // first pubkey
+  },
+  {
+    type: 'SignatureVerification',
+    config: toBase64(pubkey2Bytes),  // second pubkey
+  },
+];
+
+const msgAdd = {
+  typeUrl: '/terp.smartaccount.v1beta1.MsgAddAuthenticator',
+  value: {
+    sender: sender,
+    authenticatorType: 'AllOf',
+    data: new TextEncoder().encode(JSON.stringify(allOfData)),
+  },
+};
+
+const result = await client.signAndBroadcast(sender, [msgAdd], fee);
+```
+
+</Tab>
+<Tab value="Rust">
+
+```rust
+use serde_json::json;
+
+let all_of_config = json!([
+    {
+        "type": "SignatureVerification",
+        "config": Binary::from(pubkey1_bytes).to_base64()
+    },
+    {
+        "type": "SignatureVerification",
+        "config": Binary::from(pubkey2_bytes).to_base64()
+    }
+]);
+
+let msg_add = MsgAddAuthenticator {
+    sender: sender.to_string(),
+    authenticator_type: "AllOf".to_string(),
+    data: Binary::from(serde_json::to_vec(&all_of_config).unwrap()),
+};
+```
+
+</Tab>
+<Tab value="Go">
+
+```go
+type SubAuthConfig struct {
+    Type   string `json:"type"`
+    Config string `json:"config"`
+}
+
+allOfData := []SubAuthConfig{
+    {Type: "SignatureVerification", Config: base64.StdEncoding.EncodeToString(pubKey1Bytes)},
+    {Type: "SignatureVerification", Config: base64.StdEncoding.EncodeToString(pubKey2Bytes)},
+}
+
+dataBytes, _ := json.Marshal(allOfData)
+
+msg := &types.MsgAddAuthenticator{
+    Sender:            senderAddr.String(),
+    AuthenticatorType: "AllOf",
+    Data:              dataBytes,
+}
+```
+
+</Tab>
+<Tab value="Python">
+
+```python
+import json, base64
+
+all_of_data = [
+    {"type": "SignatureVerification", "config": base64.b64encode(pk1).decode()},
+    {"type": "SignatureVerification", "config": base64.b64encode(pk2).decode()},
+]
+
+msg = MsgAddAuthenticator(
+    sender=client.address,
+    authenticator_type="AllOf",
+    data=json.dumps(all_of_data).encode(),
+)
+```
+
+</Tab>
+</Tabs>
+
+## Sending a Transaction with Composite Signatures
+
+For `AllOf`, the transaction must include signatures that satisfy **all** sub-authenticators. When using `AllOf(SignatureVerification, SignatureVerification)`, the tx must have both signatures.
+
+The composite signature is a JSON array of individual signatures:
+
+```json
+["<sig_for_pubkey1_base64>", "<sig_for_pubkey2_base64>"]
+```
+
+This is set as the `signature` field in the `AuthenticationRequest` that the smart-account module processes.
+
+## Example 2: Key-or-Filter Fallback (AnyOf)
+
+Allow a transaction to be authenticated by **either** a key signature **or** a message pattern:
+
+<Tabs items={['terpd CLI', 'TypeScript/JS', 'Rust', 'Go', 'Python']}>
+<Tab value="terpd CLI">
+
+```bash
+# AnyOf: either sign with key, or match the message filter
+terpd tx smart-account add-authenticator \
+  AnyOf \
+  '[
+    {"type":"SignatureVerification","config":"A7YH7q2Xs0mF3G5GhHFX5BgV5KJkWf3Vn9V6P4z2C7Y="},
+    {"type":"MessageFilter","config":"{\"@type\":\"/cosmos.bank.v1beta1.MsgSend\",\"amount\":[{\"denom\":\"uthiol\",\"amount\":\"100\"}]}"}
+  ]' \
+  --from my-account \
+  --chain-id morocco-1 \
+  --fees 5000uthiol
+```
+
+Creates an account where the owner can sign arbitrary txs with their key, and anyone can send exactly 100uthiol without a signature (via MessageFilter).
+
+</Tab>
+<Tab value="TypeScript/JS">
+
+```typescript
+const anyOfData = [
+  {
+    type: 'SignatureVerification',
+    config: toBase64(ownerPubkeyBytes),
+  },
+  {
+    type: 'MessageFilter',
+    config: JSON.stringify({
+      '@type': '/cosmos.bank.v1beta1.MsgSend',
+      amount: [{ denom: 'uthiol', amount: '100' }],
+    }),
+  },
+];
+
+const msgAdd = {
+  typeUrl: '/terp.smartaccount.v1beta1.MsgAddAuthenticator',
+  value: {
+    sender: sender,
+    authenticatorType: 'AnyOf',
+    data: new TextEncoder().encode(JSON.stringify(anyOfData)),
+  },
+};
+```
+
+</Tab>
+<Tab value="Rust">
+
+```rust
+use serde_json::json;
+
+let any_of_config = json!([
+    {
+        "type": "SignatureVerification",
+        "config": Binary::from(pubkey_bytes).to_base64()
+    },
+    {
+        "type": "MessageFilter",
+        "config": r#"{"@type":"/cosmos.bank.v1beta1.MsgSend","amount":[{"denom":"uthiol","amount":"100"}]}"#
+    }
+]);
+
+let msg_add = MsgAddAuthenticator {
+    sender: sender.to_string(),
+    authenticator_type: "AnyOf".to_string(),
+    data: Binary::from(serde_json::to_vec(&any_of_config).unwrap()),
+};
+
+chain.broadcast_tx(cosmos_msg)?;
+```
+
+</Tab>
+<Tab value="Go">
+
+```go
+anyOfData := []SubAuthConfig{
+    {Type: "SignatureVerification", Config: base64.StdEncoding.EncodeToString(pubKeyBytes)},
+    {Type: "MessageFilter", Config: `{"@type":"/cosmos.bank.v1beta1.MsgSend","amount":[{"denom":"uthiol","amount":"100"}]}`},
+}
+
+dataBytes, _ := json.Marshal(anyOfData)
+
+msg := &types.MsgAddAuthenticator{
+    Sender:            senderAddr.String(),
+    AuthenticatorType: "AnyOf",
+    Data:              dataBytes,
+}
+```
+
+</Tab>
+<Tab value="Python">
+
+```python
+import json, base64
+
+any_of_data = [
+    {"type": "SignatureVerification", "config": base64.b64encode(pk_bytes).decode()},
+    {"type": "MessageFilter", "config": '{"@type":"/cosmos.bank.v1beta1.MsgSend","amount":[{"denom":"uthiol","amount":"100"}]}'},
+]
+
+msg = MsgAddAuthenticator(
+    sender=client.address,
+    authenticator_type="AnyOf",
+    data=json.dumps(any_of_data).encode(),
+)
+```
+
+</Tab>
+</Tabs>
+
+## Example 3: Nested Composites
+
+Composites can be nested — an `AllOf` can contain an `AnyOf`, and vice versa:
+
+```json
+{
+  "type": "AllOf",
+  "config": [
+    {"type": "SignatureVerification", "config": "<pubkey1>"},
+    {
+      "type": "AnyOf",
+      "config": [
+        {"type": "SignatureVerification", "config": "<pubkey2>"},
+        {"type": "SignatureVerification", "config": "<pubkey3>"}
+      ]
+    }
+  ]
+}
+```
+
+This requires **pubkey1** AND **(pubkey2 OR pubkey3)** — a 2-of-3 multisig with a mandatory key.
+
+## Composite ID Addressing
+
+When you have nested composites, sub-authenticators are addressed hierarchically. Given the 2-of-3 example above with global ID 20:
+
+```text
+ID 20: AllOf
+  ├── 20.0: SignatureVerification(pubkey1)
+  └── 20.1: AnyOf
+       ├── 20.1.0: SignatureVerification(pubkey2)
+       └── 20.1.1: SignatureVerification(pubkey3)
+```
+
+To select a specific sub-authenticator in a transaction's `TxExtension`:
+
+```typescript
+// Select the AnyOf sub-group
+const extension = { selectedAuthenticators: [20] };
+// The module resolves which sub-authenticators to call
+```
+
+## Querying Composite Authenticators
+
+<Tabs items={['terpd CLI', 'TypeScript/JS']}>
+<Tab value="terpd CLI">
+
+```bash
+terpd query smart-account authenticators terp1sender...
+# Output:
+# authenticators:
+#   - id: 20
+#     type: AllOf
+#     data: [{"type":"SignatureVerification","config":"..."},...]
+```
+
+</Tab>
+<Tab value="TypeScript/JS">
+
+```typescript
+const queryClient = await client.forceGetQueryClient();
+const response = await queryClient.smartAccount.authenticators({
+  account: sender,
+});
+```
+
+</Tab>
+</Tabs>
+
+## Security Considerations
+
+- **AnyOf means ANY sub-authenticator can authorize** — if one sub-authenticator has a weak pattern, the whole composite is that weak
+- **AllOf means ALL must pass** — a single failing sub-authenticator blocks the transaction
+- **Track and ConfirmExecution** run on all sub-authenticators in composites, not just the passing ones
+- **Gas costs** scale with the number of sub-authenticators — each one consumes gas for its `Authenticate` call
+
+## Related Concepts
+
+- [SignatureVerification](/docs/guides/authentication/authenticators/signature-verification) — the basic building block for composites
+- [MessageFilter](/docs/guides/authentication/authenticators/message-filter) — pattern matching used inside composites
+- [Safe-word contract](/docs/guides/authentication/authenticators/safeword-contract) — CosmWasm-based custom authenticator
+- [Multisig guide](/docs/guides/authentication/authz) — alternative multisig via authz grants

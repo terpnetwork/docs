@@ -1,0 +1,169 @@
+---
+title: Process supervisor
+description: Keep terpd running under systemd, pm2, or Cosmovisor — pick a supervisor and treat the rest as the same job
+---
+
+# Keep terpd running
+
+A public node should start on boot, restart after a crash, and write logs you can tail. That is a **process supervisor** job. systemd is the usual choice on Linux servers. pm2 is a good fit on macOS, developer boxes, and hosts without systemd. Cosmovisor is a wrapper you still put *under* one of those, so upgrades can swap binaries.
+
+The get installer (`curl -sL https://terp.network/get | bash`) can write a systemd unit during bootstrap. This page is the manual equivalent plus the other options.
+
+## What you need from any supervisor
+
+- Start `terpd start` (or `cosmovisor run start`) as a non-root user
+- Restart on failure
+- Start after the network is up
+- High file-descriptor limit (`LimitNOFILE` / `ulimit -n` ≥ 65535)
+- Logs you can follow without attaching a TTY
+
+## systemd (Linux servers)
+
+Create `/etc/systemd/system/terpd.service`:
+
+```bash
+sudo tee /etc/systemd/system/terpd.service > /dev/null <<EOF
+[Unit]
+Description=Terp Network Daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=$USER
+Group=$USER
+ExecStart=$(which terpd) start
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+TimeoutStartSec=60
+LimitNOFILE=65535
+LimitNPROC=4096
+WorkingDirectory=$HOME
+Environment="TERP_HOME=$HOME/.terpd"
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=$HOME/.terpd
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+```bash
+sudo chown -R "$USER:$USER" "$HOME/.terpd"
+sudo systemctl daemon-reload
+sudo systemctl enable --now terpd
+sudo systemctl status terpd
+sudo journalctl -u terpd -f
+```
+
+Day-to-day: `start` / `stop` / `restart` / `status` via `systemctl`. Memory caps: `sudo systemctl edit terpd` and add `[Service]` `MemoryMax=` / `MemoryHigh=`.
+
+### Cosmovisor under systemd
+
+```bash
+sudo tee /etc/systemd/system/terpd.service > /dev/null <<EOF
+[Unit]
+Description=Cosmovisor (Terp Network upgrade manager)
+After=network-online.target
+
+[Service]
+User=$USER
+ExecStart=$(which cosmovisor) run start
+Restart=always
+RestartSec=10
+Environment="DAEMON_HOME=$HOME/.terpd"
+Environment="DAEMON_NAME=terpd"
+Environment="DAEMON_ALLOW_DOWNLOAD_BINARIES=true"
+Environment="DAEMON_RESTART_AFTER_UPGRADE=true"
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+See [Cosmovisor](/guides/nodes/cosmovisor).
+
+## pm2 (dev machines, macOS, non-systemd hosts)
+
+```bash
+npm install -g pm2
+# or: pnpm add -g pm2
+
+pm2 start "$(which terpd)" --name terpd -- start
+# Cosmovisor instead:
+# pm2 start "$(which cosmovisor)" --name terpd -- run start
+
+pm2 save
+pm2 startup   # prints the OS-specific enable command; run it
+pm2 logs terpd
+pm2 status
+```
+
+Useful flags:
+
+```bash
+pm2 start "$(which terpd)" --name terpd \
+  --max-memory-restart 4G \
+  --restart-delay 10000 \
+  -- start
+```
+
+Raise file descriptors in the same shell (`ulimit -n 65535`) or in the host's launchd/limits before `pm2 start`. Env vars (`DAEMON_HOME`, `DAEMON_NAME`, …) go in an `ecosystem.config.cjs` `env` block if you outgrow the one-liner.
+
+```js
+// ecosystem.config.cjs
+module.exports = {
+  apps: [{
+    name: 'terpd',
+    script: process.env.HOME + '/go/bin/terpd',
+    args: 'start',
+    max_memory_restart: '4G',
+    restart_delay: 10000,
+    env: { TERP_HOME: process.env.HOME + '/.terp' },
+  }],
+}
+```
+
+```bash
+pm2 start ecosystem.config.cjs
+```
+
+## Which one
+
+| Host | Supervisor |
+|------|------------|
+| Linux VPS / validator / sentry | systemd |
+| Laptop, CI sidecar, macOS | pm2 (or just a terminal for localnet) |
+| Any host that must auto-upgrade binaries | Cosmovisor **plus** systemd or pm2 |
+
+Local disposable chains usually do not need a supervisor — `terpd start --home …` in a terminal is enough. See [Local network](/guides/nodes/local).
+
+## Troubleshooting
+
+```bash
+# systemd
+sudo journalctl -u terpd -xe
+which terpd
+
+# pm2
+pm2 logs terpd --lines 100
+pm2 describe terpd
+```
+
+Sync / peers (process is up, chain is not):
+
+```bash
+terpd status --node http://localhost:26657 | jq '.sync_info'
+```
+
+Then [state sync](/guides/nodes/state-sync) or [snapshots](/guides/nodes/snapshots).
+
+## Next
+
+- [Configure](/guides/nodes/configure)
+- [Sentry](/guides/validators/sentry) if this node is a validator
+- [Cosmovisor](/guides/nodes/cosmovisor)

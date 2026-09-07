@@ -1,0 +1,96 @@
+---
+title: Configuration
+description: app.toml, sidecar HTTP, CLI queries and txs, on-chain parameters
+status: partial
+---
+## HashMerchant configuration
+
+## Node-local (`app.toml` / env)
+
+| Key | Env override | Default | Meaning |
+|-----|--------------|---------|---------|
+| `hashmerchant.sidecar-url` | `HASHMERCHANT_SIDECAR_URL` | empty | Sidecar base URL; empty ⇒ empty VE |
+| `hashmerchant.sidecar-timeout` | — | `1s` | HTTP timeout |
+
+```toml
+[hashmerchant]
+sidecar-url = "http://127.0.0.1:9090"
+sidecar-timeout = "1s"
+```
+
+**Env wins** for the URL when set.
+
+## Behavior
+
+1. Empty URL → empty vote extension every round
+2. Non-empty → `GET {sidecar-url}/vote-extension` on `ExtendVote`
+3. Fetch error → empty extension + warning (**consensus continues**)
+
+## Sidecar HTTP
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /health` | Liveness |
+| `GET /vote-extension` | Root payload for VE |
+
+Minimum lab body:
+
+```json
+{
+  "chain_uid": "ethereum-mainnet",
+  "algo": "keccak256",
+  "root": "<hex without 0x>",
+  "foreign_height": 123,
+  "foreign_block_time": 1700000000
+}
+```
+
+Modular payloads may include `attestations[]` (custody-signed multi-source). See monorepo `tools/hashmerchant-support/sidecar-api.md` and `x/hashmerchant/spec/10_multi_source_oracle.md`.
+
+## On-chain parameters
+
+```bash
+terpd q hashmerchant params
+```
+
+| Parameter | Typical default | Role |
+|-----------|-----------------|------|
+| `quorum_fraction` | ~0.667 | Voting power to confirm a root |
+| `prune_interval` | 1000 | Escrow prune cadence (blocks) |
+| `escrow_denom` | `uterp` | Accepted escrow denom |
+| `min_escrow_amount` | 1000000 | Min deposit / paid-height unit |
+| `market_mode` | OPEN | Who may attest |
+
+Updates are governance-only.
+
+## CLI
+
+### Queries
+
+```bash
+terpd q hashmerchant params
+terpd q hashmerchant chains
+terpd q hashmerchant chain <chain_uid>
+terpd q hashmerchant root <chain_uid> <algo>
+terpd q hashmerchant escrow <contract-addr>
+```
+
+## Transactions
+
+```bash
+terpd tx hashmerchant register-contract \
+  <contract> <chain_uid> <substore-keys> <escrow> --from <key> --gas auto -y
+
+terpd tx hashmerchant refill-escrow \
+  <contract> <amount> --from <key> --gas auto -y
+```
+
+## Alignment checklist
+
+- [ ] Sidecar `chain_uid` matches registration and contract registration
+- [ ] `algo` matches end-to-end
+- [ ] Enough validators run agreeing sidecars
+- [ ] Escrow not expired
+- [ ] Network VE enable height reached
+
+Next: [Support role](./support-role) · [Playbooks](./playbooks)

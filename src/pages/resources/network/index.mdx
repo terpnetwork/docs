@@ -1,0 +1,43 @@
+---
+title: "Network Resources"
+description: "Node setup guides, validator resources, IBC relaying, and network operations"
+---
+Reference materials for running nodes, validators, relayers, and other network infrastructure on Terp Network.
+
+## Quick Links
+
+| Topic | Description | Link |
+|-------|-------------|------|
+| Node deployment | Install and configure a full node | [Deploy guide](/guides/nodes) |
+| Validator operations | Run a validator, manage keys, monitor | [Validator guides](/guides/validators) |
+| State sync | Fast sync from a recent snapshot | [State sync](/connect/network#statesync) |
+| Snapshots | Download latest chain snapshots | [Public endpoints](/resources/public) |
+| IBC relaying | Run a relayer for IBC packet delivery | [Relaying guides](/overview/concepts/ibc) |
+| Network connect | Join mainnet or testnet | [Connect page](/connect/network) |
+| Indexing | Run an indexer for queryable chain data | [Indexing guides](/guides) |
+
+## Network Specs
+
+| Parameter | Mainnet (`morocco-1`) | Testnet (`120u-1`) |
+|-----------|----------------------|-------------------|
+| Validators | Up to 100 | Up to 50 |
+| Block time | ~6s | ~6s |
+| Unbonding | 21 days | 7 days |
+| Governance period | 7 days | 3 days |
+| Min fee | `0.05uthiol` | `0.05uthiol` |
+
+## Infrastructure Services
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Public RPC | `https://rpc.terp.network` | Tx broadcasting, queries |
+| Public REST | `https://api.terp.network` | State queries |
+| Public gRPC | `https://grpc.terp.network` | gRPC queries |
+| S3 snapshots | `https://s3.terp.network/snapshots/` | Snapshots, genesis, config |
+| Testnet RPC | `https://testnet-rpc.terp.network` | Public testnet (`120u-1`) |
+
+## Related Concepts
+
+- [Networks concepts](/overview/concepts/networks) — mainnet, testnet, localnet explained
+- [P2P concepts](/overview/concepts/p2p) — peer discovery, sentry architecture, gossip protocol
+- [Hardware concepts](/overview/concepts/hardware) — hardware requirements and recommendations

@@ -1,0 +1,25 @@
+{
+  "outputDir": "lib/hooks/generated",
+  "typesDir": "lib/types",
+  "contracts": [
+    {
+      "name": "CwInfuser",
+      "slug": "cw-infuser",
+      "source": "../../cw-infuser/scripts/ts/src/CwInfuser.client.ts",
+      "typesSource": "../../cw-infuser/scripts/ts/src/CwInfuser.types.ts",
+      "contractConfigKey": "infuser",
+      "indexerBase": "/indexer/cw-infuser",
+      "indexerMethods": ["config", "infusions"]
+    },
+    {
+      "name": "DaoCalendar",
+      "slug": "dao-calendar",
+      "source": "../../cw-infuser/scripts/ts/src/DaoCalendar.client.ts",
+      "typesSource": "../../cw-infuser/scripts/ts/src/DaoCalendar.types.ts",
+      "contractConfigKey": "calendar",
+      "dynamicAddress": true,
+      "indexerBase": "/indexer/dao-calendar",
+      "indexerMethods": ["config", "list_events", "list_groups", "upcoming_events"]
+    }
+  ]
+}

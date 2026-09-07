@@ -1,0 +1,125 @@
+---
+title: IBC & ICS
+description: How Terp Network supports an Internet Of Blockchains — IBC hooks, Packet Forward Middleware, Interchain Accounts, and Interchain Security
+status: partial
+---
+## IBC & Interoperability
+
+The Inter-Blockchain Communication (IBC) protocol enables reliable, authenticated message passing between heterogeneous blockchains. Terp Network is an IBC-enabled chain, participating in the Cosmos ecosystem's interoperability layer.
+
+## Core IBC Primitives
+
+### ICS-20 Token Transfers
+
+The base IBC protocol for moving fungible tokens between chains. When tokens are transferred via IBC, they are **locked** (burned on source) and **unlocked** (minted as IBC-vouchers on destination). The voucher denom encodes the port, channel, and original denomination:
+
+```text
+ibc/<hash-of-port-and-channel>/<original-denom>
+```
+
+**Example:** Transferring `1000uthiol` from Terp to Osmosis results in an IBC voucher on Osmosis like `ibc/...`
+
+## IBC Hooks (Middleware)
+
+IBC hooks allow ICS-20 token transfers to trigger contract calls on the destination chain in a single transaction. This enables cross-chain contract interactions that include token movement.
+
+The memo field in an ICS-20 transfer packet carries a JSON payload describing the contract call:
+
+```json
+{
+  "wasm": {
+    "contract": "terp1...contract_addr",
+    "msg": {
+      "action": "swap",
+      "recipient": "terp1...recipient"
+    }
+  }
+}
+```
+
+The destination chain processes the transfer, then calls `execute()` on the specified contract with the decoded message and the transferred funds.
+
+> **Flow diagram scaffold** — a sequence diagram showing IBC hook packet lifecycle (source chain → relayer → destination chain → contract execution → acknowledgement). See [contributing](/docs/resources/community) if you want to design this.
+
+## IBC Callbacks (Terp Extension)
+
+Beyond standard IBC hooks, Terp Network supports **IBC callbacks** — the ability for a source-chain contract to receive a callback after the IBC packet has been delivered and processed on the destination chain. This enables:
+
+- Conditional logic after cross-chain settlement
+- Atomic rollback patterns
+- Cross-chain oracle workflows
+
+The callback address is specified in the IBC transfer memo:
+```json
+{
+  "ibc_callback": "terp1...callback_contract"
+}
+```
+
+When the packet acknowledgement arrives back on the source chain, the callback contract's `IBCSourceCallback` entrypoint is invoked with the result of the destination execution.
+
+> **Callback flow scaffold** — a sequence diagram showing the full round-trip: source chain → destination → callback to source. Placeholder for future rendering.
+
+## Packet Forward Middleware (PFM)
+
+PFM enables multi-hop IBC transfers in a single transaction. Instead of sending tokens A → B then B → C in separate transactions, PFM allows A → C with automatic forwarding through B.
+
+The memo format:
+```json
+{
+  "forward": {
+    "receiver": "chain-c-address",
+    "port": "transfer",
+    "channel": "channel-42"
+  }
+}
+```
+
+Terp Network has PFM enabled, so any IBC transfer can include forwarding instructions.
+
+## Interchain Accounts (ICA)
+
+ICA allows a controller chain to programmatically control an account on a host chain. A smart contract on Terp Network can execute transactions on another IBC-connected chain via ICA, including staking, swapping, or governance actions.
+
+Key properties:
+- **Channel-based** — each ICA creates a new channel for the interchain account
+- **Authentication** — the controller's address determines the interchain account address on the host
+- **Ordered channels** — transactions execute in submission order
+
+> **ICA diagram scaffold** — visual showing controller chain, host chain, interchain account, and relayer in the middle.
+
+### Interchain Security (ICS / Replicated Security)
+
+ICS enables consumer chains to be secured by the Terp Network validator set. Terp Network validators run both the Terp Network node and the consumer chain node, securing the consumer chain with the same economic stake.
+
+**Current status:** Terp Network participates as a provider chain for ICS if governance approves. Consumer chains share the security budget without needing their own validator set.
+
+### Interchain Queries
+
+Interchain Queries enable on-chain applications to query the state of other chains without involving the queried chain's consensus. A relayer submits the query response and a light-client proof, allowing the querying chain to verify the result independently.
+
+---
+
+## IBC on Terp Network
+
+| Feature | Status | Details |
+|---------|--------|---------|
+| ICS-20 transfers | Live | All standard IBC channels |
+| IBC Hooks (wasm) | Live | `x/ibc-hooks` module |
+| IBC Callbacks | Live | Custom Terp extension |
+| Packet Forward Middleware | Live | `x/packet-forward-middleware` |
+| Interchain Accounts | Live | Controller and host support |
+| Interchain Queries | Live | Query execution from contracts |
+| ICS / Replicated Security | Governance gated | Provider chain capability |
+
+### Relayers
+
+IBC packets do not flow automatically — they require **relayers** to monitor packet events on one chain and submit them to the counterparty. Anyone can run a relayer (permissionless).
+
+See [Relaying Guides](/docs/guides/network/relaying/intro) for operational instructions, including how to run relayers for specific applications (Penumbra, IBCv2, solo clients).
+
+### IBC v2 Light Clients
+
+IBC v2 introduces generalized light client support, enabling connection to chains with non-CometBFT consensus (e.g., Ethereum, Bitcoin via zk-verification). Terp Network supports pluggable light client modules.
+
+> **Light client architecture scaffold** — diagram showing how IBC v2 light clients connect Terp Network to chains with different consensus mechanisms via zk-proof verification.

@@ -1,0 +1,263 @@
+---
+title: Systemd Service
+description: This guide covers setting up terpd as a systemd service for production deployments. Running as a systemd service ensures your node automatically starts on...
+status: partial
+---
+## Systemd Service Guide
+
+This guide covers setting up terpd as a systemd service for production deployments. Running as a systemd service ensures your node automatically starts on boot and restarts if it crashes.
+
+## Why Use Systemd?
+
+- **Automatic restart**: Node automatically restarts after crashes or system reboots
+- **Logging**: Logs are managed by journald for easy access
+- **Resource management**: Can set CPU, memory, and I/O limits
+- **Security**: Runs with limited privileges
+
+## Create the Service File
+
+Create the systemd service file:
+
+```bash
+sudo tee /etc/systemd/system/terpd.service > /dev/null <<EOF
+[Unit]
+Description=Terp Network Daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=$USER
+Group=$USER
+ExecStart=$(which terpd) start
+ExecStop=$(which terpd) stop
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+TimeoutStartSec=60
+LimitNOFILE=65535
+LimitNPROC=4096
+
+# Optional: Set working directory
+WorkingDirectory=$HOME
+
+# Optional: Environment variables
+Environment="TERP_HOME=$HOME/.terp"
+
+# Optional: Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=$HOME/.terp
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+## Configure Permissions
+
+```bash
+# Reload systemd to recognize the new service
+sudo systemctl daemon-reload
+
+# Set ownership of the terp directory
+sudo chown -R $USER:$USER $HOME/.terp
+```
+
+## Start and Enable the Service
+
+```bash
+# Start the service
+sudo systemctl start terpd
+
+# Enable service to start on boot
+sudo systemctl enable terpd
+
+# Check service status
+sudo systemctl status terpd
+```
+
+## Verify It's Working
+
+```bash
+# Check service is running
+sudo systemctl is-active terpd
+
+# View recent logs
+sudo journalctl -u terpd -n 50
+
+# Follow logs in real-time
+sudo journalctl -u terpd -f
+
+# Check the node is syncing
+terpd status --node http://localhost:26657
+```
+
+## Common Service Commands
+
+```bash
+# Start the node
+sudo systemctl start terpd
+
+# Stop the node
+sudo systemctl stop terpd
+
+# Restart the node
+sudo systemctl restart terpd
+
+# Check status
+sudo systemctl status terpd
+
+# View logs
+sudo journalctl -u terpd
+
+# Follow logs
+sudo journalctl -u terpd -f
+
+# View logs from the last hour
+sudo journalctl -u terpd --since "1 hour ago"
+
+# Rotate logs (if needed)
+sudo journalctl --rotate
+```
+
+## Troubleshooting
+
+### Service Won't Start
+
+```bash
+# Check detailed error messages
+sudo journalctl -u terpd -xe
+
+# Verify the binary exists
+which terpd
+
+# Check configuration syntax
+terpd start --home $HOME/.terp --dry-run
+```
+
+## Node Won't Sync
+
+```bash
+# Check sync status
+terpd status --node http://localhost:26657 | jq '.sync_info'
+
+# Check peers
+terpd net_info --node http://localhost:26657 | jq '.n_peers'
+
+# Add more peers if needed
+peers=$(curl -s https://ss.terp.nodestake.top/peers.txt)
+sed -i "s/^persistent_peers *=.*/persistent_peers = \"$peers\"/" $HOME/.terpd/config/config.toml
+sudo systemctl restart terpd
+```
+
+## Out of Memory
+
+Add memory limits to the service file:
+
+```bash
+# Edit the service file
+sudo systemctl edit terpd
+```
+
+Add:
+
+```ini
+[Service]
+MemoryMax=4G
+MemoryHigh=2G
+```
+
+Then reload and restart:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart terpd
+```
+
+## Advanced Configuration
+
+### Automatic Updates
+
+Create an update script at `/usr/local/bin/update-terpd.sh`:
+
+```bash
+#!/bin/bash
+set -e
+
+# Stop the service
+sudo systemctl stop terpd
+
+# Download and install new binary
+cd /tmp
+wget https://github.com/terpnetwork/terp-core/releases/download/v5.1.0/terpd_linux_amd64
+chmod +x terpd_linux_amd64
+sudo mv $(which terpd) /usr/local/bin/terpd-backup
+sudo mv terpd_linux_amd64 /usr/local/bin/terpd
+
+# Start the service
+sudo systemctl start terpd
+
+echo "Update complete"
+```
+
+## Log Rotation
+
+Create `/etc/logrotate.d/terpd`:
+
+```bash
+/home/*/.terpd/logs/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    notifempty
+    create 0644 * *
+    postrotate
+        systemctl reload terpd > /dev/null 2>&1 || true
+    endscript
+}
+```
+
+## Security Best Practices
+
+1. **Run as non-root user**: The service runs as `$USER`, not root
+2. **Use ProtectSystem**: Restricts what directories the service can write to
+3. **Limit NOFILE**: Prevents file descriptor exhaustion
+4. **Enable NoNewPrivileges**: Prevents privilege escalation
+
+## Alternative: Using Cosmovisor with Systemd
+
+If you're using Cosmovisor for automatic upgrades:
+
+```bash
+# Create a cosmovisor service instead
+sudo tee /etc/systemd/system/terpd.service > /dev/null <<EOF
+[Unit]
+Description=Cosmovisor (Terp Network Upgrade Manager)
+After=network-online.target
+
+[Service]
+User=$USER
+ExecStart=$(which cosmovisor) run start
+Restart=always
+RestartSec=10
+Environment="DAEMON_HOME=$HOME/.terp"
+Environment="DAEMON_NAME=terpd"
+Environment="DAEMON_ALLOW_DOWNLOAD_BINARIES=true"
+Environment="DAEMON_RESTART_AFTER_UPGRADE=true"
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+See the [Cosmovisor guide](/guides/network/nodes/cosmovisor) for more details on setting up automatic upgrades.
+
+## Next Steps
+
+- [Configure your node](/guides/network/nodes/configure) for optimal performance
+- [Set up monitoring](/guides/network/nodes/prerequisites) for production
+- [Secure your node](/guides/network/nodes/sentry) with sentry nodes if you're a validator

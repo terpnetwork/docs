@@ -1,0 +1,189 @@
+---
+title: Sentry array (oline)
+description: Deploy and run a Terp sentry array with the oline CLI — public sentries on Akash, private validator at home
+---
+
+# Sentry array with oline
+
+The validator process must not appear on public P2P. **Sentries** are the only nodes the network dials. The signer sits on a private host (home, colo, or VPN) and **dials out** to those sentries. The home node ID is never written into an Akash SDL or a provider-visible peer list.
+
+`oline` is the CLI that curates that array: SDL phases, leases, snapshots, peer injection, DNS, and day-2 refresh. Binary package: `o-line-sdl`. Config and sessions live under `~/.oline/`.
+
+```text
+  public P2P  ←→  Phase B sentries (tackles)  ──┐
+  public P2P  ←→  Phase C sentries (forwards) ──┼──  home validator
+  snapshot/seed (Phase A)  ─────────────────────┘     pex=false
+                                                      dials sentries only
+```
+
+Football phases (what `oline deploy` actually launches):
+
+| Phase | Role | SDL |
+|-------|------|-----|
+| **A** | Snapshot + seed + MinIO | `templates/sdls/a.*.yml` |
+| **B** | Tackles — first sentry pair | `templates/sdls/b.*.yml` |
+| **C** | Forwards — extra sentries / RPC LB | `templates/sdls/c.*.yml` |
+| **E** | IBC relayer (optional) | `templates/sdls/e.*.yml` |
+| **F** | Indexer (optional) | `templates/sdls/f.*.yml` |
+
+The **home validator is not a phase**. You bootstrap it separately (`oline bootstrap`) and point it at B/C after `InjectPeers`.
+
+## Layout oline uses
+
+| Path | What |
+|------|------|
+| `~/.oline/` | Operator home (override with `OLINE_CONFIG_DIR`) |
+| `~/.oline/sessions/<id>/` | One deploy session (`session.json`, lease metadata) |
+| `~/.oline/keys.enc` | Encrypted DNS KeyStore |
+| `.env` | Runtime env (`OLINE_ENV_FILE`, default `.env`) |
+| `templates/sdls/` | Phase SDL templates (`SDL_DIR`) |
+| `deploy-config.json` | Output of `oline init` |
+
+Do not put the home `node_id@host:26656` in SDL env or `persistent_peers` that providers can read. Home **dials out**.
+
+## 1. Install and lock config
+
+```bash
+# binary on PATH (build from o-line-sdl, or your release channel)
+oline --help
+
+oline encrypt          # mnemonic → OLINE_ENCRYPTED_MNEMONIC in .env
+oline endpoints        # pick fastest Akash RPC/gRPC into .env
+oline init             # interactive → deploy-config.json
+oline sdl -o /tmp/sdls # render templates, no chain txs
+```
+
+Minimum env (see oline configuration reference):
+
+| Variable | Role |
+|----------|------|
+| `OLINE_PASSWORD` | Decrypt config, keys, sessions |
+| `OLINE_ENCRYPTED_MNEMONIC` | Funding key (or `OLINE_MNEMONIC` for one-shot) |
+| `OLINE_CHAIN_ID` | Akash chain (`akashnet-2`) |
+| `OLINE_RPC_ENDPOINT` / `OLINE_GRPC_ENDPOINT` | Akash APIs |
+| `OLINE_FUNDING_METHOD` | `hd:N:AMOUNT`, `direct`, or `master` |
+| `GENESIS_URL` | Terp genesis (must match SDL + `.env`) |
+| `OLINE_SNAPSHOT_URL` or `OLINE_SNAPSHOT_FULL_URL` | `*.tar.lz4` / `.zst` / `.gz`, or empty for state-sync |
+| `OLINE_CF_API_TOKEN` / `OLINE_CF_ZONE_ID` | DNS, or KeyStore via `oline dns keys add` |
+| `OLINE_AUTO_SELECT` | `1` to take cheapest bid |
+| `OLINE_NON_INTERACTIVE` | `1` in CI |
+| `OLINE_PHASES` | e.g. `b,c` to skip A/E |
+| `OLINE_SKIP_MONITOR` | `1` unless you asked for a monitor peer |
+
+P2P hostnames must be DNS-only (`proxied: false`). HTTP ingress (port 80 `accept:`) is where Cloudflare proxy is fine. Akash terminates TLS; containers listen on 80.
+
+## 2. What `oline deploy` does
+
+```bash
+export OLINE_SKIP_MONITOR=1
+oline deploy
+# or: OLINE_PHASES=a,b,c oline deploy
+# or: oline deploy --select a=<akash1…> b=<akash1…> c=<akash1…>
+```
+
+`--parallel` (default) creates all leases first. `--sequential` is the old one-phase-at-a-time path.
+
+Step machine:
+
+1. **FundChildAccounts** — master multi-send to HD children `m/44'/118'/0'/0/{i}` so parallel `MsgCreateDeployment` does not collide on sequence.
+2. **DeployAllUnits** — one deployment per child (A, B, C, …).
+3. **SelectAllProviders** — interactive, or cheapest when `OLINE_AUTO_SELECT=1`.
+4. **UpdateAllDns** — Cloudflare A/CNAME for RPC/API; P2P records stay DNS-only.
+5. **WaitSnapshotReady** — Phase A must finish sync before anyone else is fed.
+6. **DistributeSnapshot** — SSH-stream the archive to B/C/E (B/C start with empty peers, `SNAPSHOT_MODE=sftp`).
+7. **SignalAllNodes** — SFTP a cert pair to `/tmp/tls/`. That file is a **start signal**, not ingress TLS.
+8. **InjectPeers** — SSH-push live sentry/seed peer strings into B/C/E. Still **no home node ID**.
+9. **WaitAllPeers** — poll until sentries see each other.
+
+Phase A internally: deploy special teams → DNS → push certs → start snapshot → wait peer → start seed → start MinIO.
+
+Afterward: `oline manage drain` returns leftover AKT from children to the master.
+
+## 3. Bootstrap the private validator
+
+Sentries are public full nodes. The signer stays off Akash.
+
+```bash
+oline bootstrap                  # wizard
+oline bootstrap --local          # no SSH
+oline bootstrap -y --host <ip>   # existing private host
+```
+
+That install should leave the home node as a **non-validating** full node first (sync via snapshot/state-sync from Phase A or public `120u-1` / `morocco-1`). Only then [create-validator](/guides/validators/setup) / attach [threshold signing](/guides/nodes/threshold-signing).
+
+Home `config.toml`:
+
+```toml
+pex = false
+persistent_peers = "<sentryB1>@<sentryB1-p2p-host>:<P2P_EXT_PORT>,<sentryB2>@...,<sentryC…>"
+addr_book_strict = false
+```
+
+`P2P_EXT_PORT` is the **Akash NodePort**, which is often not `26656`. Read it from `oline inventory snapshot` / session JSON after deploy — do not assume the SDL port.
+
+Firewall the home host: **outbound 26656/NodePort to sentries only**. Do not accept inbound P2P from the internet. RPC/gRPC stay on localhost or the operator VPN (`oline vpn`, `oline auth plane`, Headscale).
+
+If this node was ever public:
+
+```bash
+# terpd stopped
+rm -f $HOME/.terpd/config/addrbook.json
+```
+
+```bash
+curl -s localhost:26657/net_info | jq '{n: .result.n_peers, ids: [.result.peers[].node_info.id]}'
+```
+
+You should see **only** sentry IDs.
+
+## 4. How sentries are configured (oline, not hand edits)
+
+On each B/C node, after `InjectPeers`, the equivalent of:
+
+| Knob | Value |
+|------|--------|
+| `persistent_peers` | Phase A seed + sibling sentries (public) |
+| `private_peer_ids` | Home validator node ID — **never gossiped** (set from home after bootstrap, via `oline refresh`, not via SDL) |
+| `unconditional_peer_ids` | Home ID + sibling sentries |
+
+`oline refresh add` / `oline refresh run <name>` is how you push that home ID and restart `terpd` on a sentry without republishing the SDL.
+
+```bash
+oline refresh list
+oline refresh status
+oline refresh run sentry-b --   # command as registered
+```
+
+## 5. Day-2
+
+```bash
+oline manage status
+oline manage logs <dseq>
+oline manage tui
+oline inventory snapshot
+oline refresh status
+oline manage close <DSEQ…>     # retire a sentry; keep ≥2 live
+oline manage drain
+```
+
+Prefer different providers for B vs C (`--select b=… c=…`) so one datacenter outage does not isolate the signer.
+
+Optional: `oline auth plane ensure` then Headscale join so the home host reaches sentry SSH/RPC over mesh without opening those ports.
+
+## Checklist
+
+1. `oline deploy` finished; Phase A synced; B/C have peers
+2. Home `oline bootstrap` done; `pex = false`; peers = sentry NodePorts only
+3. Home node ID is **not** in any SDL or public addrbook
+4. Sentries have `private_peer_ids` = home ID (via refresh, privately)
+5. `net_info` on home shows only sentries
+6. Validator P2P ACL: sentries (and mesh) only
+7. [Threshold signing](/guides/nodes/threshold-signing) off the Akash hosts
+
+## Related
+
+- [Validator setup](/guides/validators/setup)
+- [Threshold signing](/guides/nodes/threshold-signing)
+- [Process supervisor](/guides/nodes/systemd)
+- [Public endpoints](/resources/public)
+- [P2P](/overview/concepts/p2p)

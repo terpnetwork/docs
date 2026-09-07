@@ -1,0 +1,29 @@
+---
+title: API
+description: REST, CometBFT RPC, IBC, and CLI — same order as the sidebar
+---
+
+import { Card, Cards } from 'vocs'
+
+# API
+
+Three interactive references, then short notes on how to call them. Use the sidebar in this order; each playground stays on its own prefix so next/prev does not hop between REST, RPC, and IBC.
+
+## References
+
+<Cards>
+  <Card title="REST / LCD" description="Module queries and txs on api.terp.network" to="/api/rest" />
+  <Card title="CometBFT RPC" description="status, block, tx_search, websocket" to="/api/cometbft" />
+  <Card title="IBC" description="Clients, connections, channels" to="/api/ibc" />
+</Cards>
+
+## How to call them
+
+<Cards>
+  <Card title="CLI" description="terpd query / tx" to="/api/cli" />
+  <Card title="RPC notes" description="HTTP and /websocket" to="/api/rpc" />
+  <Card title="gRPC" description="grpcurl and proto services" to="/api/grpc" />
+  <Card title="REST notes" description="LCD paths and servers" to="/api/lcd" />
+</Cards>
+
+Hosts: `https://rpc.terp.network` · `https://api.terp.network` · testnet RPC `https://testnet-rpc.terp.network`. Clients: [libraries](/resources/libraries).

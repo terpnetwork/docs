@@ -1,0 +1,360 @@
+import { defineConfig } from 'vocs/config'
+
+export default defineConfig({
+  title: 'Terp Docs',
+  description: 'Terp Network documentation',
+  titleTemplate: '%s · Terp Docs',
+  baseUrl: 'https://docs.terp.network',
+  logoUrl: {
+    light: '/terp-glyph-light.svg',
+    dark: '/terp-glyph.svg',
+  },
+  iconUrl: '/favicon.ico',
+  ogImageUrl: '/og-banner.svg',
+  renderStrategy: 'full-static',
+  // Light: orange (green washes out on white). Dark: mint green.
+  accentColor: 'light-dark(#c2410c, #5dce8a)',
+  checkDeadlinks: 'warn',
+  socials: [
+    { icon: 'github', link: 'https://github.com/terpnetwork' },
+    { icon: 'x', link: 'https://x.com/terpnetofficial' },
+    { icon: 'discord', link: 'https://discord.terp.network' },
+  ],
+  topNav: [
+    { text: 'Overview', link: '/overview', match: '/overview' },
+    { text: 'Guides', link: '/guides' },
+    { text: 'API', link: '/api' },
+    { text: 'Resources', link: '/resources' },
+    { text: 'Research', link: '/research', match: '/research' },
+    { text: 'Connect', link: '/connect' },
+    { text: 'GitHub', link: 'https://github.com/terpnetwork', external: true },
+  ],
+  sidebar: [
+    { text: 'Welcome', link: '/' },
+    {
+      text: 'Overview',
+      collapsed: true,
+      items: [
+        { text: 'Overview', link: '/overview' },
+        { text: 'Products', link: '/overview/products' },
+        { text: 'Quickstart', link: '/overview/quickstart' },
+        {
+          text: 'Concepts',
+          collapsed: true,
+          items: [
+            { text: 'Concepts', link: '/overview/concepts' },
+            { text: 'Cryptography', link: '/overview/concepts/crypto' },
+            { text: 'Software', link: '/overview/concepts/software' },
+            { text: 'Hardware', link: '/overview/concepts/hardware' },
+            { text: 'Networks', link: '/overview/concepts/networks' },
+            { text: 'P2P', link: '/overview/concepts/p2p' },
+            { text: 'Consensus', link: '/overview/concepts/consensus' },
+            { text: 'Light clients', link: '/overview/concepts/light-clients' },
+            { text: 'IBC', link: '/overview/concepts/ibc' },
+            { text: 'Tokens', link: '/overview/concepts/tokens' },
+            { text: 'Markets', link: '/overview/concepts/markets' },
+            { text: 'Tax and fees', link: '/overview/concepts/tax' },
+          ],
+        },
+        {
+          text: 'Principles',
+          collapsed: true,
+          items: [
+            { text: 'Privacy', link: '/overview/concepts/privacy' },
+            { text: 'Selective disclosure', link: '/overview/concepts/privacy/disclosure' },
+            { text: 'Trustlessness', link: '/overview/concepts/trustless' },
+            { text: 'Permissionlessness', link: '/overview/concepts/permissionless' },
+            { text: 'Decentralization', link: '/overview/concepts/decentralization' },
+            { text: 'Governance', link: '/overview/concepts/governance' },
+            { text: 'Genesis', link: '/overview/concepts/genesis' },
+            { text: 'AI and ML', link: '/overview/concepts/llm-and-ml' },
+          ],
+        },
+      ],
+    },
+    {
+      text: 'Guides',
+      collapsed: true,
+      items: [
+        { text: 'Guides', link: '/guides' },
+        {
+          text: 'Run a node',
+          collapsed: true,
+          items: [
+            { text: 'Prerequisites', link: '/guides/nodes/prerequisites' },
+            { text: 'Install', link: '/guides/nodes/install' },
+            { text: 'Prepare node', link: '/guides/nodes/prepare-node' },
+            { text: 'Configure', link: '/guides/nodes/configure' },
+            { text: 'Keys', link: '/guides/nodes/keys' },
+            { text: 'State sync', link: '/guides/nodes/state-sync' },
+            { text: 'Snapshots', link: '/guides/nodes/snapshots' },
+            { text: 'Bootstrap', link: '/guides/nodes/bootstrap' },
+            { text: 'Genesis', link: '/guides/nodes/genesis' },
+            { text: 'Local network', link: '/guides/nodes/local' },
+            { text: 'Process supervisor', link: '/guides/nodes/systemd' },
+            { text: 'Cosmovisor', link: '/guides/nodes/cosmovisor' },
+            { text: 'Threshold signing', link: '/guides/nodes/threshold-signing' },
+            { text: 'Archive', link: '/guides/nodes/archive' },
+            { text: 'Reverse proxy', link: '/guides/nodes/nginx' },
+            { text: 'Faucet', link: '/guides/nodes/faucet' },
+            { text: 'FAQ', link: '/guides/nodes/faq' },
+          ],
+        },
+        {
+          text: 'Validators',
+          collapsed: true,
+          items: [
+            { text: 'Overview', link: '/guides/validators' },
+            { text: 'Role', link: '/guides/validators/overview' },
+            { text: 'Requirements', link: '/guides/validators/requirements' },
+            { text: 'Setup', link: '/guides/validators/setup' },
+            { text: 'FROST sidecar', link: '/guides/validators/frost-privval' },
+            { text: 'Sentry array', link: '/guides/validators/sentry' },
+            { text: 'Monitoring', link: '/guides/validators/monitoring' },
+            { text: 'Migration', link: '/guides/validators/migration' },
+            { text: 'Chain upgrades', link: '/guides/validators/chain-upgrades' },
+            { text: 'Upgrade history', link: '/guides/validators/upgrades-history' },
+            { text: 'Troubleshooting', link: '/guides/validators/troubleshooting' },
+          ],
+        },
+      ],
+    },
+    {
+      text: 'API',
+      collapsed: true,
+      items: [
+        { text: 'API', link: '/api' },
+        {
+          text: 'Endpoints',
+          collapsed: true,
+          items: [
+            { text: 'REST / LCD', link: '/api/rest' },
+            { text: 'CometBFT RPC', link: '/api/cometbft' },
+            { text: 'IBC', link: '/api/ibc' },
+            { text: 'gRPC', link: '/api/grpc' },
+          ],
+        },
+        {
+          text: 'Usage notes',
+          collapsed: true,
+          items: [
+            { text: 'CLI', link: '/api/cli' },
+            { text: 'RPC', link: '/api/rpc' },
+            { text: 'REST notes', link: '/api/lcd' },
+          ],
+        },
+      ],
+    },
+    {
+      text: 'Resources',
+      collapsed: true,
+      items: [
+        { text: 'Resources', link: '/resources' },
+        { text: 'FAQ', link: '/resources/faq' },
+        {
+          text: 'Network reference',
+          collapsed: true,
+          items: [
+            { text: 'Public endpoints', link: '/resources/public' },
+            { text: 'Libraries', link: '/resources/libraries' },
+            { text: 'State JSON', link: '/resources/state-json' },
+            { text: 'Network notes', link: '/resources/network' },
+          ],
+        },
+        {
+          text: 'Verification',
+          collapsed: true,
+          items: [
+            { text: 'Integrity', link: '/resources/integrity' },
+          ],
+        },
+        {
+          text: 'Community',
+          collapsed: true,
+          items: [
+            { text: 'Community', link: '/resources/community' },
+          ],
+        },
+        {
+          text: 'Contribute',
+          collapsed: true,
+          items: [
+            { text: 'Contributing', link: '/resources/contribution' },
+            { text: 'Docs scaffolds', link: '/resources/contribution/scaffolds' },
+          ],
+        },
+        {
+          text: 'ADRs',
+          collapsed: true,
+          items: [
+            { text: 'ADR index', link: '/resources/adrs' },
+            { text: 'ADR 1 — template', link: '/resources/adrs/adr/1' },
+          ],
+        },
+      ],
+    },
+    {
+      text: 'Research',
+      collapsed: true,
+      items: [
+        {
+          text: 'Private bridge',
+          collapsed: true,
+          items: [
+            { text: 'Overview', link: '/research/private-bridge' },
+            { text: 'How it works', link: '/research/private-bridge/how-it-works' },
+            { text: 'For users', link: '/research/private-bridge/for-users' },
+            { text: 'For engineers', link: '/research/private-bridge/for-engineers' },
+            { text: 'Honesty', link: '/research/private-bridge/honesty' },
+            { text: 'Glossary', link: '/research/private-bridge/glossary' },
+          ],
+        },
+        {
+          text: 'Private DEX',
+          collapsed: true,
+          items: [
+            { text: 'Overview', link: '/research/private-dex' },
+            { text: 'How it works', link: '/research/private-dex/how-it-works' },
+            { text: 'For users', link: '/research/private-dex/for-users' },
+            { text: 'For engineers', link: '/research/private-dex/for-engineers' },
+            { text: 'Honesty', link: '/research/private-dex/honesty' },
+            { text: 'Glossary', link: '/research/private-dex/glossary' },
+          ],
+        },
+        {
+          text: 're-zerve',
+          collapsed: true,
+          items: [
+            { text: 'Overview', link: '/research/re-zerve' },
+            { text: 'For tenants', link: '/research/re-zerve/for-tenants' },
+            { text: 'For providers', link: '/research/re-zerve/for-providers' },
+            { text: 'For engineers', link: '/research/re-zerve/for-engineers' },
+            { text: 'How it works', link: '/research/re-zerve/how-it-works' },
+            { text: 'Lab vs network', link: '/research/re-zerve/status' },
+            { text: 'Sources', link: '/research/re-zerve/sources' },
+          ],
+        },
+        {
+          text: 'Terp Lean',
+          collapsed: true,
+          items: [
+            { text: 'Overview', link: '/research' },
+            { text: 'Status', link: '/research/status' },
+            { text: 'Timeline', link: '/research/timeline' },
+            { text: 'Glossary', link: '/research/glossary' },
+            { text: 'Verify', link: '/research/verify' },
+            {
+              text: 'Protocol',
+              collapsed: true,
+              items: [
+                { text: 'Bitfield', link: '/research/protocol/bitfield' },
+                { text: 'LNPR', link: '/research/protocol/lnpr' },
+                { text: 'Fold', link: '/research/protocol/fold' },
+                { text: 'Membership', link: '/research/protocol/membership' },
+                { text: 'SSLE', link: '/research/protocol/ssle' },
+              ],
+            },
+            {
+              text: 'Guides',
+              collapsed: true,
+              items: [
+                { text: 'For researchers', link: '/research/for-researchers' },
+                { text: 'For engineers', link: '/research/for-engineers' },
+                { text: 'For operators', link: '/research/for-operators' },
+              ],
+            },
+            {
+              text: 'Papers',
+              collapsed: true,
+              items: [
+                { text: 'Papers', link: '/research/resources' },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      text: 'Connect',
+      collapsed: true,
+      items: [
+        { text: 'Connect', link: '/connect' },
+        { text: 'Join a network', link: '/connect/network' },
+        { text: 'Cross-chain', link: '/connect/cross-chain' },
+        {
+          text: 'Community',
+          collapsed: true,
+          items: [
+            { text: 'Overview', link: '/connect/community' },
+            { text: 'DAOs', link: '/connect/community/daos' },
+            { text: 'Meetings', link: '/connect/community/meetings' },
+            { text: 'Network', link: '/connect/community/network' },
+            { text: 'Proposals', link: '/connect/community/proposals' },
+            { text: 'Voting', link: '/connect/community/voting' },
+          ],
+        },
+      ],
+    },
+  ],
+
+  redirects: [
+    { source: '/resources/verify', destination: '/resources/integrity', status: 301 },    { source: '/api/openapi', destination: '/api/rest', status: 301 },
+    { source: '/api/ibcgo', destination: '/api/ibc', status: 301 },
+    { source: '/guides/nodes/tmkms', destination: '/guides/nodes/threshold-signing', status: 301 },
+    { source: '/guides/network/nodes/tmkms', destination: '/guides/nodes/threshold-signing', status: 301 },
+    { source: '/resources/adrs/adr/2', destination: '/resources/adrs', status: 301 },
+    { source: '/resources/adrs/adr/3', destination: '/resources/adrs', status: 301 },
+    { source: '/resources/adrs/adr/4', destination: '/resources/adrs', status: 301 },
+    { source: '/resources/adrs/adr/5', destination: '/resources/adrs', status: 301 },
+    { source: '/resources/adrs/adr/6', destination: '/resources/adrs', status: 301 },
+    { source: '/resources/adrs/adr/7', destination: '/resources/adrs', status: 301 },
+    { source: '/resources/adrs/adr/8', destination: '/resources/adrs', status: 301 },
+    { source: '/resources/adrs/adr/10', destination: '/resources/adrs', status: 301 },
+    { source: '/resources/scaffolds', destination: '/resources/contribution/scaffolds', status: 301 },
+  ],
+  openapi: [
+    {
+      spec: './static/api/rest.grouped.yaml',
+      path: '/api/rest',
+      sidebar: {
+        collapsed: true,
+        tagGroupsCollapsed: false,
+        top: [
+          { text: 'API', link: '/api' },
+          { text: 'REST / LCD', link: '/api/rest' },
+          { text: 'CometBFT RPC', link: '/api/cometbft' },
+          { text: 'IBC', link: '/api/ibc' },
+          { text: 'CLI', link: '/api/cli' },
+          { text: 'REST notes', link: '/api/lcd' },
+        ],
+      },
+    },
+    {
+      spec: './static/api/RPC.yaml',
+      path: '/api/cometbft',
+      sidebar: {
+        collapsed: false,
+        top: [
+          { text: 'API', link: '/api' },
+          { text: 'REST / LCD', link: '/api/rest' },
+          { text: 'CometBFT RPC', link: '/api/cometbft' },
+          { text: 'IBC', link: '/api/ibc' },
+          { text: 'RPC notes', link: '/api/rpc' },
+        ],
+      },
+    },
+    {
+      spec: './static/api/IBCGO.yaml',
+      path: '/api/ibc',
+      sidebar: {
+        collapsed: true,
+        top: [
+          { text: 'API', link: '/api' },
+          { text: 'REST / LCD', link: '/api/rest' },
+          { text: 'CometBFT RPC', link: '/api/cometbft' },
+          { text: 'IBC', link: '/api/ibc' },
+        ],
+      },
+    },
+  ],
+})

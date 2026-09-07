@@ -1,0 +1,111 @@
+---
+title: Smart Account Authenticators
+description: Programmable authentication for Terp Network accounts — register authenticators, combine strategies, build custom CosmWasm authenticator contracts
+status: partial
+---
+The `x/smart-account` module replaces the default Cosmos SDK authentication with a programmable, per-account authentication framework. Instead of every transaction being authenticated by a single secp256k1 signature check, accounts can register **multiple authenticators** — each with their own rules for what they authorize.
+
+## How It Works
+
+```text
+Transaction → Circuit Breaker → For each message:
+                                   1. Identify the account for this message
+                                   2. Fetch authenticator(s) registered to that account
+                                   3. Call Authenticate() on the selected authenticator
+                                   4. If authenticated → proceed; else → reject
+                                 → Track() all authenticators
+                                 → Execute messages
+                                 → ConfirmExecution() on all authenticators
+```
+
+The flow has seven stages:
+
+| Stage | Function | What Happens |
+|-------|----------|-------------|
+| 1 | Gas limit | Temporary cap set before fee payer is authenticated |
+| 2 | Identify fee payer | First signer is the fee payer |
+| 3 | **Authenticate** | Each message authenticated by its selected authenticator |
+| 4 | Gas reset | Limit restored after fee payer authenticated |
+| 5 | **Track** | Authenticators notified of successful authentication |
+| 6 | Execute | Messages run (state changes committed if succeed) |
+| 7 | **ConfirmExecution** | Post-execution rules enforced (spend limits, etc.) |
+
+> **Authentication flow diagram scaffold** — a sequence diagram showing the full lifecycle of a transaction through the smart-account module.
+
+## The Authenticator Interface
+
+Every authenticator on Terp Network implements this interface:
+
+```go
+type Authenticator interface {
+    Type() string                           // Unique type identifier
+    StaticGas() uint64                      // Fixed gas per invocation
+    Initialize(config []byte) (Authenticator, error)  // Set up from stored config
+    Authenticate(ctx, request) error        // Validate the message
+    Track(ctx, request) error               // Record successful authentication
+    ConfirmExecution(ctx, request) error    // Enforce post-execution rules
+    OnAuthenticatorAdded(ctx, account, config, id) error
+    OnAuthenticatorRemoved(ctx, account, config, id) error
+}
+```
+
+## Available Authenticator Types
+
+| Type | Description | Docs |
+|------|-------------|------|
+| **SignatureVerification** | Verify a secp256k1 public key signature (default) | [Guide](/docs/guides/authentication/authenticators/signature-verification) |
+| **MessageFilter** | Match incoming messages against a JSON pattern | [Guide](/docs/guides/authentication/authenticators/message-filter) |
+| **AllOf** | Require ALL sub-authenticators to pass | [Guide](/docs/guides/authentication/authenticators/composite) |
+| **AnyOf** | Require ANY ONE sub-authenticator to pass | [Guide](/docs/guides/authentication/authenticators/composite) |
+| **CosmwasmAuthenticatorV1** | Custom authentication logic via CosmWasm contract | [Guide](/docs/guides/authentication/authenticators/safeword-contract) |
+
+## Registering an Authenticator
+
+An authenticator is added to your account with a `MsgAddAuthenticator` transaction:
+
+```proto
+message MsgAddAuthenticator {
+    string sender             = 1;   // Your account address
+    string authenticator_type = 2;   // e.g. "SignatureVerification"
+    bytes  data               = 3;   // Configuration (pubkey, pattern, etc.)
+}
+```
+
+Each authenticator gets a **globally unique ID** (incrementing uint64). This ID is used when:
+- Selecting which authenticator to use in a transaction (via `TxExtension`)
+- Removing an authenticator (via `MsgRemoveAuthenticator`)
+
+## Selecting an Authenticator Per Message
+
+Transactions using authenticators must include a `TxExtension` specifying which authenticator to use for each message:
+
+```proto
+message TxExtension {
+    repeated uint64 selected_authenticators = 1;
+}
+```
+
+If no `selected_authenticators` are provided, the transaction defaults to standard Cosmos SDK signature verification (backward compatible).
+
+## Available APIs
+
+Each guide below demonstrates the same steps across multiple language APIs:
+
+| API | Package | Use Case |
+|-----|---------|----------|
+| **terpd CLI** | `terpd tx smart-account` | Quick prototyping, node operators |
+| **TypeScript/JS** | `@cosmjs/stargate` + `cosmjs-types` | Web dApps, frontend |
+| **Rust** | `cw-orchestrator`, `terp-rs` | Contract deployment, integration tests |
+| **Go** | `terp-core/types` | Backend services, automation |
+| **Python** | `terp-rs` (PyO3 bindings) | Scripting, analysis |
+
+---
+
+## Examples
+
+<Cards>
+  <Card title="SignatureVerification" description="Register a public key as an authenticator for your account — the simplest authenticator" href="/docs/guides/authentication/authenticators/signature-verification" />
+  <Card title="MessageFilter" description="Authorize messages that match a JSON pattern — permissionless utility accounts and faucets" href="/docs/guides/authentication/authenticators/message-filter" />
+  <Card title="Composite Authenticators" description="Combine multiple authenticators with AllOf (AND) and AnyOf (OR) logic — multisig, tiered access" href="/docs/guides/authentication/authenticators/composite" />
+  <Card title="Safe-word Contract" description="Build a CosmWasm authenticator that authorizes transactions containing a pre-registered safe-word — custom auth logic" href="/docs/guides/authentication/authenticators/safeword-contract" />
+</Cards>

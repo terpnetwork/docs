@@ -1,0 +1,186 @@
+---
+title: Local Network
+description: Run a single-node Terp Network localnet for development and testing
+status: complete
+---
+import { Callout } from '#vocs-compat';
+import { Tab, Tabs } from '#vocs-compat';
+
+Spin up a **single-node local chain** for contract testing, CLI experiments, and integration work without depending on public RPC.
+
+<Callout type="info" title="When to use this">
+Use localnet for fast iteration. Use [testnet](/docs/overview/quickstart) for multi-party or public infra. Use [bootstrap](/docs/guides/network/bootstrap) / [state sync](/docs/guides/network/state-sync) when you need real network state.
+</Callout>
+
+## Prerequisites
+
+- `terpd` installed and on `PATH` — [Environment installation](/docs/guides/setup) or [Install](/docs/guides/network/nodes/install)
+- `jq` (optional, for prettier queries)
+
+## Initialize a single-node localnet
+
+Use a dedicated home directory so you do not clobber mainnet/testnet data:
+
+```bash
+export CHAIN_ID=localterp-1
+export MONIKER=local-dev
+export HOME_DIR=$HOME/.terpd-local
+export DENOM=uthiol
+export KEY=local-validator
+
+## Clean previous localnet (destructive)
+rm -rf "$HOME_DIR"
+
+## Init
+terpd init "$MONIKER" --chain-id "$CHAIN_ID" --home "$HOME_DIR"
+
+## Key (test keyring is fine for disposable localnet)
+terpd keys add "$KEY" --keyring-backend test --home "$HOME_DIR"
+
+## Genesis account with balance
+terpd genesis add-genesis-account \
+  "$(terpd keys show "$KEY" -a --keyring-backend test --home "$HOME_DIR")" \
+  1000000000000${DENOM} \
+  --home "$HOME_DIR"
+
+## Gentx + collect
+terpd genesis gentx "$KEY" 100000000${DENOM} \
+  --chain-id "$CHAIN_ID" \
+  --keyring-backend test \
+  --home "$HOME_DIR"
+
+terpd genesis collect-gentxs --home "$HOME_DIR"
+terpd genesis validate --home "$HOME_DIR"
+```
+
+<Callout type="warn" title="CLI subcommand drift">
+Exact `genesis` subcommands vary slightly across Cosmos SDK versions (`add-genesis-account` vs nested `genesis` group). If a command fails, run `terpd genesis --help` / `terpd --help` on your binary and adjust. The intent is: init → key → funded genesis account → gentx → collect → validate → start.
+</Callout>
+
+## Minimum gas prices
+
+Edit `$HOME_DIR/config/app.toml`:
+
+```toml
+minimum-gas-prices = "0.0uthiol"
+```
+
+For local-only use, `0` is acceptable. Never run a public node with zero min gas.
+
+## Start the node
+
+```bash
+terpd start --home "$HOME_DIR"
+```
+
+In another terminal:
+
+```bash
+export HOME_DIR=$HOME/.terpd-local
+terpd status --home "$HOME_DIR" | jq '.sync_info'
+## catching_up should be false almost immediately on a single node
+```
+
+Default RPC is typically `tcp://127.0.0.1:26657`. REST/gRPC ports follow your `app.toml`.
+
+## Fund accounts and send txs
+
+Additional keys on the same local chain:
+
+```bash
+terpd keys add alice --keyring-backend test --home "$HOME_DIR"
+
+terpd tx bank send "$KEY" \
+  "$(terpd keys show alice -a --keyring-backend test --home "$HOME_DIR")" \
+  1000000uthiol \
+  --chain-id "$CHAIN_ID" \
+  --home "$HOME_DIR" \
+  --keyring-backend test \
+  --fees 500uthiol \
+  -y
+```
+
+There is no public faucet on bare single-node localnet — genesis balances and bank sends are the funding model. For public testnet, Docker localterp, and `terpd testnet create --faucet`, see [Faucet](/docs/guides/network/faucet) and [Quick start](/docs/overview/quickstart).
+
+## Deploy a contract (outline)
+
+1. Build optimized WASM (Docker CosmWasm optimizer recommended)
+2. `terpd tx wasm store … --home $HOME_DIR …`
+3. Instantiate with the returned code id
+4. **Verify**: recompute code hash and compare on-chain — [Compile & verify code ID](/docs/guides/trustlessness/compile-verify-code-id)
+
+Full CosmWasm workflow: [CosmWasm guides](/docs/guides/cosmwasm).
+
+## Interact
+
+<Tabs items={['CLI', 'REST', 'RPC']}>
+<Tab value="CLI">
+
+```bash
+terpd query bank balances \
+  "$(terpd keys show alice -a --keyring-backend test --home "$HOME_DIR")" \
+  --home "$HOME_DIR"
+```
+
+</Tab>
+<Tab value="REST">
+
+```bash
+## If API is enabled in app.toml (api.enable = true)
+curl -s "http://127.0.0.1:1317/cosmos/bank/v1beta1/balances/<terp1...>" | jq .
+```
+
+</Tab>
+<Tab value="RPC">
+
+```bash
+curl -s http://127.0.0.1:26657/status | jq '.result.sync_info'
+```
+
+</Tab>
+</Tabs>
+
+Client libraries against `http://127.0.0.1:26657`: [API libraries](/docs/resources/libraries).
+
+## Multi-node and Docker
+
+- **Multi-node local**: out of scope for this page — use integration test harnesses (e.g. project e2e images) or tools like `ignite` / interchain test frameworks if your team standardizes on them.
+- **Dockerized `terpd`**: [Install → Docker](/docs/guides/network/nodes/install) and [Terp Core Docker](/docs/ecosystem/terp-core/docker).
+
+## Cleanup
+
+```bash
+## Stop the process (Ctrl+C), then:
+rm -rf "$HOME_DIR"
+```
+
+Unsafe reset while keeping config (when supported):
+
+```bash
+terpd tendermint unsafe-reset-all --home "$HOME_DIR" --keep-addr-book
+```
+
+## Verify
+
+| Check | Command / action |
+|-------|------------------|
+| Chain ID | `jq -r .chain_id $HOME_DIR/config/genesis.json` |
+| Node producing blocks | `terpd status --home $HOME_DIR` — height increases |
+| Balances move | Bank send + query as above |
+| Contracts (if used) | Local code hash vs on-chain checksum |
+
+## Related concepts
+
+- [P2P](/docs/overview/concepts/p2p) — how real networks discover peers
+- [Governance](/docs/overview/concepts/governance) — not needed on disposable localnet
+- [Trustlessness](/docs/overview/concepts/trustless) — localnet is trusted by definition; still practice hash checks on WASM
+
+## Further reading
+
+- [Faucet](/docs/guides/network/faucet)
+- [Environment installation](/docs/guides/setup)
+- [Bootstrap a full node](/docs/guides/network/bootstrap)
+- [State sync](/docs/guides/network/state-sync)
+- [systemd service](/docs/guides/network/systemd-service)
+- [Deploy on Akash](/docs/guides/network/deploy/akash) (when operating off-laptop)
+- [CosmWasm](/docs/guides/cosmwasm)

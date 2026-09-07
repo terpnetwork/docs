@@ -1,0 +1,318 @@
+---
+title: MessageFilter Authenticator
+description: Authorize transactions by matching the message against a JSON pattern — permissionless utility accounts, faucets, and automated agents
+status: partial
+---
+import { Tab, Tabs } from '#vocs-compat';
+
+The **MessageFilter** authenticator authorizes a transaction when the message matches a predefined JSON pattern. This enables **permissionless utility accounts** — accounts that can execute specific operations without requiring a signature from the account owner.
+
+## How It Works
+
+When a transaction arrives, the MessageFilter:
+1. Resolves the message type from its `@type` URL
+2. Marshals the message to JSON
+3. Checks whether the message is a **superset** of the configured pattern
+4. If the pattern matches → authentication succeeds (no signature needed)
+
+The pattern is a partial JSON object — only the fields you specify are checked. Unspecified fields are ignored.
+
+## When To Use
+
+- **Faucet accounts** — allow anyone to send a fixed amount of tokens from a pool
+- **Automated agents** — let a smart contract or bot execute specific message types
+- **Utility accounts** — a shared account that performs a limited set of operations
+- **Subscription services** — authorize recurring payments with fixed parameters
+
+## Step 1: Define the Message Pattern
+
+The pattern is a JSON object with at least a `@type` field identifying the message type. Additional fields constrain the match.
+
+### Example Patterns
+
+**Allow only MsgSend with exactly 69 uterp:**
+
+```json
+{
+  "@type": "/cosmos.bank.v1beta1.MsgSend",
+  "amount": [{"denom": "uterp", "amount": "69"}]
+}
+```
+
+**Allow only MsgDelegate to a specific validator:**
+
+```json
+{
+  "@type": "/cosmos.staking.v1beta1.MsgDelegate",
+  "validator_address": "terpvaloper1..."
+}
+```
+
+**Allow any MsgWithdrawDelegatorReward (no constraints on fields):**
+
+```json
+{
+  "@type": "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
+}
+```
+
+## Step 2: Register the MessageFilter Authenticator
+
+<Tabs items={['terpd CLI', 'TypeScript/JS', 'Rust', 'Go', 'Python']}>
+  <Tab value="terpd CLI">
+
+```bash
+# Register a MessageFilter that allows sending 69uterp
+terpd tx smart-account add-authenticator \
+  MessageFilter \
+  '{"@type":"/cosmos.bank.v1beta1.MsgSend","amount":[{"denom":"uterp","amount":"69"}]}' \
+  --from my-account \
+  --chain-id morocco-1 \
+  --fees 5000uthiol \
+  --gas auto
+```
+
+Sample output:
+```text
+txhash: 1234ABCD...
+authenticator_id: 5
+```
+
+  </Tab>
+  <Tab value="TypeScript/JS">
+
+```typescript
+const pattern = {
+  '@type': '/cosmos.bank.v1beta1.MsgSend',
+  amount: [{ denom: 'uterp', amount: '69' }],
+};
+
+const msgAdd = {
+  typeUrl: '/terp.smartaccount.v1beta1.MsgAddAuthenticator',
+  value: {
+    sender: sender,
+    authenticatorType: 'MessageFilter',
+    data: new TextEncoder().encode(JSON.stringify(pattern)),
+  },
+};
+
+const result = await client.signAndBroadcast(sender, [msgAdd], fee);
+console.log('Authenticator ID:', getAuthenticatorId(result));
+```
+
+  </Tab>
+  <Tab value="Rust">
+
+```rust
+use serde_json::json;
+
+let pattern = json!({
+    "@type": "/cosmos.bank.v1beta1.MsgSend",
+    "amount": [{"denom": "uterp", "amount": "69"}]
+});
+
+let msg_add = MsgAddAuthenticator {
+    sender: sender.to_string(),
+    authenticator_type: "MessageFilter".to_string(),
+    data: Binary::from(serde_json::to_vec(&pattern).unwrap()),
+};
+
+chain.broadcast_tx(cosmos_msg)?;
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+import "encoding/json"
+
+pattern := map[string]interface{}{
+    "@type": "/cosmos.bank.v1beta1.MsgSend",
+    "amount": []map[string]string{
+        {"denom": "uterp", "amount": "69"},
+    },
+}
+patternBytes, _ := json.Marshal(pattern)
+
+msg := &types.MsgAddAuthenticator{
+    Sender:            senderAddr.String(),
+    AuthenticatorType: "MessageFilter",
+    Data:              patternBytes,
+}
+```
+
+  </Tab>
+  <Tab value="Python">
+
+```python
+import json
+
+pattern = {
+    "@type": "/cosmos.bank.v1beta1.MsgSend",
+    "amount": [{"denom": "uterp", "amount": "69"}],
+}
+
+msg = MsgAddAuthenticator(
+    sender=client.address,
+    authenticator_type="MessageFilter",
+    data=json.dumps(pattern).encode(),
+)
+```
+
+  </Tab>
+</Tabs>
+
+## Step 3: Execute the Authorized Message
+
+Now anyone can send a matching message through this account — no signature from the account owner required. The sender just needs to include the authenticator ID in the TxExtension.
+
+<Tabs items={['terpd CLI', 'TypeScript/JS', 'Rust', 'Go', 'Python']}>
+  <Tab value="terpd CLI">
+
+```bash
+# Anyone can broadcast this tx — it will be authenticated by MessageFilter
+terpd tx bank send \
+  terp1faucet... terp1recipient... \
+  69uterp \
+  --from anyone \
+  --chain-id morocco-1 \
+  --fees 5000uthiol
+```
+
+Note: the CLI currently defaults to the first authenticator. For explicit selection, use the gRPC endpoint with `TxExtension { selected_authenticators: [5] }`.
+
+  </Tab>
+  <Tab value="TypeScript/JS">
+
+```typescript
+// A third party sends the transaction from the faucet account
+const sendMsg = {
+  typeUrl: '/cosmos.bank.v1beta1.MsgSend',
+  value: {
+    fromAddress: 'terp1faucet...',  // the account with MessageFilter
+    toAddress: 'terp1recipient...',
+    amount: [{ denom: 'uterp', amount: '69' }],
+  },
+};
+
+// Include the MessageFilter authenticator ID
+const extension = { selectedAuthenticators: [5] };
+
+// The sender just needs to pay fees — no need to be the account owner
+const txResult = await client.signAndBroadcast(
+  anyoneSender,
+  [sendMsg],
+  fee,
+  '',
+  extension,
+);
+```
+
+  </Tab>
+  <Tab value="Rust">
+
+```rust
+let send_msg = BankMsg::Send {
+    to_address: "terp1recipient...".to_string(),
+    amount: vec![Coin::new(69, "uterp")],
+};
+
+// The broadcast includes the TxExtension with authenticator ID
+// cw-orchestrator handles this via the TxExtension config
+chain.broadcast_tx(CosmosMsg::Bank(send_msg))?;
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+sendMsg := &banktypes.MsgSend{
+    FromAddress: faucetAddr.String(),
+    ToAddress:   "terp1recipient...",
+    Amount:      sdk.NewCoins(sdk.NewInt64Coin("uterp", 69)),
+}
+
+ext := &smartaccounttypes.TxExtension{
+    SelectedAuthenticators: []uint64{5},
+}
+// Build tx with extension
+```
+
+  </Tab>
+  <Tab value="Python">
+
+```python
+send = BankMsg.send(
+    sender="terp1faucet...",
+    to="terp1recipient...",
+    amount=[("uterp", 69)],
+)
+
+extension = TxExtension(selected_authenticators=[5])
+tx = client.broadcast(
+    send,
+    fee={"amount": "5000uthiol", "gas": "200000"},
+    extension=extension,
+)
+```
+
+  </Tab>
+</Tabs>
+
+## Step 4: Verify the Authenticator
+
+Query the authenticators registered on the faucet account:
+
+<Tabs items={['terpd CLI', 'TypeScript/JS']}>
+  <Tab value="terpd CLI">
+
+```bash
+terpd query smart-account authenticators terp1faucet...
+# Output:
+# authenticators:
+#   - id: 5
+#     type: MessageFilter
+#     data: {"@type":"/cosmos.bank.v1beta1.MsgSend","amount":[{"denom":"uterp","amount":"69"}]}
+```
+  </Tab>
+  <Tab value="TypeScript/JS">
+
+```typescript
+const queryClient = await client.forceGetQueryClient();
+const response = await queryClient.smartAccount.authenticators({
+  account: 'terp1faucet...',
+});
+console.log(response.authenticators);
+```
+  </Tab>
+</Tabs>
+
+## Multiple Patterns on One Account
+
+You can register multiple MessageFilter authenticators on the same account, each with a different pattern:
+
+```bash
+# Authenticator 5: send 69uterp
+# Authenticator 6: send 420uthiol
+terpd tx smart-account add-authenticator \
+  MessageFilter \
+  '{"@type":"/cosmos.bank.v1beta1.MsgSend","amount":[{"denom":"uthiol","amount":"420"}]}' \
+  --from my-account \
+  --chain-id morocco-1 \
+  --fees 5000uthiol
+```
+
+Each pattern gets its own authenticator ID, and the sender selects which one to use via `TxExtension`.
+
+## Security Considerations
+
+- **MessageFilter bypasses key-based auth** — anyone can use this authenticator if the message pattern matches
+- **Be specific with patterns** — include field constraints (amount, denom, addresses) to limit what's authorized
+- **Fund the account separately** — a MessageFilter account should only hold what it's meant to distribute
+- **Monitor usage** — filter configuration changes should be reviewed
+
+## Related Concepts
+
+- [SignatureVerification](/docs/guides/authentication/authenticators/signature-verification) — comparing key-based vs pattern-based auth
+- [Composite authenticators](/docs/guides/authentication/authenticators/composite) — combine MessageFilter with other authenticators
+- [Safe-word contract](/docs/guides/authentication/authenticators/safeword-contract) — CosmWasm-based custom authentication logic

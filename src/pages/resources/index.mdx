@@ -1,0 +1,58 @@
+---
+title: "Terp Network Resources"
+description: "Resources for integrating with Terp Network \u2014 ADRs, public endpoints, API libraries, FAQs, verification"
+---
+import { Card, Cards } from 'vocs'
+
+# Resources
+
+This section provides reference material for developers, validators, and ecosystem participants. Each resource is designed to be directly actionable — configuration values, API references, library catalogs, and verification procedures.
+
+## Core Resources
+
+<Cards>
+  <Card title="ADRs" description="Architecture Decision Records documenting significant decisions in Terp Network protocol and tooling" to="/resources/adrs" />
+  <Card title="Public Endpoints" description="RPC, REST, gRPC endpoints, chain info, snapshots, and genesis files for mainnet and testnet" to="/resources/public" />
+  <Card title="API Libraries" description="Client libraries in JS/TS, Rust, Go, Python for connecting and communicating with Terp Network" to="/resources/libraries" />
+  <Card title="FAQ" description="Answers to common questions about Terp Network, tokens, governance, and integration" to="/resources/faq" />
+  <Card title="Integrity Verification" description="Checksums and signature verification procedures for Terp Network releases and deployment artifacts" to="/resources/integrity" />
+</Cards>
+
+## Related Sections
+
+<Cards>
+  <Card title="Development Resources" description="Tooling, testing frameworks, CI/CD patterns, and smart contract development guides" to="/resources" />
+  <Card title="Ecosystem Resources" description="Integrations with other chains and tools — Bitcoin, Ethereum, Osmosis, Penumbra, Nostr, DAO DAO" to="/resources" />
+  <Card title="Network Resources" description="Node setup, validator guides, IBC relaying, and network operations" to="/resources/network" />
+  <Card title="Community Resources" description="Community channels, working groups, contribution guidelines, and communication" to="/resources/community" />
+</Cards>
+
+## Quick Reference
+
+| Resource | Path | Use Case |
+|----------|------|----------|
+| Mainnet chain ID | `morocco-1` | Connecting to production |
+| Testnet chain ID | `120u-1` | Testing before mainnet |
+| Native denom | `uthiol` | Fee token |
+| Min gas price | `0.05uthiol` | Transaction fee floor |
+| Bech32 prefix | `terp` | Address format |
+| Coin type | 114 | HD wallet derivation |
+| Block time | ~6s | Confirmation timing |
+| RPC (mainnet) | `https://rpc.terp.network` | Query/transactions |
+| REST (mainnet) | `https://api.terp.network` | REST API queries |
+| S3 resources | `https://s3.terp.network/snapshots/` | Snapshots, genesis, chain config |
+
+---
+
+## Cross-Reference to Concepts
+
+Every resource below builds on the [core concepts](/overview/concepts). When you encounter an unfamiliar term:
+
+| Concept | Related Resource |
+|---------|-----------------|
+| [IBC](/overview/concepts/ibc) | [Public endpoints](/resources/public) (IBC channels), [relaying guides](/overview/concepts/ibc) |
+| [Tokens](/overview/concepts/tokens) | [Libraries](/resources/libraries) (balance queries, token transfers) |
+| [Governance](/overview/concepts/governance) | [ADRs](/resources/adrs) (governance decisions), [public endpoints](/resources/public) (gov queries) |
+| [Trustlessness](/overview/concepts/trustless) | [Integrity verification](/resources/integrity) |
+| [Networks](/overview/concepts/networks) | [Network resources](/resources/network), [public endpoints](/resources/public) |
+| [Privacy](/overview/concepts/privacy) | [Resources](/resources) (privacy tools) |

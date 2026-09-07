@@ -1,0 +1,197 @@
+---
+title: Verify Circuit Integrity
+description: Validate that zero-knowledge circuit artifacts (proving keys, verification keys, WASM circuits) are authentic and match their source
+status: partial
+---
+import { Tab, Tabs } from '#vocs-compat';
+
+Zero-knowledge circuits used on Terp Network — whether for private voting, selective disclosure, or zk-CosmWasm — must be verifiable independently. Users should never trust a circuit artifact (proving key, verification key, compiled WASM) without confirming it was produced by the published source code.
+
+## What Circuits Are Used On Terp Network
+
+| Circuit | Purpose | Artifacts |
+|---------|---------|-----------|
+| PollRegistry | Private vote aggregation | Proving key, verification key, WASM |
+| zk-CosmWasm VM | Private contract execution (future) | WASM circuit, setup file |
+| HashMerchant | Verifiable Merkle markets | Circuit parameters, proving key |
+| Custom circuits | Community-deployed ZK apps | Per-application artifacts |
+
+## Verification Workflow
+
+The pattern is the same for any circuit type:
+1. **Obtain the published checksum** — from the release or source repo
+2. **Rebuild the circuit locally** — using the specified toolchain
+3. **Compare hashes** — your artifact must match the published reference
+
+## Step 1: Obtain Reference Checksums
+
+Circuit artifact checksums are published alongside the source:
+
+```bash
+# Download the reference checksum file for the circuit
+curl -sL https://s3.terp.network/snapshots/mainnet/morocco-1/circuit-checksums.txt
+
+# Example contents:
+# a1b2c3d4...  proving_key.bin
+# e5f6a7b8...  verification_key.json
+# c9d0e1f2...  circuit.wasm
+```
+
+## Step 2: Reproduce the Circuit Build
+
+<Tabs items={['Circom circuit', 'Halo2 circuit', 'Noir circuit']}>
+<Tab value="Circom circuit">
+
+```bash
+# Clone the circuit source
+git clone https://github.com/terpnetwork/circuits
+cd circuits/poll-registry
+
+# Check out the correct tag
+git checkout tags/v1.0.0
+
+# Build with the specified circom version
+circom poll_registry.circom \
+  --r1cs --wasm --sym \
+  -o artifacts/
+
+# Generate the proving/verification keys (requires trusted setup)
+snarkjs groth16 setup \
+  artifacts/poll_registry.r1cs \
+  pot12_final.ptau \
+  artifacts/poll_registry.zkey
+
+snarkjs zkey export verificationkey \
+  artifacts/poll_registry.zkey \
+  artifacts/verification_key.json
+```
+
+</Tab>
+<Tab value="Halo2 circuit">
+
+```bash
+# Clone and build the Halo2 circuit
+git clone https://github.com/terpnetwork/halo2-circuits
+cd halo2-circuits/hashmerchant
+
+# Build with cargo (Halo2 is a Rust library)
+cargo build --release --example setup
+
+# Generate artifacts
+./target/release/examples/setup \
+  --params artifacts/params.bin \
+  --pk artifacts/proving_key.bin \
+  --vk artifacts/verification_key.bin
+```
+
+</Tab>
+<Tab value="Noir circuit">
+
+```bash
+# Clone the Noir circuit project
+git clone https://github.com/terpnetwork/noir-circuits
+cd noir-circuits/zk-vote
+
+# Compile the circuit
+nargo compile
+
+# Generate artifacts in target/
+ls target/*.json
+# circuit.json, ProvingKey.json, VerificationKey.json
+```
+
+</Tab>
+</Tabs>
+
+## Step 3: Hash the Local Artifacts
+
+<Tabs items={['SHA-256', 'BLAKE3']}>
+<Tab value="SHA-256">
+
+```bash
+sha256sum artifacts/*.bin artifacts/*.json
+```
+
+</Tab>
+<Tab value="BLAKE3">
+
+```bash
+b3sum artifacts/*.bin artifacts/*.json
+```
+
+</Tab>
+</Tabs>
+
+## Step 4: Compare
+
+```bash
+#!/usr/bin/env bash
+# verify-circuit.sh
+set -euo pipefail
+
+REF_FILE="${1:-circuit-checksums.txt}"
+ARTIFACT_DIR="${2:-artifacts}"
+
+# Compute local checksums
+sha256sum "${ARTIFACT_DIR}"/*.bin "${ARTIFACT_DIR}"/*.json 2>/dev/null > local-checksums.txt
+
+# Compare against reference
+echo "=== Circuit Verification ==="
+while read -r line; do
+  REF_CS=$(echo "$line" | cut -d' ' -f1)
+  FILENAME=$(echo "$line" | cut -d' ' -f2-)
+  LOCAL_CS=$(grep -F "$FILENAME" local-checksums.txt | cut -d' ' -f1 || echo "NOT_FOUND")
+
+  if [ "$REF_CS" = "$LOCAL_CS" ]; then
+    echo "  ✓ $FILENAME"
+  else
+    echo "  ✗ $FILENAME — hash mismatch"
+    FAIL=1
+  fi
+done < "$REF_FILE"
+
+if [ -z "${FAIL:-}" ]; then
+  echo "✓ All circuit artifacts verified"
+else
+  echo "✗ Some artifacts failed verification"
+  exit 1
+fi
+```
+
+## Multi-Party Verification
+
+For circuits requiring a trusted setup (Groth16 style), verification should ideally involve **multi-party computation (MPC)** where no single party knows the toxic waste. Terp Network circuits using trusted setup publish the **MPC transcript hash** so participants can verify their contribution was included:
+
+```bash
+# Verify MPC contribution
+snarkjs zkey verify \
+  artifacts/circuit.r1cs \
+  pot12_final.ptau \
+  artifacts/circuit.zkey
+```
+
+## Expected Results
+
+```text
+=== Circuit Verification ===
+  ✓ proving_key.bin
+  ✓ verification_key.json
+  ✓ circuit.wasm
+✓ All circuit artifacts verified
+```
+
+## Troubleshooting
+
+| Symptom | Likely Cause | Fix |
+|---------|-------------|-----|
+| Hash mismatch | Different toolchain version | Use the exact compiler version specified in the circuit's CI config |
+| Hash mismatch | Different build flags | Check `Cargo.toml` features or circom flags |
+| Hash mismatch | Non-deterministic setup | Some proving key generation is non-deterministic by design — verify the transcript instead |
+| BLAKE3 vs SHA-256 | Algorithm mismatch | Confirm which algorithm the reference uses |
+
+## Related
+
+- [Compile & verify code ID](/docs/guides/trustlessness/compile-verify-code-id) — verify CosmWasm contract hashes
+- [Privacy concepts](/docs/overview/concepts/privacy) — how ZK circuits fit into Terp Network's privacy story
+- [Selective disclosure concepts](/docs/overview/concepts/privacy/disclosure) — ZK-powered selective disclosure
+- [Integrity resources](/docs/resources/integrity) — checksum verification tools

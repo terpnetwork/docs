@@ -1,0 +1,157 @@
+---
+title: Public Endpoints
+description: href={href} target="blank" rel="noopener noreferrer" className="group flex items-start gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800...
+status: partial
+---
+import { Tab, Tabs } from '#vocs-compat';
+import { Files, Folder, File } from '#vocs-compat';
+import { Database, FileJson, Tags, Globe, Layers, Archive, ExternalLink } from 'lucide-react';
+
+export const ResourceCard = ({ href, title, description, icon: Icon }) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="group flex items-start gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 hover:bg-white dark:hover:bg-slate-900 hover:border-amber-500/50 hover:shadow-md transition-all duration-200"
+  >
+    <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+      <Icon size={20} strokeWidth={1.5} />
+    </div>
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="font-semibold text-slate-900 dark:text-slate-100 text-sm">{title}</span>
+        <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 text-slate-400 transition-opacity" />
+      </div>
+      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{description}</p>
+      <code className="mt-2 block text-[10px] text-slate-400 dark:text-slate-500 font-mono truncate">
+        {href.split('/').pop()}
+      </code>
+    </div>
+  </a>
+);
+
+export const ResourceGrid = ({ baseUrl, chainId }) => (
+  <div className="space-y-6">
+    <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/50 px-3 py-2 rounded-lg font-mono">
+      <span className="text-amber-600 dark:text-amber-400 font-medium">{chainId}</span>
+      <span className="text-slate-300">|</span>
+      <span className="truncate">{baseUrl}</span>
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <ResourceCard
+        href={`${baseUrl}/addrbook.json`}
+        title="Address Book"
+        description="Public peer addresses and node endpoints for quick network synchronization"
+        icon={Database}
+      />
+      <ResourceCard
+        href={`${baseUrl}/chain.json`}
+        title="Chain Info"
+        description="Chain metadata including chain ID, denominations, and bech32 prefixes"
+        icon={Globe}
+      />
+      <ResourceCard
+        href={`${baseUrl}/versions.json`}
+        title="Version Info"
+        description="Required software versions and upgrade compatibility data"
+        icon={Tags}
+      />
+      <ResourceCard
+        href={`${baseUrl}/genesis.json`}
+        title="Genesis File"
+        description="Initial blockchain state for validator initialization and sync"
+        icon={FileJson}
+      />
+      <ResourceCard
+        href={`${baseUrl}/assetlist.json`}
+        title="Asset List"
+        description="Registered tokens, IBC assets and denomination metadata"
+        icon={Layers}
+      />
+      <ResourceCard
+        href={`${baseUrl}/snapshot_full.json`}
+        title="Snapshot Info"
+        description="Latest snapshot metadata with pruning and archive details"
+        icon={Archive}
+      />
+    </div>
+  </div>
+);
+
+## Network Resources
+
+Access all Terp Network configuration files, snapshots, and chain metadata from our distributed S3 infrastructure.
+
+<Tabs groupId="network" items={['Mainnet', 'Testnet']} defaultIndex={0} persist>
+
+  <Tab value="Mainnet">
+    <ResourceGrid
+      baseUrl="https://s3.terp.network/snapshots/mainnet/morocco-1"
+      chainId="morocco-1"
+    />
+  </Tab>
+
+  <Tab value="Testnet">
+    <ResourceGrid
+      baseUrl="https://s3.terp.network/snapshots/testnet/120u-1"
+      chainId="120u-1"
+    />
+  </Tab>
+
+</Tabs>
+
+---
+
+## S3 Bucket Structure
+
+All resources are hosted on Terp Network's public S3 storage following this hierarchy:
+
+<Files>
+  <Folder name="s3.terp.network" defaultOpen disabled>
+    <Folder name="snapshots" defaultOpen>
+      <Folder name="mainnet">
+        <Folder name="morocco-1" defaultOpen>
+          <File name="addrbook.json" />
+          <File name="assetlist.json" />
+          <File name="chain.json" />
+          <File name="genesis.json" />
+          <File name="snapshot_full.json" />
+          <File name="versions.json" />
+        </Folder>
+      </Folder>
+      <Folder name="testnet">
+        <Folder name="120u-1" defaultOpen>
+          <File name="addrbook.json" />
+          <File name="assetlist.json" />
+          <File name="chain.json" />
+          <File name="genesis.json" />
+          <File name="snapshot_full.json" />
+          <File name="versions.json" />
+        </Folder>
+      </Folder>
+    </Folder>
+  </Folder>
+</Files>
+
+If you prefer direct access, resources follow this pattern:
+
+```bash
+# Mainnet
+https://s3.terp.network/snapshots/mainnet/morocco-1/{filename}
+
+# Testnet
+https://s3.terp.network/snapshots/testnet/120u-1/{filename}
+```
+
+---
+
+## Support Your Public Resource Provider
+
+Consider running your own sentry or full node to support the network's decentralization. See [node guides](/guides/network/nodes) for setup.
+
+___
+
+Use the embedded overview from [cosmos.directory](https://cosmos.directory/terp) for up-to-date information on public RPCs, APIs, peers, and chain resources.
+
+<Iframe src="https://cosmos.directory/terpnetwork" title="Terp Network on Cosmos Directory" allowFullScreen/>

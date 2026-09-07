@@ -1,0 +1,96 @@
+---
+title: P2P Networking
+description: How Terp Network nodes communicate — CometBFT, peer discovery, gossip protocol, network topology
+status: partial
+---
+Terp Network uses CometBFT (formerly Tendermint Core) for peer-to-peer networking. Nodes discover each other, gossip transactions and blocks, and maintain the network topology without central coordination.
+
+## CometBFT P2P Layer
+
+Every Terp Network node runs a CometBFT P2P node that:
+
+- **Discovers peers** — via seed nodes, persistent peers, and peer exchange (PEX)
+- **Gossips transactions** — transactions broadcast across the network until included in a block
+- **Propagates blocks** — new blocks are rapidly distributed to all nodes
+- **Maintains connections** — nodes maintain a configurable number of outbound and inbound peers
+
+### Peer Discovery
+
+Nodes find each other through:
+
+1. **Seed nodes** — well-known, stable nodes that provide initial peer lists
+2. **Persistent peers** — explicitly configured peers to always connect to
+3. **PEX (Peer Exchange)** — nodes share peer addresses they know about
+
+```toml
+# config.toml
+[p2p]
+seeds = "id@host:26656,id@host:26656"
+persistent_peers = "id@host:26656"
+pex = true
+```
+
+## Peer Addressing
+
+Peers are identified by their **node ID** (first 20 bytes of the node's Ed25519 public key, hex-encoded) and IP address:
+
+```html
+<node-id>@<host>:<p2p-port>
+```
+
+The default P2P port is `26656`.
+
+## Network Topology
+
+Terp Network recommends a **sentry node** architecture for validators:
+
+- **Validator node** — private, only connects to sentry nodes
+- **Sentry nodes** — public, connect to the wider network, relay traffic to the validator
+- **Full nodes** — public, sync chain state, serve RPC queries
+
+```text
+         Internet
+     ┌─────┴─────┐
+   Sentry 1   Sentry 2     ← public, DDoS-resistant
+     └────┬─────┘
+       Validator              ← private, only sentry peers
+```
+
+> **Sentry architecture diagram scaffold** — a network diagram showing validator behind sentry nodes, with client connections to sentries and sentries connecting to the wider P2P network.
+
+## Transaction Gossip
+
+When a transaction is broadcast to a node:
+
+1. Node validates the tx (signature, fee, nonce)
+2. Tx is added to the mempool
+3. Node gossips the tx to its peers
+4. Peers validate and relay further
+5. Eventually a validator includes the tx in a block
+
+## Block Propagation
+
+When a validator produces a block:
+
+1. Block is proposed via **consensus messages** (Proposal, Prevote, Precommit)
+2. Validators gossip their votes
+3. Once +2/3 precommits received, the block is committed
+4. The block is gossiped to all nodes via the P2P layer
+
+> **Block propagation sequence scaffold** — a sequence diagram showing how a block moves from proposer validator through consensus rounds to all full nodes.
+
+## Key Configurations
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `max_peers` | 50 | Maximum outbound + inbound peers |
+| `flush_throttle_timeout` | 100ms | Peer send throttle |
+| `send_rate` | 5120000 | Bytes/sec per connection |
+| `recv_rate` | 5120000 | Bytes/sec per connection |
+| `max_tx_bytes` | 1MB | Maximum tx size in bytes |
+
+## Further Reading
+
+- [Node setup guide](/guides/network/deploy) — configure P2P for your node
+- [Sentry node guide](/guides/network/nodes) — DDoS-resistant topology
+- [CometBFT P2P docs](https://docs.cometbft.com/v1.0/spec/p2p/) — full specification

@@ -1,0 +1,193 @@
+---
+title: IBC Hooks
+description: Call CosmWasm contracts on ICS-20 packet receipt using wasm memo hooks on Terp Network
+status: complete
+---
+import { Callout } from '#vocs-compat';
+import { Tab, Tabs } from '#vocs-compat';
+
+**IBC Hooks** (from [cosmos/ibc-apps `ibc-hooks`](https://github.com/cosmos/ibc-apps/tree/main/modules/ibc-hooks)) sit in Terp’s ICS-20 transfer stack so a successful IBC transfer can **execute a CosmWasm message on the receiving chain**. The hook payload lives in the transfer **memo**.
+
+Terp wires this in `app/keepers`: Wasm hooks + ICS4 middleware, then `ibchooks.NewIBCMiddleware` on the transfer stack (alongside packet-forward middleware). Integration coverage: `tests/interchaintest/module_ibchooks_test.go`.
+
+<Callout type="info" title="What this is not">
+This page is about **ICS-20 Wasm hooks** (memo → contract execute). It is separate from Terp’s **`x/cw-hooks`** module (staking/gov event hooks into contracts). For cw-hooks, see module specs under `x/cw-hooks/spec/` in [terp-core](https://github.com/terpnetwork/terp-core).
+</Callout>
+
+## When to use
+
+| Use case | Why hooks |
+|----------|-----------|
+| Auto-deposit into a contract on receive | One transfer both credits and notifies logic |
+| Cross-chain counter / accounting | Destination contract mutates state from the IBC packet actor |
+| Compose with packet-forward | Forward stack is outermost; hooks still apply on the local transfer leg |
+
+## Primitives
+
+1. **Transfer** — standard ICS-20 send with a non-empty **memo**.
+2. **Memo JSON** — must include a `wasm` object with destination `contract` and `msg`.
+3. **Local sender on dest** — a deterministic intermediate account derived from the source channel + original sender. Query it with `ibchooks wasm-sender`.
+4. **Contract** — must accept the execute message and treat the **hook-derived local address** as the funds/actor source (not the raw remote bech32 string alone).
+
+### Memo shape
+
+```json
+{
+  "wasm": {
+    "contract": "terp1…",
+    "msg": { "increment": {} }
+  }
+}
+```
+
+- `contract` — bech32 address on the **destination** chain.
+- `msg` — JSON object matching the contract’s execute schema (not a base64 string in the interchaintest path).
+
+The integration test builds the memo as:
+
+```text
+{"wasm":{"contract":"<contract>","msg":{"increment":{}}}}
+```
+
+and sets the transfer **receiver** to the same contract address so funds land on the contract while the hook runs `msg`.
+
+## Lifecycle (receive path)
+
+```mermaid
+sequenceDiagram
+  participant Src as Source chain
+  participant Rly as Relayer
+  participant Dst as Destination Terp
+  participant HW as IBC Hooks middleware
+  participant CW as CosmWasm contract
+
+  Src->>Rly: ICS-20 packet (memo has wasm)
+  Rly->>Dst: RecvPacket
+  Dst->>HW: transfer stack + hooks middleware
+  HW->>HW: Derive local sender from channel + remote sender
+  HW->>CW: Execute msg; funds path via hook actor
+  CW-->>Dst: OK / error
+  Dst-->>Rly: ack
+```
+
+> **Scaffold:** `flow` · id:`scf-guides-ibc-hooks-recv` · P2 · optional interactive packet+memo visualizer
+
+## Derive the local hook address
+
+On the chain that **sent** (or any node that knows the channel), map remote sender → local actor used on the other side:
+
+```bash
+## channel-id on THIS chain toward the counterparty, and the sender on THIS chain
+terpd query ibchooks wasm-sender channel-0 terp1…sender… \
+  --node <RPC> \
+  --chain-id <CHAIN_ID>
+```
+
+Interchaintest helper equivalent: `GetIBCHooksUserAddress` in `tests/interchaintest/helpers/ibchooks.go`.
+
+Use that derived address when querying contract state keyed by “who sent via IBC hooks.”
+
+## End-to-end example (CLI outline)
+
+Assume:
+
+- Open transfer channel `channel-0` on chain A toward chain B
+- Contract on **B** at `CONTRACT` with execute `{"increment":{}}`
+- Funded key `alice` on **A**
+
+### 1. Store and instantiate the counter (chain B)
+
+Use any CosmWasm counter that tracks funds/count per address (artifact used in CI: `ibchooks_counter.wasm` under interchaintest artifacts).
+
+```bash
+## On chain B — store / instantiate (abbreviated)
+terpd tx wasm store ibchooks_counter.wasm ... --from deployer -y
+terpd tx wasm instantiate <CODE_ID> '{"count":0}' \
+  --label ibc-hooks-counter \
+  --no-admin \
+  --from deployer \
+  --chain-id <B_CHAIN_ID> \
+  -y
+```
+
+## 2. Transfer with wasm memo (chain A)
+
+```bash
+CONTRACT=terp1…   # contract on B
+CHANNEL=channel-0 # A→B transfer channel
+AMOUNT=1uthiol    # use the correct base denom on A
+
+MEMO=$(printf '{"wasm":{"contract":"%s","msg":{"increment":{}}}}' "$CONTRACT")
+
+terpd tx ibc-transfer transfer transfer "$CHANNEL" "$CONTRACT" "$amount" \
+  --memo "$MEMO" \
+  --from alice \
+  --chain-id <A_CHAIN_ID> \
+  --gas auto --gas-adjustment 1.4 \
+  -y
+```
+
+## 3. Relay and wait for ack
+
+Run your relayer (Hermes or Go relayer) and wait until the packet is acknowledged. See [Relay overview](/docs/guides/ibc/relay/relay) and [Basic Hermes](/docs/guides/ibc/relay/basic-hermes).
+
+### 4. First packet may only create the local account
+
+The interchaintest suite intentionally performs **two** transfers: the first may create the intermediate account without fully applying the counter, the second increments to `1`. If your counter shows `0` after one successful ack, send again before debugging the contract.
+
+### 5. Verify on chain B
+
+```bash
+## Local actor for alice’s address on A, via A’s channel id
+LOCAL=$(terpd query ibchooks wasm-sender "$CHANNEL" "$(terpd keys show alice -a)" \
+  --node <A_RPC> -o json 2>/dev/null || true)
+## If CLI prints a bare address string, use that directly.
+
+terpd query wasm contract-state smart "$CONTRACT" \
+  "{\"get_count\":{\"addr\":\"$LOCAL\"}}" \
+  --node <B_RPC>
+```
+
+Exact query JSON depends on the contract schema (test helper uses `get_count` / `get_total_funds`).
+
+## Packet-forward + hooks
+
+Transfer stack order on Terp (outer → inner):
+
+1. Packet-forward middleware
+2. IBC Hooks middleware
+3. ICS-20 transfer module
+
+Hooks still apply when the local hop is a Wasm-memo transfer. Multi-hop forward memos follow [packet-forward-middleware](https://github.com/cosmos/ibc-apps/tree/main/middleware/packet-forward-middleware) conventions; do not invent forward JSON without checking that module’s version pinned in `go.mod`.
+
+## Safety and limits
+
+| Risk | Mitigation |
+|------|------------|
+| Malicious memo executes unexpected msg | Contracts must authz who can call sensitive executes; treat IBC as untrusted input |
+| Gas on receive | Keep hook msgs small; failed execute can fail the packet depending on middleware behavior — test on localnet |
+| Wrong receiver | Receiver and `wasm.contract` should match the intended contract pattern used in tests |
+| Light client / channel trust | Validate path first — [IBC workflows](/docs/guides/ibc/info) |
+
+## Verify
+
+| Check | How |
+|-------|-----|
+| Module present | Binary includes ibc-hooks (transfer stack in app keepers) |
+| Channel open | `terpd query ibc channel end transfer channel-N` |
+| Memo accepted | Packet acks; contract state changes for **derived** local sender |
+| CI reference | `TestTerpIBCHooks` in `tests/interchaintest/module_ibchooks_test.go` |
+
+## Related concepts
+
+- [IBC workflows](/docs/guides/ibc/info) — channels, clients, denom traces
+- [IBC transfers](/docs/guides/ibc/transfer) — basic send without hooks
+- [CosmWasm](/docs/guides/cosmwasm) — store / instantiate / execute
+- [Packet relay](/docs/guides/ibc/relay/relay)
+
+## Further reading
+
+- Upstream: [ibc-hooks module](https://github.com/cosmos/ibc-apps/tree/main/modules/ibc-hooks)
+- Terp wiring: `app/keepers/keepers.go` (`WasmHooks`, `HooksICS4Wrapper`, transfer stack)
+- Test: `tests/interchaintest/module_ibchooks_test.go`
+- [Wasm light clients](/docs/guides/ibc/wasm-light-client)

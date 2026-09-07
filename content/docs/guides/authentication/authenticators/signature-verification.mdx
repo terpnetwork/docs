@@ -1,0 +1,482 @@
+---
+title: SignatureVerification Authenticator
+description: Register a secp256k1 public key as an authenticator — the simplest account-level authentication override
+status: partial
+---
+import { Tab, Tabs } from '#vocs-compat';
+
+The **SignatureVerification** authenticator verifies that a transaction is signed by a specific secp256k1 public key registered for the account. This is the default authenticator type and the simplest to understand — it replaces the implicit account key with an explicit authenticator entry.
+
+## When To Use
+
+- Registering a **secondary key** for an account (without changing the account key itself)
+- Setting up a **hot key** for frequent transactions while keeping the main key cold
+- **Key rotation** — register a new pubkey as authenticator, test it, then remove the old one
+
+## Step 1: Generate or Obtain a Public Key
+
+<Tabs items={['terpd CLI', 'TypeScript/JS', 'Rust', 'Go', 'Python']}>
+  <Tab value="terpd CLI">
+
+```bash
+# Add a new key to your terpd keyring
+terpd keys add my-auth-key
+
+# Export the public key in base64 format
+terpd keys show my-auth-key --pubkey
+# Output: {"@type":"/cosmos.crypto.secp256k1.PubKey","key":"A7YH7..."}
+```
+
+The raw pubkey bytes (base64-decoded from the `key` field) is what we pass to `MsgAddAuthenticator`.
+
+  </Tab>
+  <Tab value="TypeScript/JS">
+
+```typescript
+import { Secp256k1, Random } from '@cosmjs/crypto';
+import { fromHex, toBase64 } from '@cosmjs/encoding';
+
+// Generate a new keypair
+const privateKey = Random.getBytes(32);
+const pubkey = await Secp256k1.makePubkey(privateKey);
+const pubkeyBytes = Secp256k1.compressPubkey(pubkey);
+
+console.log('Public key (base64):', toBase64(pubkeyBytes));
+
+// Export for use in authenticator registration
+const data = {
+  authenticator_type: 'SignatureVerification',
+  data: toBase64(pubkeyBytes),
+};
+```
+
+  </Tab>
+  <Tab value="Rust">
+
+```rust
+use cosmwasm_std::HexBinary;
+use k256::elliptic_curve::SecretKey;
+use k256::elliptic_curve::gen::rand_core::OsRng;
+
+// Generate a new keypair
+let private_key = SecretKey::random(&mut OsRng);
+let public_key = private_key.public_key();
+let encoded = public_key.to_sec1_bytes(); // compressed
+
+println!("Pubkey hex: {}", HexBinary::from(encoded).to_hex());
+
+// With cw-orchestrator:
+// use cw_orch::prelude::*;
+// let wallet = Wallet::new(chain, mnemonic);
+// let pubkey = wallet.pub_key()?;
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+import (
+    "encoding/base64"
+    "github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+    cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+)
+
+// Generate a new private key
+privateKey := secp256k1.GenPrivKey()
+pubKeyBytes := privateKey.PubKey().Bytes()
+
+fmt.Println("Pubkey (base64):", base64.StdEncoding.EncodeToString(pubKeyBytes))
+```
+
+  </Tab>
+  <Tab value="Python">
+
+```python
+from cosmos.crypto.secp256k1 import PrivateKey
+import base64
+
+# Generate a new private key
+private_key = PrivateKey.generate()
+public_key = private_key.public_key
+pubkey_bytes = public_key.to_bytes("compressed")
+
+print("Pubkey (base64):", base64.b64encode(pubkey_bytes).decode())
+```
+
+  </Tab>
+</Tabs>
+
+## Step 2: Register the Authenticator
+
+Send a `MsgAddAuthenticator` with type `"SignatureVerification"` and the raw public key bytes as `data`:
+
+<Tabs items={['terpd CLI', 'TypeScript/JS', 'Rust (cw-orch)', 'Go', 'Python']}>
+  <Tab value="terpd CLI">
+
+```bash
+# Register a SignatureVerification authenticator
+# data is the base64-encoded compressed public key
+terpd tx smart-account add-authenticator \
+  SignatureVerification \
+  "A7YH7q2Xs0mF3G5GhHFX5BgV5KJkWf3Vn9V6P4z2C7Y=" \
+  --from my-account \
+  --chain-id morocco-1 \
+  --fees 5000uthiol \
+  --gas auto
+```
+
+Sample output:
+```text
+txhash: ABCDEF1234...
+height: 12345678
+authenticator_id: 3
+```
+
+The `authenticator_id` (in this case `3`) is used to select this authenticator in future transactions.
+
+  </Tab>
+  <Tab value="TypeScript/JS">
+
+```typescript
+import { SigningStargateClient } from '@cosmjs/stargate';
+import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
+
+// Your account signing wallet
+const wallet = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic, {
+  prefix: 'terp',
+});
+
+const client = await SigningStargateClient.connectWithSigner(
+  'https://rpc.cosmos.directory/terpnetwork',
+  wallet,
+);
+
+const sender = (await wallet.getAccounts())[0].address;
+
+// Build MsgAddAuthenticator
+const msgAdd = {
+  typeUrl: '/terp.smartaccount.v1beta1.MsgAddAuthenticator',
+  value: {
+    sender: sender,
+    authenticatorType: 'SignatureVerification',
+    data: pubkeyBytes, // Uint8Array of compressed pubkey
+  },
+};
+
+const fee = { amount: [{ denom: 'uthiol', amount: '5000' }], gas: '200000' };
+const result = await client.signAndBroadcast(sender, [msgAdd], fee);
+console.log('Authenticator ID:', result.events[0].attributes[0].value);
+```
+
+  </Tab>
+  <Tab value="Rust (cw-orch)">
+
+```rust
+use cosmwasm_std::Binary;
+use cw_orch::prelude::*;
+
+// Assuming you have a chain connection and wallet
+let chain = DaemonBuilder::default()
+    .chain(Networks::MOROCCO_1)
+    .build()?;
+
+let wallet = chain.wallet()?;
+let sender = wallet.address()?;
+
+// Build and broadcast the message
+let msg = cosmwasm_std::MsgAddAuthenticator {
+    sender: sender.to_string(),
+    authenticator_type: "SignatureVerification".to_string(),
+    data: Binary::from(pubkey_bytes),
+};
+
+let tx = chain.broadcast_tx(cosmwasm_std::CosmosMsg::Stargate {
+    type_url: "/terp.smartaccount.v1beta1.MsgAddAuthenticator".to_string(),
+    value: Binary::from(prost::Message::encode_to_vec(&msg)),
+})?;
+
+println!("Authenticator added. Tx: {}", tx.txhash);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+import (
+    "github.com/terpnetwork/terp-core/v5/x/smart-account/types"
+    "github.com/cosmos/cosmos-sdk/client/tx"
+)
+
+// Build the message
+msg := &types.MsgAddAuthenticator{
+    Sender:            senderAddr.String(),
+    AuthenticatorType: "SignatureVerification",
+    Data:              pubKeyBytes,
+}
+
+// Sign and broadcast using your TxFactory
+txBuilder, err := tx.BuildUnsignedTx(txFactory, msg)
+// ... sign and broadcast
+fmt.Println("Authenticator added successfully")
+```
+
+  </Tab>
+  <Tab value="Python">
+
+```python
+from terp.smartaccount import MsgAddAuthenticator
+from cosmos_sdk.client import SigningCosmWasmClient
+import base64
+
+client = SigningCosmWasmClient(
+    rpc="https://rpc.cosmos.directory/terpnetwork",
+    mnemonic=mnemonic,
+    prefix="terp",
+)
+
+msg = MsgAddAuthenticator(
+    sender=client.address,
+    authenticator_type="SignatureVerification",
+    data=base64.b64decode(pubkey_b64),
+)
+
+tx = client.broadcast(msg, fee={"amount": "5000uthiol", "gas": "200000"})
+print(f"Authenticator ID: {tx.events[0]['attributes'][0]['value']}")
+```
+
+  </Tab>
+</Tabs>
+
+## Step 3: Send a Transaction Using the Authenticator
+
+Once registered, include the authenticator ID in the transaction's `TxExtension` to select it for authentication:
+
+<Tabs items={['terpd CLI', 'TypeScript/JS', 'Rust', 'Go', 'Python']}>
+  <Tab value="terpd CLI">
+
+The CLI automatically uses the signing key's authenticator when you specify `--keyring-backend test` or a key matching the sender. For explicit selection using a specific authenticator ID:
+
+```bash
+# For now, the CLI defaults to the first available authenticator.
+# For explicit authenticator selection, use the gRPC endpoint with
+# the TxExtension field set in the transaction body:
+#   selected_authenticators: [3]
+
+# Send a simple bank send (uses the first registered authenticator)
+terpd tx bank send \
+  terp1sender... terp1recipient... \
+  1000000uthiol \
+  --from my-auth-key \
+  --chain-id morocco-1 \
+  --fees 5000uthiol
+```
+
+  </Tab>
+  <Tab value="TypeScript/JS">
+
+```typescript
+import { TxExtension } from '@terpnetwork/terpjs';
+
+// Build a bank send transaction with authenticator selection
+const sendMsg = {
+  typeUrl: '/cosmos.bank.v1beta1.MsgSend',
+  value: {
+    fromAddress: sender,
+    toAddress: 'terp1recipient...',
+    amount: [{ denom: 'uthiol', amount: '1000000' }],
+  },
+};
+
+// Include TxExtension with selected_authenticators = [3]
+const extension: TxExtension = {
+  selectedAuthenticators: [3], // the authenticator ID from step 2
+};
+
+const txResult = await client.signAndBroadcast(
+  sender,
+  [sendMsg],
+  fee,
+  '',   // memo
+  extension,
+);
+
+console.log('Transaction hash:', txResult.transactionHash);
+```
+
+  </Tab>
+  <Tab value="Rust">
+
+```rust
+use cw_orch::prelude::*;
+
+// Build the bank send message
+let send_msg = cosmwasm_std::BankMsg::Send {
+    to_address: "terp1recipient...".to_string(),
+    amount: vec![cosmwasm_std::Coin::new(1_000_000u128, "uthiol")],
+};
+
+// Build with authenticator selection in TxExtension
+let cosmos_msg = CosmosMsg::Bank(send_msg);
+
+// When broadcasting, the TxExtension is handled automatically
+// by cw-orchestrator if configured
+let tx = chain.broadcast_tx(cosmos_msg)?;
+println!("Sent: {}", tx.txhash);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+import (
+    "github.com/cosmos/cosmos-sdk/types"
+    banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+    smartaccounttypes "github.com/terpnetwork/terp-core/v5/x/smart-account/types"
+)
+
+// Build bank send
+sendMsg := &banktypes.MsgSend{
+    FromAddress: senderAddr.String(),
+    ToAddress:   "terp1recipient...",
+    Amount:      sdk.NewCoins(sdk.NewInt64Coin("uthiol", 1_000_000)),
+}
+
+// Build TxExtension
+ext := &smartaccounttypes.TxExtension{
+    SelectedAuthenticators: []uint64{3},
+}
+
+// Wrap in TxBuilder with extension
+txBuilder := txFactory.BuildUnsignedTx(sendMsg)
+// ... set extension, sign, broadcast
+```
+
+  </Tab>
+  <Tab value="Python">
+
+```python
+from cosmos_sdk.cosmwasm import BankMsg
+from terp.smartaccount import TxExtension
+
+send = BankMsg.send(
+    sender=client.address,
+    to="terp1recipient...",
+    amount=[("uthiol", 1_000_000)],
+)
+
+extension = TxExtension(selected_authenticators=[3])
+
+tx = client.broadcast(
+    send,
+    fee={"amount": "5000uthiol", "gas": "200000"},
+    extension=extension,
+)
+print(f"Sent: {tx.txhash}")
+```
+
+  </Tab>
+</Tabs>
+
+## Step 4: Remove the Authenticator
+
+Use `MsgRemoveAuthenticator` with the authenticator ID:
+
+<Tabs items={['terpd CLI', 'TypeScript/JS', 'Rust', 'Go', 'Python']}>
+  <Tab value="terpd CLI">
+
+```bash
+terpd tx smart-account remove-authenticator 3 \
+  --from my-account \
+  --chain-id morocco-1 \
+  --fees 5000uthiol
+```
+
+  </Tab>
+  <Tab value="TypeScript/JS">
+
+```typescript
+const msgRemove = {
+  typeUrl: '/terp.smartaccount.v1beta1.MsgRemoveAuthenticator',
+  value: {
+    sender: sender,
+    authenticatorId: 3,
+  },
+};
+
+await client.signAndBroadcast(sender, [msgRemove], fee);
+```
+
+  </Tab>
+  <Tab value="Rust">
+
+```rust
+let msg_remove = MsgRemoveAuthenticator {
+    sender: sender.to_string(),
+    authenticator_id: 3,
+};
+
+chain.broadcast_tx(CosmosMsg::Stargate {
+    type_url: "/terp.smartaccount.v1beta1.MsgRemoveAuthenticator",
+    value: Binary(prost::Message::encode_to_vec(&msg_remove)),
+})?;
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+msg := &types.MsgRemoveAuthenticator{
+    Sender:          senderAddr.String(),
+    AuthenticatorId: 3,
+}
+txFactory.BuildUnsignedTx(msg)
+```
+
+  </Tab>
+  <Tab value="Python">
+
+```python
+msg = MsgRemoveAuthenticator(
+    sender=client.address,
+    authenticator_id=3,
+)
+client.broadcast(msg, fee={"amount": "5000uthiol", "gas": "200000"})
+```
+
+  </Tab>
+</Tabs>
+
+## Verification
+
+Query the authenticators registered for an account:
+
+<Tabs items={['terpd CLI', 'TypeScript/JS']}>
+  <Tab value="terpd CLI">
+
+```bash
+terpd query smart-account authenticators terp1sender...
+# Output:
+# authenticators:
+#   - id: 3
+#     type: SignatureVerification
+```
+  </Tab>
+  <Tab value="TypeScript/JS">
+
+```typescript
+const queryClient = await client.forceGetQueryClient();
+const response = await queryClient.smartAccount.authenticators({
+  account: sender,
+});
+console.log('Registered authenticators:', response.authenticators);
+```
+  </Tab>
+</Tabs>
+
+## Related Concepts
+
+- [Authenticator overview](/docs/guides/authentication/authenticators) — architecture and available types
+- [MessageFilter authenticator](/docs/guides/authentication/authenticators/message-filter) — authorize by message pattern instead of key
+- [Composite authenticators](/docs/guides/authentication/authenticators/composite) — combine multiple authenticators with AND/OR logic
+- [Authz grants](/docs/guides/authentication/authz) — granular permission delegation (alternative approach)
+- [Feegrants](/docs/guides/authentication/feegrants) — sponsored transaction fees

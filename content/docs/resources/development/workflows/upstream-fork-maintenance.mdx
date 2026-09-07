@@ -1,0 +1,43 @@
+---
+title: Upstream Fork Maintenance
+description: How Terp Network maintains Cosmos SDK and IBC-go forks with upstream changes
+status: partial
+---
+This guide documents the process for keeping Terp Network's Cosmos SDK and IBC-go forks synchronized with upstream changes.
+
+## Overview
+
+Terp Network maintains forks of:
+
+- **Cosmos SDK** — `cosmos/zk-cosmos-sdk` (v0.50.x based)
+- **IBC-go** — `cosmos/zk-ibc-go` (v8.x based)
+
+These forks include ZK-related modifications and custom module integrations. Upstream Cosmos SDK and IBC-go releases must be periodically merged to stay current with security patches and feature improvements.
+
+## Merge Process
+
+1. **Identify upstream tag** — check the latest stable release tag on the upstream repository
+2. **Create a merge branch** from the current fork base
+3. **Merge the upstream tag** — resolve conflicts in the modified modules (`x/zk/`, custom precompiles)
+4. **Run local tests** — `go test ./...` on the modified modules
+5. **Run integration tests** — interchaintest suite for IBC compatibility
+6. **Update go.mod** — propagate the new dependency versions
+7. **Open a PR** with the merge commit and conflict resolution notes
+
+## Common Conflict Areas
+
+| Area | Typical Conflicts |
+|------|------------------|
+| `x/zk/` | ZK module additions may conflict with upstream store changes |
+| Precompile registration | `app/app.go` — custom precompile registration order |
+| SDK version bumps | Module version suffixes in `go.mod` |
+| IBC handler changes | Custom IBC packet handling in `x/ibc-hooks/` |
+
+## Verification
+
+After merging, verify:
+
+- `go build ./...` passes
+- `go test ./x/...` passes
+- `make test` passes
+- Integration tests pass on a local testnet

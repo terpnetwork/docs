@@ -1,0 +1,15 @@
+---
+title: Light clients
+description: Verify Terp (and IBC counterparties) from headers, not a full node
+---
+
+# Light clients
+
+A light client checks **headers and validator signatures**, not every tx. That is how a phone, a contract, or an IBC module can believe a chain without storing it.
+
+On Terp:
+
+- Wallets talk to [public RPC](/resources/public) but *should* verify the header they care about, not just trust the operator.
+- **IBC** on the counterparty runs a light client of Terp (and Terp runs one of them). Packets are only accepted if that client’s header is still live.
+
+If an IBC client expires, packets stop until someone updates it — see [IBC](/overview/concepts/ibc). You do not need to run a [full node](/guides/nodes/install) to query; you do need one (or a light client you trust) if you are going to sign something that depends on state.

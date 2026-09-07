@@ -1,0 +1,38 @@
+---
+title: Validators
+description: Run a Terp Network validator — setup, sentry array, monitoring, upgrades, and ops
+status: complete
+---
+import { Card, Cards } from '#vocs-compat';
+
+Direct entry for **validator operators**. These pages used to hide under numbered filenames (`1.overview`, …); they are now first-class under **Network → Validators**.
+
+## Start here
+
+| Step | Page |
+|------|------|
+| 1. Role, slashing, ops mindset | [Overview](/docs/guides/network/validators/overview) |
+| 2. Hardware & software requirements | [Requirements](/docs/guides/network/validators/requirements) |
+| 3. Create and run the validator | [Setup](/docs/guides/network/validators/setup) |
+| 4. Hide validator IP (sentry array) | [Sentry / oline array](/docs/guides/network/validators/sentry) |
+| 5. Prometheus + Grafana | [Monitoring](/docs/guides/network/validators/monitoring) |
+| 6. Key / host migration | [Migration](/docs/guides/network/validators/migration) |
+| 7. Chain upgrades | [Chain upgrades](/docs/guides/network/validators/chain-upgrades) |
+| 8. Upgrade history | [Upgrades history](/docs/guides/network/validators/upgrades-history) |
+| 9. Common failures | [Troubleshooting](/docs/guides/network/validators/troubleshooting) |
+
+<Cards>
+  <Card title="Setup validator" description="Create-validator flow and production process" href="/docs/guides/network/validators/setup" />
+  <Card title="Sentry array" description="Oline / multi-sentry topology to protect the signer" href="/docs/guides/network/validators/sentry" />
+  <Card title="Monitoring" description="Prometheus metrics and Grafana for validators" href="/docs/guides/network/validators/monitoring" />
+  <Card title="Join via state sync" description="Fast node sync before you promote to validator" href="/docs/guides/network/state-sync" />
+</Cards>
+
+## Related network guides
+
+- [Install terpd](/docs/guides/network/nodes/install)
+- [Configure](/docs/guides/network/nodes/configure)
+- [Bootstrap](/docs/guides/network/bootstrap)
+- [State sync](/docs/guides/network/state-sync)
+- [systemd](/docs/guides/network/systemd-service)
+- [TMKMS](/docs/guides/network/nodes/tmkms)

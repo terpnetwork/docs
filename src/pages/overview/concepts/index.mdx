@@ -1,0 +1,63 @@
+---
+title: "Core Concepts"
+description: "Foundational concepts of Terp Network \u2014 cryptography, software, hardware, networks, markets, tokens, privacy, trustlessness, and governance"
+status: "partial"
+---
+import { Card, Cards } from 'vocs'
+
+# Core Concepts
+
+Terp Network is built on a set of foundational concepts that span cryptography, software, hardware, network topology, market design, and governance. Understanding these primitives helps you reason about the system's properties and design applications that use them effectively.
+
+<Cards>
+  <Card title="Cryptography" description="Hash functions, elliptic curves, key-pairs, Merkle trees, post-quantum readiness" to="/overview/concepts/crypto" />
+  <Card title="Software" description="Open source, smart contracts, CosmWasm, compilers, reproducible builds" to="/overview/concepts/software" />
+  <Card title="Hardware" description="Physical infrastructure — nodes, validators, sensors, relayers, HSM" to="/overview/concepts/hardware" />
+  <Card title="Networks" description="Mainnet, testnet, localnet — how they connect and differ" to="/overview/concepts/networks" />
+  <Card title="Markets" description="Verifiable, open, and closed markets on Terp Network" to="/overview/concepts/markets" />
+  <Card title="Tokens" description="Native tokens, CW20, CW721, IBC tokens, Tokenfactory" to="/overview/concepts/tokens" />
+  <Card title="Tax & Fees" description="Gas, minimum fees, thiol, economic sustainability" to="/overview/concepts/tax" />
+  <Card title="Privacy" description="Selective disclosure, storage access patterns, zero-knowledge" to="/overview/concepts/privacy" />
+  <Card title="Trustlessness" description="Manifesto, verification pipelines, certified deployments" to="/overview/concepts/trustless" />
+  <Card title="Permissionlessness" description="Opt-out access, open participation, censorship resistance" to="/overview/concepts/permissionless" />
+  <Card title="IBC & Interoperability" description="Inter-Blockchain Communication, hooks, PFM, ICA, ICS" to="/overview/concepts/ibc" />
+  <Card title="Decentralization" description="Distribution, resilience, verifiability, trade-offs" to="/overview/concepts/decentralization" />
+  <Card title="Governance" description="On-chain voting, DAOs, parameter changes, upgrades" to="/overview/concepts/governance" />
+  <Card title="P2P Networking" description="CometBFT, peer discovery, gossip protocol, topology" to="/overview/concepts/p2p" />
+  <Card title="AI & ML" description="QMD semantic analysis, LLM integration, indexing" to="/overview/concepts/llm-and-ml" />
+  <Card title="Genesis" description="Network genesis, airdrop, headstash, OG challenge" to="/overview/concepts/genesis" />
+</Cards>
+
+---
+
+## How These Concepts Fit Together
+
+Terp Network is a **decentralized operating system** for trustless, interoperable, free markets. Each concept layer builds on the one below it:
+
+```text
+┌─────────────────────────────────────────────┐
+│              Markets & Governance            │  ← economic coordination
+├─────────────────────────────────────────────┤
+│         Trustlessness · Permissionlessness   │  ← security properties
+├─────────────────────────────────────────────┤
+│     IBC · Privacy · Tokens · Tax/Fees       │  ← protocol features
+├─────────────────────────────────────────────┤
+│       Software · Hardware · Networks         │  ← infrastructure
+├─────────────────────────────────────────────┤
+│    Cryptography · P2P · Decentralization    │  ← foundations
+└─────────────────────────────────────────────┘
+```
+
+> **Diagram scaffold** — the layer diagram above is text-based. A rendered SVG or interactive architecture diagram will replace it. If you have a design direction, open an issue or submit a PR.
+
+Each concept page includes:
+- **Definition** — what the concept means in the context of Terp Network
+- **How Terp Network uses it** — specific modules, parameters, or code references
+- **Practical implications** — what it means for developers, validators, and users
+- **Scaffolding** — marker sections where diagrams, visualizers, or interactive demos will be placed
+
+---
+
+## Contributing to Concepts
+
+These pages are a living reference. If you find an inaccuracy, missing concept, or want to contribute a diagram or interactive demo, see [contributing](/resources/community) or open a PR against `content/overview/concepts/`.

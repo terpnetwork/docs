@@ -1,0 +1,31 @@
+---
+title: HashMerchant
+description: Verifiable Merkle reflection — foreign state roots into Terp consensus for on-chain proofs
+status: partial
+---
+`x/hashmerchant` is a **verifiable Merkle reflection market** on Terp Network.
+
+Validators attest foreign-chain state roots (for example Ethereum) during CometBFT consensus using **ABCI++ vote extensions**. When a supermajority agrees, the module stores a confirmed **HashRoot** and can deliver it to registered CosmWasm contracts via **sudo**. Contracts then verify Merkle inclusion proofs against that root entirely on-chain.
+
+## What it is (and is not)
+
+| Is | Is not |
+|----|--------|
+| Foreign **state root** mirror with BFT quorum | A private payments or merchant settlement product |
+| Optional ZK-friendly rehash for privacy-preserving **proofs about foreign state** | A replacement for shielded payment rails (Zcash, Penumbra, etc.) |
+| Support-operable Path B wiring (sidecar → root → contract) | Full Path A loyalty CRM / operator DB product |
+
+For protocol detail, see the module spec in the terp-core monorepo: `x/hashmerchant/spec/README.md`.
+
+## Guides in this section
+
+| Guide | Purpose |
+|-------|---------|
+| [Golden path](./golden-path) | First successful Path B wiring |
+| [Configuration](./config) | Node, sidecar HTTP, CLI, params |
+| [Support role](./support-role) | What support systems own vs never touch |
+| [Playbooks](./playbooks) | Sidecar / root / escrow / chain_uid recovery |
+
+## Related ecosystem notes
+
+Older stubs under **Resources → Privacy → HashMerchant** redirect here so HashMerchant is not misfiled as “private payments.”

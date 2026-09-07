@@ -1,0 +1,44 @@
+---
+title: Network Resources
+description: Node setup guides, validator resources, IBC relaying, and network operations
+status: partial
+---
+Reference materials for running nodes, validators, relayers, and other network infrastructure on Terp Network.
+
+## Quick Links
+
+| Topic | Description | Link |
+|-------|-------------|------|
+| Node deployment | Install and configure a full node | [Deploy guide](/guides/network/deploy) |
+| Validator operations | Run a validator, manage keys, monitor | [Validator guides](/guides/network/validators) |
+| State sync | Fast sync from a recent snapshot | [State sync](/docs/connect/network#statesync) |
+| Snapshots | Download latest chain snapshots | [Public endpoints](/docs/resources/public) |
+| IBC relaying | Run a relayer for IBC packet delivery | [Relaying guides](/guides/network/relaying) |
+| Network connect | Join mainnet or testnet | [Connect page](/docs/connect/network) |
+| Indexing | Run an indexer for queryable chain data | [Indexing guides](/guides/network/indexing) |
+
+## Network Specs
+
+| Parameter | Mainnet (`morocco-1`) | Testnet (`90u-4`) |
+|-----------|----------------------|-------------------|
+| Validators | Up to 100 | Up to 50 |
+| Block time | ~6s | ~6s |
+| Unbonding | 21 days | 7 days |
+| Governance period | 7 days | 3 days |
+| Min fee | `0.05uthiol` | `0.05uthiol` |
+
+## Infrastructure Services
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Public RPC | `https://rpc.cosmos.directory/terpnetwork` | Tx broadcasting, queries |
+| Public REST | `https://rest.cosmos.directory/terpnetwork` | State queries |
+| S3 snapshots | `https://s3.terp.network/snapshots/` | Snapshots, genesis, config |
+| Seed nodes | `testnet-peer.terp.network:26656` | Peer discovery |
+| Cosmos Directory | `https://cosmos.directory/terpnetwork` | Endpoint dashboard |
+
+## Related Concepts
+
+- [Networks concepts](/docs/overview/concepts/network/networks) — mainnet, testnet, localnet explained
+- [P2P concepts](/docs/overview/concepts/p2p) — peer discovery, sentry architecture, gossip protocol
+- [Hardware concepts](/docs/overview/concepts/hardware) — hardware requirements and recommendations

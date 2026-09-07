@@ -1,0 +1,68 @@
+---
+title: hash-market
+description: hash-market on Terp Network
+status: partial
+---
+## ADR-001: HashMerchant — Verifiable Merkle Reflection Market
+
+## Status
+Proposed
+
+## Context
+Terp Network validators already run ABCI++ vote extensions (enabled at v5 upgrade height+1).
+This module extends that infrastructure to create a permissioned, escrow-gated market for
+on-chain Merkle tree reflections from external blockchains (Cosmos chains, Ethereum, NEAR).
+
+Registered CosmWasm contracts pay a monthly TERP escrow to query Merkle inclusion/exclusion
+proofs of specific substores on foreign chains. Validators act as a decentralized attestation
+committee using the existing vote-extension mechanism to agree on foreign state roots.
+
+Proof-of-inclusion and proof-of-exclusion are answered via O(1) KV lookups of pre-computed
+substore reflections, verified using ICS-23 commitment logic reused from ibc-go.
+
+## Architectural Alignment
+
+### IBC v2 (spec/IBC_V2)
+- Reuses ICS-23 ExistenceProof / NonExistenceProof structures for all Merkle proofs
+- Chain registry aligns with IBC v2 channel concept: each registered chain has a unique
+  ChainUID, a set of RPC/API endpoints, and optional zk-TLS extension config
+- The module does NOT create IBC channels — it is a parallel attestation track
+
+### ABCI++ Vote Extensions (CometBFT)
+- ExtendVote: validator runtime queries foreign RPC, hashes substore root in requested
+  algorithms, packs result into VoteExtensionHashData
+- VerifyVoteExtension: light verification (signature + basic struct check)
+- ProcessProposal / EndBlocker: quorum aggregation → write agreed root to store
+
+### CosmWasm Sudo Integration
+- Pattern identical to x/smart-account's CosmwasmAuthenticator sudo calls
+- Registered contract receives HashMerchantSudoMsg per block if new roots are confirmed
+- Sudo call is gated: only if contract has active escrow and has not hit rate limits
+
+## Decision
+Implement x/hashmerchant as a new Cosmos SDK module with:
+1. A chain/project registry (gov-gated chain registration, escrow-gated contract registration)
+2. Vote-extension types implementing HashPairTicket with multi-algo hash fields
+3. A KVStore substore per registered chain, pruned every N blocks (configurable)
+4. A sudo handler dispatcher that calls registered CosmWasm contracts
+5. A v6 upgrade handler that adds the store key
+
+## Module Name
+`hashmerchant` — store key: `hashmerchant`
+
+## Store Layout
+```text
+hashmerchant/
+  registered_chains/    prefix 0x01 | chainUID → RegisteredChain JSON
+  registered_contracts/ prefix 0x02 | contractAddr → RegisteredContract JSON
+  escrow/               prefix 0x03 | contractAddr → EscrowRecord JSON
+  hash_roots/           prefix 0x04 | chainUID | algo | → HashRoot JSON
+  params/               prefix 0x05 → Params JSON
+  prune_epoch/          prefix 0x06 → uint64 (last prune height)
+```
+
+## Consequences
+- **Positive**: validators get a paid "hash oracle" service with built-in quorum; contracts
+  get verifiable foreign state without custom IBC channels; zero new crypto code for proofs
+- **Negative**: adds validator runtime complexity; escrow creates economic barrier
+- **Neutral**: prune system keeps store growth bounded; each algo is a separate prefix

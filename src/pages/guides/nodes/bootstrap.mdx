@@ -1,0 +1,135 @@
+---
+title: "Bootstrap"
+description: "Bootstrap is the traditional method of synchronizing a node by downloading the entire blockchain history from seed nodes. This provides the highest level of..."
+status: "partial"
+---
+## Bootstrap a Full Node
+
+Bootstrap is the traditional method of synchronizing a node by downloading the entire blockchain history from seed nodes. This provides the highest level of security and completeness but takes the longest time.
+
+## When to Use Bootstrap
+
+- You need the complete blockchain history
+- You're setting up an archive node
+- You're a validator requiring maximum trust
+- You want to verify all historical transactions
+
+## Prerequisites
+
+- [Terp Core installed](/guides/nodes/install)
+- [Node configured](/guides/nodes/configure)
+- Adequate storage (100GB+ for mainnet)
+- Good internet connection
+
+## Step 1: Initialize the Node
+
+```bash
+# Initialize the node with your moniker
+terpd init <your-moniker-name> --chain-id morocco-1
+
+# For testnet
+terpd init <your-moniker-name> --chain-id 120u-1
+```
+
+## Step 2: Download Genesis File
+
+Download the genesis file for your network:
+
+```bash
+# Mainnet
+curl -Ls https://s3.terp.network/snapshots/mainnet/morocco-1/genesis.json > $HOME/.terpd/config/genesis.json
+
+# Testnet
+curl -Ls https://s3.terp.network/snapshots/testnet/120u-1/genesis.json > $HOME/.terpd/config/genesis.json
+```
+
+## Step 3: Configure Persistent Peers
+
+Add persistent peers to help your node discover other nodes on the network:
+
+```bash
+# Get current peers
+peers=$(curl -s https://s3.terp.network/snapshots/mainnet/morocco-1/peers.txt)
+
+# Add to config
+sed -i.bak -e "s/^persistent_peers *=.*/persistent_peers = \"$peers\"/" $HOME/.terpd/config/config.toml
+```
+
+## Step 4: Start the Node
+
+```bash
+# Start the node
+terpd start
+```
+
+The node will now begin downloading and verifying blocks from the network. This process can take several hours to days depending on your network speed and hardware.
+
+## Monitoring Sync Status
+
+Check if your node is catching up:
+
+```bash
+# Check sync status
+terpd status
+
+# Look for "catching_up": false
+# or check the block height difference with the network
+```
+
+## Production Setup with Systemd
+
+For production deployments, we recommend running as a systemd service:
+
+```bash
+# Create systemd service file
+sudo tee /etc/systemd/system/terpd.service > /dev/null <<EOF
+[Unit]
+Description=Terp Network Daemon
+After=network-online.target
+
+[Service]
+User=$USER
+ExecStart=$(which terpd) start
+Restart=always
+RestartSec=3
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable and start
+sudo systemctl daemon-reload
+sudo systemctl enable terpd
+sudo systemctl start terpd
+
+# Check status
+sudo systemctl status terpd
+
+# View logs
+sudo journalctl -u terpd -f
+```
+
+## Verification
+
+Verify your node is fully synchronized:
+
+```bash
+# Check current block height
+terpd status | jq '.sync_info.latest_block_height'
+
+# Compare with block explorer
+# Your node is synced when heights match
+```
+
+## Troubleshooting
+
+### Node stuck at block X
+- Check if you have sufficient persistent peers
+- Try adding more peers from the network
+- Verify your genesis file is correct
+
+### Slow sync
+- Ensure good network connectivity
+- Consider using state sync instead
+- Check system resources (CPU, RAM, disk I/O)

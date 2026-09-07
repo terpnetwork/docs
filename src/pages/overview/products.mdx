@@ -1,0 +1,188 @@
+---
+title: "Products"
+description: "Terp Network products \u2014 onramp integration, programmable selective disclosure VM, business-ready composability"
+status: "partial"
+---
+import { Card, Cards } from 'vocs'
+
+# Products
+
+Terp Network is not a single product — it is a **platform for building trust-minimized business models**. The products below are the entry points for different integration surfaces, all backed by the same programmable, verifiable infrastructure.
+
+---
+
+## Onramp Integration — Connect Without Compromise
+
+Every business and individual needs their own paths on-chain. Terp Network provides a complete onramp surface that bridges from traditional finance and other crypto ecosystems directly into your application — without users ever needing to understand the underlying infrastructure.
+
+**What you get:**
+- **Fiat onramps** — Integrate with centralized exchange withdrawal flows (Coinbase, Gemini, Cash App) and decentralized ramps (Payy, custom providers). Users move from their existing financial surface to your application in one seamless flow.
+- **Cryptocurrency onramps** — IBC connections to every major Cosmos chain, plus planned IBC v2 light clients for Bitcoin, Ethereum, and others. Users bring assets from any ecosystem they already use.
+- **Wallet-agnostic** — Keplr, Leap, Ledger, passkeys, or custom smart account authenticators. Users authenticate with whatever they already have.
+
+> **Onramp flow diagram scaffold** — a horizontal flowchart showing: User → Wallet/Exchange → IBC Bridge → Terp Network → Your Application. Multiple entry points on the left converging to a single application on the right.
+
+<Cards>
+  <Card title="Fiat to Terp" description="Step-by-step guides for onramping from Coinbase, Gemini, Cash App, Zelle, Payy" to="/overview/products"  />
+  <Card title="Cross-Chain Onramp" description="Bring assets from any IBC-connected chain — ATOM, OSMO, and beyond" to="/overview/concepts/ibc"  />
+  <Card title="Wallet Integration" description="Keplr, Leap, Ledger, passkeys, smart accounts — users bring their own auth" to="/overview/products"  />
+</Cards>
+
+---
+
+## Programmable Selective Disclosure VM
+
+The core technical product is a **CosmWasm-based virtual machine extended with ZK precompile support** — enabling selective disclosure, private verification, and composable authentication without tradeoffs between privacy and compliance.
+
+**What you get:**
+- **Selective disclosure** — Prove specific facts about a user (age, membership, credential) without revealing the underlying data. Users control exactly what they share.
+- **ZK-STARK precompiles** — Scalable zero-knowledge proofs with no trusted setup. Prove arbitrary computations privately — no toxic waste, no ceremony.
+- **ZK-SNARK precompiles** — Compact, cheap-to-verify proofs for high-frequency operations. Ideal for on-chain verification where proof size matters more than proving time.
+- **Precompile architecture** — ZK operations run as native precompiles, not in-contract WASM. This means orders of magnitude lower gas costs and faster verification than implementing ZK logic in CosmWasm bytecode.
+
+| Feature | STARK Precompile | SNARK Precompile |
+|---------|-----------------|------------------|
+| Trusted setup | None | Required (per circuit) |
+| Proof size | KB-scale | B-scale |
+| Verification gas | Higher | Lower |
+| Best for | General-purpose ZK, custom circuits | High-frequency, same-circuit operations |
+| Terp use case | PollRegistry, selective disclosure | Token-gating, membership proofs |
+
+> **ZK-VM architecture diagram scaffold** — a diagram showing: Smart Contract → Sudo Entrypoint → Authenticator Module → CosmWasm VM → ZK Precompiles (STARK + SNARK) → Verification Result. The precompiles sit alongside the standard WASM execution path.
+
+<Cards>
+  <Card title="Selective Disclosure" description="Prove attributes without revealing data — age, membership, credentials" to="/overview/concepts/privacy/disclosure"  />
+  <Card title="PollRegistry" description="Private vote aggregation with ZK tallies" to="/overview/products"  />
+  <Card title="Smart Account Authenticators" description="Programmable authentication — web2, web3, ZK, passkeys" to="/overview/products"  />
+</Cards>
+
+---
+
+## Business Integration — Your Stack, Your Rules
+
+Terp Network is designed to integrate into existing business models — not replace them. You decide what runs on-chain, what runs off-chain, and how they connect.
+
+**What you get:**
+- **Permissionless deployment** — deploy smart contracts, create tokens, launch DAOs without asking anyone
+- **Tokenization** — native tokens via Tokenfactory, smart contract tokens via CW20, NFTs via CW721
+- **Automated operations** — Clock module for scheduled contract execution, FeeGrant for sponsored user transactions
+- **DAO governance** — launch a DAO for decentralized decision-making, treasury management, and member voting
+- **Verifiable records** — store commitments on-chain, prove data integrity to counterparties
+
+**Complete control** — there is no platform risk. You own your keys, your contracts, your data. The infrastructure is permissionless and competitor-neutral.
+
+<Cards>
+  <Card title="Smart Contracts" description="Rust-based CosmWasm contracts — deploy custom business logic" to="/resources/libraries"  />
+  <Card title="Tokenization" description="Create native denoms or CW20 tokens for your economy" to="/overview/concepts/tokens"  />
+  <Card title="DAO Framework" description="Launch a DAO with token, NFT, or multisig governance" to="/overview/concepts/governance"  />
+  <Card title="Automation" description="Clock module, fee grants, authz — automate without bots" to="/overview/concepts/tax"  />
+</Cards>
+
+---
+
+## Multi-Chain — No Tradeoffs
+
+Terp Network connects to every major blockchain ecosystem without forcing you to choose. IBC provides native interoperability with Cosmos chains. IBC v2 light clients will extend to Bitcoin, Ethereum, and others — all from the same account, same wallet, same interface.
+
+**What you get:**
+- **Any asset** — Send, receive, and use tokens from any connected chain
+- **Any chain** — Deploy contracts on Terp, control accounts elsewhere via Interchain Accounts
+- **Any user** — Users come from any ecosystem and interact with your application on Terp
+- **Not just bridges** — IBC is not just a bridge. It is a protocol with light-client verification. No wrapped tokens, no bridge risk.
+
+<Cards>
+  <Card title="IBC Protocol" description="Native interoperability with 100+ Cosmos chains" to="/overview/concepts/ibc"  />
+  <Card title="IBC v2 Light Clients" description="Connect to non-Cosmos chains (Bitcoin, Ethereum) via ZK-verified light clients" to="/overview/concepts/ibc"  />
+  <Card title="Interchain Accounts" description="Control accounts on remote chains from Terp smart contracts" to="/overview/concepts/ibc"  />
+</Cards>
+
+---
+
+## Network Effects & Composability — Built by the Community
+
+Terp Network's value grows with every participant who joins, deploys, or governs. This is not a product you consume — it is a **commons you participate in**.
+
+### Network Effects
+
+Each new participant strengthens the network for everyone:
+
+- **More apps** → more use cases → more users → more reason to build apps
+- **More validators** → more decentralization → stronger security guarantees
+- **More IBC connections** → more assets and users flowing in from other ecosystems
+- **More authenticators** → more authentication options for every account
+- **More governance participants** → more resilient, harder to capture
+
+This is the opposite of platform risk. In a proprietary platform, your integration is a liability — the platform can change terms, raise fees, or compete with you. On Terp Network, the infrastructure is a **credible neutral layer** maintained by a community of competing and cooperating stakeholders. No single entity can change the rules unilaterally.
+
+### Composability
+
+Smart contracts on Terp Network compose with each other and with every IBC-connected chain:
+
+| Composition Pattern | Example |
+|--------------------|---------|
+| **Contract → Contract** | A DAO treasury contract calls a swap contract to rebalance, then calls a staking contract to deposit |
+| **Contract → IBC** | A Terp contract triggers a token transfer to Osmosis, executes a swap via IBC hooks, and receives the result back via IBC callbacks |
+| **Authenticator → Contract** | A smart account authenticator checks a contract's state before authorizing a transaction |
+| **DAO → Module** | A DAO governance vote changes a chain parameter or triggers a module upgrade |
+| **Precompile → Contract** | A contract uses a ZK-STARK precompile to verify a proof without writing ZK verification logic |
+
+### Governance as Collaboration
+
+Terp Network's governance is not just voting on proposals — it is a continuous process of coordination:
+
+- **Working groups** — community members organize around specific focus areas (IBC, tooling, documentation, security)
+- **Resource coordination** — the community pool funds public goods, infrastructure, and development bounties
+- **ADR process** — Architecture Decision Records document every significant protocol change, ensuring decisions are transparent and reversible
+- **Upgrade governance** — software upgrades go through a governance vote, giving every staker a voice in the network's direction
+
+The result is an **application layer that no single entity controls** — a neutral, verifiable surface where ecosystems build without permission and without fear of the platform becoming a competitor.
+
+> **Network effects diagram scaffold** — a feedback loop diagram showing: More Participants → More Value → More Attraction → More Participants. Each node labeled with concrete examples (apps, validators, IBC peers, governance voters).
+
+<Cards>
+  <Card title="Governance" description="On-chain voting, parameter changes, and upgrade governance — stakers decide the network's direction" to="/overview/concepts/governance"  />
+  <Card title="ADR Process" description="Architecture Decision Records document every significant protocol change with community review" to="/resources/adrs"  />
+  <Card title="Community Resources" description="Working groups, contribution guides, and community coordination channels" to="/resources/community"  />
+</Cards>
+
+---
+
+## Products Map
+
+```text
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         TERP NETWORK PRODUCTS                            │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                           │
+│  ONRAMP INTEGRATION         SELECTIVE DISCLOSURE VM                       │
+│  ┌─────────────────────┐   ┌────────────────────────────────┐            │
+│  │ Fiat → Terp         │   │ CosmWasm Contracts             │            │
+│  │ Crypto → Terp       │   │ + ZK-STARK Precompiles         │            │
+│  │ Wallet-agnostic     │   │ + ZK-SNARK Precompiles         │            │
+│  │ IBC-native          │   │ + Smart Account Authenticators │            │
+│  └─────────────────────┘   └────────────────────────────────┘            │
+│                                                                           │
+│  BUSINESS INTEGRATION        MULTI-CHAIN                                  │
+│  ┌─────────────────────┐   ┌────────────────────────────────┐            │
+│  │ Tokenization        │   │ IBC — 100+ Cosmos chains       │            │
+│  │ DAO Governance      │   │ IBC v2 — Bitcoin, Ethereum     │            │
+│  │ Automated Ops       │   │ Interchain Accounts            │            │
+│  │ Verifiable Records  │   │ No bridges, no wrapped tokens  │            │
+│  └─────────────────────┘   └────────────────────────────────┘            │
+│                                                                           │
+│  NETWORK EFFECTS & COMPOSABILITY                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │ Governance as collaboration  ·  Credible neutral layer           │    │
+│  │ Composable contracts  ·  IBC-native composition  ·  Precompiles  │    │
+│  │ More participants → more value → more participants (flywheel)   │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│                                                                           │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+## Related Concepts
+
+- [Core Concepts](/overview/concepts) — foundational primitives for each product
+- [Guides](/guides) — step-by-step integration guides
+- [Ecosystem](/overview) — apps, authenticators, on-ramps
+- [Resources](/resources) — APIs, libraries, verification

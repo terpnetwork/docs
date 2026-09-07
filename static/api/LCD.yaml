@@ -3,5 +3,4 @@ info:
   title: TerpNET - gRPC Gateway docs
   description: A REST interface for state queries, legacy transactions
   version: 1.0.0
-paths:
-  TBD
+paths: {}

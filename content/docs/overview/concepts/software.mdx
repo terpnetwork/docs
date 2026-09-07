@@ -1,0 +1,70 @@
+---
+title: Software
+description: The software stack of Terp Network — open source, CosmWasm, compilers, reproducible builds
+status: partial
+---
+Software is the logic that runs on hardware devices to produce the Terp Network protocol. Every aspect of Terp Network — from the node software to smart contracts to user interfaces — is open source software.
+
+## What Makes Good Software?
+
+Good software on Terp Network shares these properties:
+
+- **Open source** — anyone can read, audit, and contribute to the code
+- **Reproducible** — the same source always produces the same binary
+- **Deterministic** — the same inputs always produce the same state transitions
+- **Auditable** — deployed code has a verifiable link back to its source
+
+## The Terp Network Software Stack
+
+### Terp-Core
+
+The blockchain node software built on the Cosmos SDK. Terp-core includes:
+
+- Cosmos SDK modules (staking, governance, bank, etc.)
+- Custom modules (global fee, feeshare, drip, clock, IBC hooks)
+- CosmWasm smart contract runtime
+- CometBFT consensus engine
+
+Source: [github.com/terpnetwork/terp-core](https://github.com/terpnetwork/terp-core)
+
+### Smart Contracts (CosmWasm)
+
+Custom application logic deployed on-chain. Contracts are written in Rust and compiled to WebAssembly. See the [CosmWasm guides](/guides/cosmwasm) for contract development.
+
+### User Interfaces
+
+Web applications, CLI tools, and mobile apps that interact with the chain. Common patterns:
+
+- **WebApp** — React/Next.js with CosmJS or CosmosKit
+- **CLI** — `terpd` command-line interface
+- **Static sites** — wallet-authenticated dashboards
+
+### Tooling
+
+| Tool | Purpose |
+|------|---------|
+| terpd | Node binary and CLI |
+| O-Line | Ephemeral node deployment |
+| QMD | Semantic code indexing |
+| cw-orchestrator | Multi-contract deployment scripting |
+| CosmWasm optimizer | Reproducible contract builds |
+
+> **Software architecture diagram scaffold** — a layered diagram showing the software stack: Consensus (CometBFT) → Cosmos SDK → Terp modules → CosmWasm VM → Smart contracts → User interfaces.
+
+## Reproducible Builds
+
+Every software component in the Terp Network ecosystem should be reproducible. This means:
+
+```bash
+# Anyone can verify the binary matches the source
+git checkout v5.2.0
+make build
+sha256sum build/terpd
+# Compare with published hash
+```
+
+## Further Reading
+
+- [Verify releases](/docs/resources/verify) — reproduce and verify binaries
+- [Development tools](/docs/resources/development) — IDE, linters, build chains
+- [Contributing](/docs/resources/contribution) — how to contribute to Terp Network software

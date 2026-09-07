@@ -1,0 +1,12 @@
+{
+  "title": "IBC",
+  "pages": [
+    "info",
+    "transfer",
+    "hooks",
+    "self-relay",
+    "expired-client",
+    "wasm-light-client",
+    "relay"
+  ]
+}

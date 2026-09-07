@@ -1,0 +1,58 @@
+---
+title: Wallets
+description: Connect to Terp Network with self-custody wallets — Keplr, Ledger, and smart-account authenticators
+status: complete
+---
+import { Card, Cards } from '#vocs-compat';
+import { Callout } from '#vocs-compat';
+
+Use a **self-custody** wallet to hold keys, sign txs, and talk to Terp Network (`morocco-1` mainnet, `90u-4` testnet).
+
+<Callout type="info" title="Wallet landscape">
+**Keplr** is the primary browser-extension guide here. **Ledger** covers hardware keys. Programmable auth (safewords, message filters, composites) lives under [Authenticators](/docs/guides/authentication/authenticators) — not a browser wallet product page.
+</Callout>
+
+## Guides
+
+<Cards>
+  <Card
+    title="Keplr"
+    description="Install extension, create or import an account, add Terp Network"
+    href="/docs/guides/authentication/wallets/keplr"
+    svgFile="/icons/cli.svg"
+  />
+  <Card
+    title="Ledger"
+    description="Hardware wallet via Cosmos app + Keplr or CLI"
+    href="/docs/guides/authentication/wallets/ledger"
+    svgFile="/icons/modules.svg"
+  />
+  <Card
+    title="Key safety"
+    description="Hot vs cold keys, validator key types, HSM / KMS notes"
+    href="/docs/guides/authentication/wallets/safety"
+    svgFile="/icons/registry.svg"
+  />
+  <Card
+    title="Authenticators"
+    description="Smart-account auth: signatures, safewords, filters, composites"
+    href="/docs/guides/authentication/authenticators"
+    svgFile="/icons/cosmwasm.svg"
+  />
+</Cards>
+
+## Quick chain params
+
+| | Mainnet | Testnet |
+|---|---------|---------|
+| Chain ID | `morocco-1` | `90u-4` |
+| Prefix | `terp` | `terp` |
+| Fee denom | `uthiol` | `uthiolx` (confirm live) |
+| Coin type | 118 (Cosmos) / check wallet UI | same |
+| RPC | `https://rpc.cosmos.directory/terpnetwork` | public testnet RPC |
+
+## Related
+
+- [Backup & recovery](/docs/guides/authentication/backup-and-recovery)
+- [Quick start](/docs/overview/quickstart)
+- [API libraries](/docs/resources/libraries)

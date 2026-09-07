@@ -1,0 +1,878 @@
+---
+title: Safe-word CosmWasm Authenticator
+description: Build a CosmWasm authenticator contract that authorizes transactions containing a pre-registered safe-word — custom authentication logic with key rotation
+status: partial
+---
+import { Tab, Tabs } from '#vocs-compat';
+
+This example demonstrates a **custom CosmWasm authenticator** that uses a pre-registered safe-word to authorize a key rotation. When a transaction includes the safe-word and a new public key, the authenticator approves the authentication and updates the expected key for future transactions.
+
+## How It Works
+
+1. **Setup** — The contract stores a SHA-256 hash of a safe-word chosen by the user
+2. **Registration** — The user registers the contract as a `CosmwasmAuthenticatorV1` on their account, passing the safe-word hash as params
+3. **Authentication** — When a transaction arrives containing `{ "safeword": "&lt;the_word>", "pubkey": "&lt;new_key>" }` in its memo, the contract:
+   - Checks the revealed safe-word against the stored hash
+   - If it matches, **accepts authentication** and stores the new expected pubkey
+   - Future authentications check against the stored pubkey instead
+4. **Completion** — The account's effective authentication has been rotated to the new key
+
+```text
+User stores: sha256("my_secret_word")
+                ↓
+Tx arrives with memo: {"safeword": "my_secret_word", "pubkey": "A7YH7..."}
+                ↓
+Contract: sha256("my_secret_word") == stored_hash? → YES
+                ↓
+Contract stores new pubkey as expected key
+                ↓
+Authentication succeeds → key is now rotated
+```
+
+## Prerequisites
+
+- Rust toolchain with `wasm32-unknown-unknown` target
+- `cosmwasm-optimizer` for reproducible builds
+- Terp Network testnet or localnet for deployment
+- `terpd` CLI or a wallet with test tokens
+
+## Contract Implementation
+
+### 1. Messages and State
+
+```rust
+use cosmwasm_std::{
+    entry_point, Binary, DepsMut, Env, HexBinary, MessageInfo, Response, StdError, StdResult,
+};
+use cw_storage_plus::Item;
+use sha2::{Digest, Sha256};
+use serde::{Deserialize, Serialize};
+
+// --- State ---
+
+/// The SHA-256 hash of the safe-word
+const SAFEWORD_HASH: Item<HexBinary> = Item::new("safeword_hash");
+
+/// The public key that will be authorized after safe-word auth succeeds
+const AUTHORIZED_PUBKEY: Item<HexBinary> = Item::new("authorized_pubkey");
+
+// --- Sudo messages called by the smart-account module ---
+
+#[derive(Serialize, Deserialize)]
+pub struct OnAuthenticatorAddedRequest {
+    pub account: String,
+    pub authenticator_params: Option<Binary>,
+    pub authenticator_id: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct OnAuthenticatorRemovedRequest {
+    pub account: String,
+    pub authenticator_params: Option<Binary>,
+    pub authenticator_id: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct AuthenticationRequest {
+    pub authenticator_id: String,
+    pub account: String,
+    pub fee_payer: String,
+    pub fee: Vec<Coin>,
+    pub msg: Binary,
+    pub msg_index: u64,
+    pub signature: Option<Binary>,
+    pub authenticator_params: Option<Binary>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct TrackRequest {
+    pub authenticator_id: String,
+    pub account: String,
+    pub fee_payer: String,
+    pub fee: Vec<Coin>,
+    pub msg: Binary,
+    pub msg_index: u64,
+    pub authenticator_params: Option<Binary>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ConfirmExecutionRequest {
+    pub authenticator_id: String,
+    pub account: String,
+    pub fee_payer: String,
+    pub fee: Vec<Coin>,
+    pub msg: Binary,
+    pub msg_index: u64,
+    pub authenticator_params: Option<Binary>,
+}
+
+// The sudo entrypoint receives one of these
+#[derive(Serialize, Deserialize)]
+pub enum SudoMsg {
+    OnAuthenticatorAdded(OnAuthenticatorAddedRequest),
+    OnAuthenticatorRemoved(OnAuthenticatorRemovedRequest),
+    Authenticate(AuthenticationRequest),
+    Track(TrackRequest),
+    ConfirmExecution(ConfirmExecutionRequest),
+}
+```
+
+## 2. Contract Entrypoints
+
+```rust
+/// Instantiate sets up the safe-word hash.
+/// In this design, the safe-word hash is passed as authenticator_params
+/// when registering the authenticator, so instantiate is minimal.
+#[entry_point]
+pub fn instantiate(
+    _deps: DepsMut,
+    _env: Env,
+    _info: MessageInfo,
+    _msg: Empty,
+) -> StdResult<Response> {
+    Ok(Response::new().add_attribute("method", "instantiate"))
+}
+
+/// Sudo receives calls from the smart-account module.
+#[entry_point]
+pub fn sudo(deps: DepsMut, _env: Env, msg: SudoMsg) -> StdResult<Response> {
+    match msg {
+        SudoMsg::OnAuthenticatorAdded(req) => on_authenticator_added(deps, req),
+        SudoMsg::OnAuthenticatorRemoved(req) => on_authenticator_removed(deps, req),
+        SudoMsg::Authenticate(req) => authenticate(deps, req),
+        SudoMsg::Track(_req) => Ok(Response::new().add_attribute("method", "track")),
+        SudoMsg::ConfirmExecution(_req) => Ok(Response::new().add_attribute("method", "confirm_execution")),
+    }
+}
+```
+
+## 3. OnAuthenticatorAdded — Store the Safe-word Hash
+
+When the user registers this contract as an authenticator, the `authenticator_params` contains the SHA-256 hash of their safe-word:
+
+```rust
+pub fn on_authenticator_added(
+    deps: DepsMut,
+    req: OnAuthenticatorAddedRequest,
+) -> StdResult<Response> {
+    let params = req.authenticator_params
+        .ok_or_else(|| StdError::generic_err("missing authenticator_params: expected sha256 safe-word hash"))?;
+
+    // Params must be 32 bytes (SHA-256 output)
+    let hash = HexBinary::from_hex(&params.to_string())
+        .map_err(|_| StdError::generic_err("params must be hex-encoded sha256 hash (64 hex chars)"))?;
+
+    if hash.len() != 32 {
+        return Err(StdError::generic_err("sha256 hash must be exactly 32 bytes"));
+    }
+
+    SAFEWORD_HASH.save(deps.storage, &hash)?;
+    Ok(Response::new()
+        .add_attribute("method", "on_authenticator_added")
+        .add_attribute("account", &req.account)
+        .add_attribute("authenticator_id", &req.authenticator_id))
+}
+```
+
+## 4. Authenticate — Verify the Safe-word and Rotate Key
+
+This is the core logic. The contract checks the `signature` field for the safe-word. If it matches the stored hash, the authentication succeeds and the pubkey from the `signature` is stored for future checks:
+
+```rust
+/// The authentication data is encoded in the `signature` field as JSON:
+/// {"safeword": "my_secret_word", "pubkey": "A7YH7q2Xs0mF3G5GhHFX5BgV5KJkWf3Vn9V6P4z2C7Y="}
+///
+/// On first use (safe-word auth): the safe-word is checked against the stored hash.
+///   If correct, the pubkey is saved and authentication succeeds.
+/// On subsequent use (pubkey auth): the tx signature is checked against the stored pubkey.
+pub fn authenticate(deps: DepsMut, req: AuthenticationRequest) -> StdResult<Response> {
+    use base64::Engine;
+
+    // Check if we already have an authorized pubkey (second phase)
+    if let Ok(stored_pubkey) = AUTHORIZED_PUBKEY.load(deps.storage) {
+        // Second phase: verify the tx signature against the stored pubkey
+        let signature = req.signature
+            .ok_or_else(|| StdError::generic_err("signature required for pubkey authentication"))?;
+
+        // The msg bytes are the signed data
+        let msg_bytes = req.msg.to_vec();
+
+        // Verify secp256k1 signature (using cosmwasm_crypto)
+        let verified = deps.api.secp256k1_verify(
+            &msg_bytes,
+            &signature,
+            &stored_pubkey.to_vec(),
+        )?;
+
+        if !verified {
+            return Err(StdError::generic_err("signature verification failed against authorized pubkey"));
+        }
+
+        return Ok(Response::new()
+            .add_attribute("method", "authenticate")
+            .add_attribute("mode", "pubkey")
+            .add_attribute("authenticator_id", &req.authenticator_id));
+    }
+
+    // First phase: safe-word authentication
+    let auth_data = req.signature
+        .ok_or_else(|| StdError::generic_err("missing auth data"))?;
+
+    // Parse {"safeword": "...", "pubkey": "..."}
+    #[derive(Deserialize)]
+    struct AuthPayload {
+        safeword: String,
+        pubkey: String,
+    }
+
+    let payload: AuthPayload = cosmwasm_std::from_json(&auth_data)
+        .map_err(|_| StdError::generic_err("auth data must be JSON: {\"safeword\":\"...\",\"pubkey\":\"...\"}"))?;
+
+    // Hash the revealed safe-word
+    let mut hasher = Sha256::new();
+    hasher.update(payload.safeword.as_bytes());
+    let revealed_hash = HexBinary::from(hasher.finalize().to_vec());
+
+    // Compare against stored hash
+    let stored_hash = SAFEWORD_HASH.load(deps.storage)?;
+    if revealed_hash != stored_hash {
+        return Err(StdError::generic_err("safe-word hash mismatch: authentication denied"));
+    }
+
+    // Decode and store the new pubkey for future authentications
+    let pubkey_bytes = HexBinary::from_hex(&payload.pubkey)
+        .or_else(|_| {
+            // also accept base64
+            let decoded = base64::engine::general_purpose::STANDARD
+                .decode(&payload.pubkey)
+                .map_err(|_| StdError::generic_err("pubkey must be hex or base64"))?;
+            Ok::<_, StdError>(HexBinary::from(decoded))
+        })?;
+
+    AUTHORIZED_PUBKEY.save(deps.storage, &pubkey_bytes)?;
+
+    // Clear the safe-word hash (one-time use)
+    SAFEWORD_HASH.remove(deps.storage);
+
+    Ok(Response::new()
+        .add_attribute("method", "authenticate")
+        .add_attribute("mode", "safeword")
+        .add_attribute("new_pubkey_stored", "true")
+        .add_attribute("authenticator_id", &req.authenticator_id))
+}
+```
+
+## 5. OnAuthenticatorRemoved — Cleanup
+
+```rust
+pub fn on_authenticator_removed(
+    deps: DepsMut,
+    req: OnAuthenticatorRemovedRequest,
+) -> StdResult<Response> {
+    SAFEWORD_HASH.remove(deps.storage);
+    AUTHORIZED_PUBKEY.remove(deps.storage);
+    Ok(Response::new()
+        .add_attribute("method", "on_authenticator_removed")
+        .add_attribute("account", &req.account))
+}
+```
+
+## Deployment
+
+### Step 1: Compile the Contract
+
+```bash
+# Add wasm target
+rustup target add wasm32-unknown-unknown
+
+# Build with optimizer for reproducible output
+docker run --rm -v "$(pwd)":/code \
+  --platform linux/amd64 \
+  cosmwasm/optimizer:0.16.0
+```
+
+Output: `artifacts/safeword_authenticator.wasm`
+
+## Step 2: Store and Instantiate on Terp Network
+
+<Tabs items={['terpd CLI', 'TypeScript/JS', 'Rust (cw-orch)']}>
+  <Tab value="terpd CLI">
+
+```bash
+# Store the contract
+RESP=$(terpd tx wasm store artifacts/safeword_authenticator.wasm \
+  --from my-account --gas auto --fees 50000uthiol \
+  --chain-id 90u-4 --node https://testnet-rpc.terp.network:443 -y -o json)
+
+CODE_ID=$(echo $RESP | jq -r '.logs[0].events[] | select(.type == "store_code") | .attributes[] | select(.key == "code_id") | .value')
+echo "Code ID: $CODE_ID"
+
+# Instantiate (no special init needed — state is set up when authenticator is registered)
+terpd tx wasm instantiate $CODE_ID '{}' \
+  --label "safeword-authenticator" \
+  --from my-account --fees 10000uthiol \
+  --chain-id 90u-4 --admin $(terpd keys show my-account -a) \
+  -y
+
+# Get the contract address
+CONTRACT_ADDR=$(terpd query wasm list-contract-by-code $CODE_ID -o json | jq -r '.contracts[0]')
+echo "Contract: $CONTRACT_ADDR"
+```
+
+  </Tab>
+  <Tab value="TypeScript/JS">
+
+```typescript
+import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
+import { calculateFee } from '@cosmjs/stargate';
+
+const client = await SigningCosmWasmClient.connectWithSigner(
+  'https://testnet-rpc.terp.network:443',
+  wallet,
+);
+
+// Store the compiled wasm
+const storeResult = await client.upload(
+  sender,
+  safewordWasmBytes,
+  calculateFee(1000000, '0.05uthiol'),
+);
+const codeId = storeResult.codeId;
+console.log('Code ID:', codeId);
+
+// Instantiate
+const instantiateResult = await client.instantiate(
+  sender,
+  codeId,
+  {},
+  'safeword-authenticator',
+  calculateFee(200000, '0.05uthiol'),
+);
+const contractAddress = instantiateResult.contractAddress;
+console.log('Contract:', contractAddress);
+```
+
+  </Tab>
+  <Tab value="Rust (cw-orch)">
+
+```rust
+use cw_orch::prelude::*;
+use safeword_authenticator::msg::InstantiateMsg;
+
+let chain = DaemonBuilder::default()
+    .chain(Networks::TESTNET_90U_4)
+    .build()?;
+
+let contract = SafewordAuthenticator::new("safeword", chain.clone());
+contract.upload()?;
+contract.instantiate(&InstantiateMsg {}, None, None)?;
+
+let address = contract.address()?;
+println!("Contract: {}", address);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+import (
+    "github.com/CosmWasm/wasmd/x/wasm/types"
+    "github.com/cosmos/cosmos-sdk/client/tx"
+)
+
+// Store the contract
+storeMsg := &types.MsgStoreCode{
+    Sender:       senderAddr.String(),
+    WASMByteCode: safewordWasmBytes,
+}
+
+// Build, sign, broadcast store tx
+txBuilder := txFactory.BuildUnsignedTx(storeMsg)
+// ... sign and broadcast
+codeId := uint64(1) // from tx response
+
+// Instantiate
+instantiateMsg := []byte("{}")
+instantiate := &types.MsgInstantiateContract{
+    Sender: senderAddr.String(),
+    Admin:  senderAddr.String(),
+    CodeID: codeId,
+    Label:  "safeword-authenticator",
+    Msg:    instantiateMsg,
+    Funds:  sdk.NewCoins(),
+}
+
+txBuilder = txFactory.BuildUnsignedTx(instantiate)
+// ... sign and broadcast
+contractAddr := "terp1..." // from tx response
+fmt.Println("Contract:", contractAddr)
+```
+
+  </Tab>
+  <Tab value="Python">
+
+```python
+from cosmos_sdk.cosmwasm import CosmWasmClient
+
+client = CosmWasmClient(
+    rpc="https://testnet-rpc.terp.network:443",
+    mnemonic=mnemonic,
+    prefix="terp",
+)
+
+# Store the compiled wasm
+with open("artifacts/safeword_authenticator.wasm", "rb") as f:
+    wasm_bytes = f.read()
+
+store_result = client.store_code(wasm_bytes, fee={"amount": "50000uthiol", "gas": "1000000"})
+code_id = store_result.code_id
+print(f"Code ID: {code_id}")
+
+# Instantiate
+instantiate_result = client.instantiate(
+    code_id,
+    {},
+    label="safeword-authenticator",
+    fee={"amount": "10000uthiol", "gas": "200000"},
+)
+contract_addr = instantiate_result.contract_address
+print(f"Contract: {contract_addr}")
+```
+
+  </Tab>
+</Tabs>
+
+## Registering as an Authenticator
+
+Now register the contract as a `CosmwasmAuthenticatorV1` on your account, passing the safe-word hash as params:
+
+<Tabs items={['terpd CLI', 'TypeScript/JS', 'Rust', 'Go', 'Python']}>
+  <Tab value="terpd CLI">
+
+```bash
+# Compute the sha256 hash of your safe-word
+echo -n "my_secret_phrase_123" | sha256sum
+# Output: a1b2c3d4e5f6...  (64 hex chars)
+
+# Register the contract as an authenticator
+# The data field is JSON: {"contract":"<addr>","params":"<hex_hash>"}
+terpd tx smart-account add-authenticator \
+  CosmwasmAuthenticatorV1 \
+  '{"contract":"terp1contract...","params":"a1b2c3d4e5f6..."}' \
+  --from my-account \
+  --chain-id 90u-4 \
+  --fees 5000uthiol \
+  --gas auto
+```
+
+  </Tab>
+  <Tab value="TypeScript/JS">
+
+```typescript
+import { Sha256 } from '@cosmjs/crypto';
+import { toHex } from '@cosmjs/encoding';
+
+// Compute safe-word hash
+const safeword = 'my_secret_phrase_123';
+const hash = new Sha256(new TextEncoder().encode(safeword)).digest();
+const hashHex = toHex(hash);
+
+// Build the authenticator config
+const config = {
+  contract: contractAddress,
+  params: hashHex, // hex-encoded sha256 hash
+};
+
+const msgAdd = {
+  typeUrl: '/terp.smartaccount.v1beta1.MsgAddAuthenticator',
+  value: {
+    sender: sender,
+    authenticatorType: 'CosmwasmAuthenticatorV1',
+    data: new TextEncoder().encode(JSON.stringify(config)),
+  },
+};
+
+const result = await client.signAndBroadcast(sender, [msgAdd], fee);
+const authId = result.events
+  .find(e => e.type === 'message')
+  .attributes.find(a => a.key === 'authenticator_id').value;
+console.log('Authenticator ID:', authId);
+```
+
+  </Tab>
+  <Tab value="Rust">
+
+```rust
+use sha2::{Sha256, Digest};
+
+let safeword = b"my_secret_phrase_123";
+let hash = Sha256::digest(safeword);
+
+let config = serde_json::json!({
+    "contract": contract_addr.to_string(),
+    "params": hex::encode(hash),
+});
+
+let msg_add = MsgAddAuthenticator {
+    sender: sender.to_string(),
+    authenticator_type: "CosmwasmAuthenticatorV1".to_string(),
+    data: Binary::from(serde_json::to_vec(&config).unwrap()),
+};
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+import (
+    "crypto/sha256"
+    "encoding/hex"
+    "encoding/json"
+)
+
+hash := sha256.Sum256([]byte("my_secret_phrase_123"))
+
+config := map[string]interface{}{
+    "contract": contractAddr.String(),
+    "params":   hex.EncodeToString(hash[:]),
+}
+configBytes, _ := json.Marshal(config)
+
+msg := &types.MsgAddAuthenticator{
+    Sender:            senderAddr.String(),
+    AuthenticatorType: "CosmwasmAuthenticatorV1",
+    Data:              configBytes,
+}
+```
+
+  </Tab>
+  <Tab value="Python">
+
+```python
+import hashlib, json
+
+safeword = "my_secret_phrase_123"
+hash_hex = hashlib.sha256(safeword.encode()).hexdigest()
+
+config = {
+    "contract": contract_addr,
+    "params": hash_hex,
+}
+
+msg = MsgAddAuthenticator(
+    sender=client.address,
+    authenticator_type="CosmwasmAuthenticatorV1",
+    data=json.dumps(config).encode(),
+)
+```
+
+  </Tab>
+</Tabs>
+
+## Phase 1: Authenticate with the Safe-word
+
+Send a transaction where the `signature` field in the authentication request contains `{"safeword":"my_secret_phrase_123","pubkey":"&lt;new_pubkey_hex>"}`. The authenticator contract will:
+1. Hash the revealed safe-word
+2. Compare it to the stored hash
+3. If it matches, store the new pubkey and authorize the transaction
+
+<Tabs items={['terpd CLI', 'TypeScript/JS', 'Rust', 'Go', 'Python']}>
+  <Tab value="terpd CLI">
+
+For custom authenticator data like the safe-word payload, use a direct transaction submission with the proper TxExtension. The auth payload `{"safeword":"my_secret_phrase_123","pubkey":"&lt;new_pubkey>"}` is set as the signature bytes sent to the contract's `Authenticate` sudo handler.
+
+```bash
+# Build a raw tx with authenticator extension
+# The auth data is a base64-encoded JSON payload
+AUTH_DATA=$(echo -n '{"safeword":"my_secret_phrase_123","pubkey":"A7YH7q2Xs0mF3G5GhHFX5BgV5KJkWf3Vn9V6P4z2C7Y="}' | base64 -w0)
+
+# Submit via gRPC with TxExtension selecting authenticator ID 5
+# and the auth data as the signature field
+grpcurl -plaintext \
+  -d '{
+    "sender": "terp1sender...",
+    "authenticator_id": "5",
+    "auth_data": "'"$AUTH_DATA"'"
+  }' \
+  localhost:9090 terp.smartaccount.v1beta1.Msg/SubmitAuthenticatorTx
+```
+
+  </Tab>
+  <Tab value="TypeScript/JS">
+
+```typescript
+// Phase 1: Send a tx with the safe-word authentication payload
+const sendMsg = {
+  typeUrl: '/cosmos.bank.v1beta1.MsgSend',
+  value: {
+    fromAddress: sender,
+    toAddress: 'terp1recipient...',
+    amount: [{ denom: 'uthiol', amount: '1000' }],
+  },
+};
+
+// The authenticator signature data containing the safe-word and new pubkey
+const authPayload = JSON.stringify({
+  safeword: 'my_secret_phrase_123',
+  pubkey: 'A7YH7q2Xs0mF3G5GhHFX5BgV5KJkWf3Vn9V6P4z2C7Y=',
+});
+
+// With CosmJS, authenticator signatures are passed as the `signature` field
+// in the authentication extension. The smart-account module sends this to
+// the contract's Authenticate sudo handler.
+const extension = {
+  selectedAuthenticators: [authId],
+  // Custom authenticator data is injected into the signature field
+};
+
+const result = await client.signAndBroadcast(
+  sender,
+  [sendMsg],
+  fee,
+  authPayload,  // memo carries the authenticator data
+  extension,
+);
+```
+
+  </Tab>
+  <Tab value="Rust">
+
+```rust
+// In cw-orchestrator, the TxExtension with authenticator data
+// is set on the Daemon builder before broadcasting
+use cw_orch::daemon::TxExtension;
+
+let auth_payload = serde_json::json!({
+    "safeword": "my_secret_phrase_123",
+    "pubkey": "A7YH7q2Xs0mF3G5GhHFX5BgV5KJkWf3Vn9V6P4z2C7Y=",
+});
+
+// The Daemon handles injecting the authenticator data into the tx
+let tx_response = chain
+    .with_extension(TxExtension {
+        selected_authenticators: vec![auth_id],
+    })
+    .broadcast_tx(cosmos_msg)?;
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+import (
+    "encoding/json"
+    smartaccounttypes "github.com/terpnetwork/terp-core/v5/x/smart-account/types"
+)
+
+authPayload, _ := json.Marshal(map[string]string{
+    "safeword": "my_secret_phrase_123",
+    "pubkey":   "A7YH7q2Xs0mF3G5GhHFX5BgV5KJkWf3Vn9V6P4z2C7Y=",
+})
+
+ext := &smartaccounttypes.TxExtension{
+    SelectedAuthenticators: []uint64{authId},
+}
+
+// Build tx with the extension and the authenticator data
+// as the signature bytes
+txBuilder := txFactory.BuildUnsignedTx(sendMsg)
+txBuilder.SetExtension(ext)
+// Set the signature bytes to the auth payload
+// so the contract's Authenticate receives them
+```
+
+  </Tab>
+  <Tab value="Python">
+
+```python
+import json, base64
+
+# Phase 1: craft the auth payload with safe-word and new pubkey
+auth_payload = json.dumps({
+    "safeword": "my_secret_phrase_123",
+    "pubkey": "A7YH7q2Xs0mF3G5GhHFX5BgV5KJkWf3Vn9V6P4z2C7Y=",
+})
+
+# Build the bank send
+send = BankMsg.send(
+    sender=client.address,
+    to="terp1recipient...",
+    amount=[("uthiol", 1000)],
+)
+
+# Submit with the authenticator extension
+extension = TxExtension(selected_authenticators=[auth_id])
+tx = client.broadcast(
+    send,
+    fee={"amount": "5000uthiol", "gas": "200000"},
+    memo=auth_payload,
+    extension=extension,
+)
+print(f"Phase 1 auth tx: {tx.txhash}")
+```
+
+  </Tab>
+</Tabs>
+
+## Phase 2: Authenticate with the New Key
+
+After the safe-word has been consumed and the new pubkey stored, subsequent authentications use standard secp256k1 signature verification against the stored pubkey:
+
+<Tabs items={['terpd CLI', 'TypeScript/JS', 'Rust', 'Go', 'Python']}>
+  <Tab value="terpd CLI">
+
+```bash
+# Phase 2: just send a normal transaction signed by the new key
+# The contract will verify the signature against the stored pubkey
+terpd tx bank send \
+  terp1sender... terp1recipient... \
+  1000uthiol \
+  --from new-auth-key \
+  --chain-id 90u-4 \
+  --fees 5000uthiol
+```
+
+  </Tab>
+  <Tab value="TypeScript/JS">
+
+```typescript
+// Phase 2: sign with the new key that was stored during Phase 1
+// The wallet must have access to the new key's private key
+const newWallet = await DirectSecp256k1HdWallet.fromMnemonic(newMnemonic, {
+  prefix: 'terp',
+});
+
+const newClient = await SigningStargateClient.connectWithSigner(
+  'https://testnet-rpc.terp.network:443',
+  newWallet,
+);
+
+const sendMsg = {
+  typeUrl: '/cosmos.bank.v1beta1.MsgSend',
+  value: {
+    fromAddress: sender,
+    toAddress: 'terp1recipient...',
+    amount: [{ denom: 'uthiol', amount: '1000' }],
+  },
+};
+
+// The contract's Authenticate will verify the tx signature
+// against the stored pubkey from Phase 1
+const extension = { selectedAuthenticators: [authId] };
+const result = await newClient.signAndBroadcast(
+  sender,
+  [sendMsg],
+  fee,
+  '',
+  extension,
+);
+console.log('Phase 2 tx:', result.transactionHash);
+```
+
+  </Tab>
+  <Tab value="Rust">
+
+```rust
+// Phase 2: use the new key with cw-orchestrator
+// The contract verifies the signature against its stored pubkey
+let new_wallet = Wallet::from_mnemonic(&chain, new_mnemonic)?;
+
+let send_msg = BankMsg::Send {
+    to_address: "terp1recipient...".to_string(),
+    amount: vec![Coin::new(1000, "uthiol")],
+};
+
+let tx = chain
+    .with_signer(new_wallet)
+    .with_extension(TxExtension {
+        selected_authenticators: vec![auth_id],
+    })
+    .broadcast_tx(CosmosMsg::Bank(send_msg))?;
+
+println!("Phase 2 tx: {}", tx.txhash);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+// Phase 2: sign with the new key using its private key
+import (
+    "github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+    "github.com/cosmos/cosmos-sdk/client/tx"
+)
+
+newPrivKey := secp256k1.PrivKey{Key: newPrivateKeyBytes}
+newAddr := sdk.AccAddress(newPrivKey.PubKey().Address())
+
+sendMsg := &banktypes.MsgSend{
+    FromAddress: newAddr.String(),
+    ToAddress:   "terp1recipient...",
+    Amount:      sdk.NewCoins(sdk.NewInt64Coin("uthiol", 1000)),
+}
+
+ext := &smartaccounttypes.TxExtension{
+    SelectedAuthenticators: []uint64{authId},
+}
+
+// Build, sign with newPrivKey, broadcast
+txBuilder := txFactory.WithSigner(newPrivKey).BuildUnsignedTx(sendMsg)
+txBuilder.SetExtension(ext)
+txBuilder.SetSignatures(signing.SignatureV2{...})
+```
+
+  </Tab>
+  <Tab value="Python">
+
+```python
+# Phase 2: use the new private key for signing
+from cosmos.crypto.secp256k1 import PrivateKey
+
+new_pk = PrivateKey(new_private_key_hex)
+new_address = new_pk.public_key.address("terp")
+
+send = BankMsg.send(
+    sender=new_address,
+    to="terp1recipient...",
+    amount=[("uthiol", 1000)],
+)
+
+# Sign with the new key and include authenticator selection
+extension = TxExtension(selected_authenticators=[auth_id])
+tx = client_with_key(new_pk).broadcast(
+    send,
+    fee={"amount": "5000uthiol", "gas": "200000"},
+    extension=extension,
+)
+print(f"Phase 2 tx: {tx.txhash}")
+```
+
+  </Tab>
+</Tabs>
+
+## Testing the Full Flow
+
+Here's a complete test sequence using the contract:
+
+```text
+1. Deploy safeword_authenticator.wasm → code_id
+2. Instantiate → contract_address
+3. Register CosmwasmAuthenticatorV1 on account with safe-word hash
+   → authenticator_id = 5
+4. Send tx with auth data: {"safeword":"my_secret_phrase_123","pubkey":"<new_key>"}
+   → Authentication succeeds, contract stores new pubkey
+5. Send another tx signed by the new private key
+   → Authentication via stored pubkey succeeds
+6. (Optional) Repeat step 4 with a different key to rotate again
+```
+
+## Full Contract Source
+
+The complete contract source is available at [terp-core/crates/cosmwasm/contracts/crypto-verify/](https://github.com/terpnetwork/terp-core).
+
+## Related Concepts
+
+- [Authenticator overview](/docs/guides/authentication/authenticators) — architecture and available types
+- [CosmWasm contract development](/guides/cosmwasm) — contract development patterns
+- [Composite authenticators](/docs/guides/authentication/authenticators/composite) — combine with other authenticators
+- [SignatureVerification](/docs/guides/authentication/authenticators/signature-verification) — standard key-based authenticator

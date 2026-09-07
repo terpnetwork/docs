@@ -1,0 +1,398 @@
+---
+title: "ADR-4: Sovereign Custody & Authentication Specifications"
+description: "Sovereign custody principles, smart account authentication, key rotation, non-custodial recovery, and authentication gradient design for Terp Network"
+status: "partial"
+---
+## ADR 4: Sovereign Custody & Authentication Specifications
+
+## Changelog
+
+- 2026-03-16: Initial stub with section headings
+- 2026-05-12: Expanded to full ADR-1 template format
+
+## Status
+
+DRAFT
+
+## Dependencies
+
+- **ADR-1**: Standard Template and Design Guidelines — this ADR follows the format defined in ADR-1
+- **ADR-3**: Agent, LLM, and Automation Participation Expectations — agent authentication and key management must satisfy ADR-3's trustlessness and permissionlessness principles
+- **ADR-6**: zk-cosmwasmvm Custom Wasm Module for Authentication — future zero-knowledge authentication layer that extends the authentication gradient defined here
+
+**Downstream dependents**: ADR-3 (agent participation expectations reference ADR-4 custody principles), ADR-5 (HashMerchant sudo pattern mirrors CosmWasm authenticator sudo calls)
+
+## Abstract
+
+This ADR defines the sovereign custody and authentication architecture for Terp Network. Sovereign custody means users always control their own keys — no custodial intermediary can freeze, seize, or substitute a user's credentials. The architecture is built on the x/smart-account Cosmos SDK module, which routes authentication through CosmWasm-based authenticator contracts via sudo calls. These authenticators implement the TerpAccountTrait, supporting composable patterns (AllOf, AnyOf) that combine signature verification, passkeys, spend limits, and message filters into a single authentication flow. The design establishes three authentication gradients — viewing, transacting, and governance — each with distinct security requirements. Key rotation is achieved by adding a new authenticator and removing the old one under the user's sole control, preserving account identity and assets. Non-custodial recovery is provided through multi-signature fallback authenticators and social recovery contracts, never through a centralized custodian. Every component is designed so that sovereignty — the user's exclusive control over their account — is an invariant, not a feature.
+
+## Context and Problem Statement
+
+Terp Network is a Cosmos SDK blockchain with CosmWasm smart contracts. The standard Cosmos SDK authentication model assigns each account a single public key; changing that key requires a specific key-rotation transaction, and losing the private key means losing the account permanently. This model creates several problems:
+
+1. **Custodial drift**: Applications that manage keys on behalf of users (wallets, exchanges, custodians) become single points of failure and control. The network cannot enforce that users retain sovereignty over their own accounts.
+2. **Brittle key management**: A single private key compromise results in total account loss. There is no mechanism for users to rotate keys, add fallback authenticators, or recover access without a custodian.
+3. **One-size-fits-all authentication**: Every on-chain operation — viewing balance, sending tokens, voting on governance — requires the same level of authentication. There is no way to assign lower-security credentials for read operations and higher-security credentials for governance.
+4. **No recovery path**: When a user loses their key, the only recovery option is a social convention (e.g., asking a validator to sign a genesis migration). There is no on-chain, non-custodial recovery mechanism.
+5. **Agent and automation authentication**: ADR-3 defines participation expectations for automated systems, but there is no technical mechanism for agents to authenticate with scoped permissions (e.g., an agent that can transact but cannot vote on governance).
+
+The x/smart-account module addresses problems 1-4 by replacing the single-key model with a composable, CosmWasm-authenticator-based architecture. This ADR formalizes the sovereign custody principles that must be embedded into all Terp Network applications and specifies the authentication gradient design that solves problem 3 and problem 5.
+
+## Decision Drivers
+
+- **Sovereignty**: users must retain exclusive control over their accounts at all times; no entity (including validators or the chain itself) can seize or substitute credentials
+- **Composability**: authentication logic must be composable — users combine authenticators (signature check + spend limit + message filter) rather than choosing a single strategy
+- **Recoverability**: users must have a non-custodial path to recover account access after key loss, without requiring a trusted third party
+- **Gradient awareness**: different operations require different authentication strength; the architecture must express this without creating permissioning
+- **Permissionlessness**: any user can create an account, add authenticators, and transact without requiring approval from any authority
+- **CosmWasm integration**: authentication logic must be expressible as CosmWasm contracts to enable on-chain programmability and upgradeability without hard forks
+- **Backwards compatibility**: the system must interoperate with existing Cosmos SDK key types (secp256k1, ed25519) and wallet interfaces (Keplr, Cosmostation)
+
+## Considered Options / Alternatives
+
+- **Status quo (single-key Cosmos SDK auth)**: every account has one key. Simple, but no key rotation, no recovery, no gradients, and custodial drift is unchecked.
+- **ERC-4337-style account abstraction (Ethereum model)**: bundlers + paymasters + smart contract accounts. Powerful but designed for EVM; does not map cleanly to Cosmos SDK's AnteHandler architecture or CosmWasm's sudo model.
+- **x/smart-account with CosmWasm authenticators (selected)**: replace the AnteHandler's signature verification with a pluggable authenticator system. The x/smart-account module routes authentication through CosmWasm contracts via sudo calls. Authenticators compose via AllOf/AnyOf patterns. Key rotation is add-then-remove. Recovery is multi-sig or social-recovery contracts. Authentication gradients are expressed through per-operation authenticator selection.
+- **zk-cosmwasmvm native authentication only**: use zero-knowledge proofs for all authentication (as proposed in ADR-6). Maximum privacy but insufficient as a standalone mechanism — users need simple signature-based auth for everyday operations, with zk-cosmwasmvm as an optional upgrade path.
+
+## Decision Outcome
+
+We adopt **x/smart-account with CosmWasm authenticators** as the sovereign custody architecture. Key rotation, non-custodial recovery, and authentication gradients are all expressed through the composable authenticator model, not through special-purpose modules.
+
+### Detailed Design
+
+#### 1. Sovereign Custody Principles
+
+These principles must be embedded into every Terp Network application. They are invariants, not features:
+
+- **Key sovereignty**: the user's account address is derived from their initial key, but the account's authenticators are controlled exclusively by the user. No entity can add or remove authenticators without the user's signature.
+- **No custodial substitution**: applications must not hold user keys, sign transactions on behalf of users, or provide "social login" that substitutes a custodial key for the user's own credentials. Passkey-based authentication (secp256r1) is permitted because the credential resides on the user's device, not on a server.
+- **Account continuity**: an account's identity (address, balance, staking positions, governance history) persists across key rotation and authenticator changes. The account is the address, not the key.
+- **Self-sovereign deactivation**: a user can disable smart account authentication (`MsgSetActiveState`) and revert to standard Cosmos SDK signature verification at any time. Sovereignty includes the right to choose a simpler model.
+
+#### 2. Smart Account Authentication Flow
+
+The x/smart-account module replaces the standard Cosmos SDK AnteHandler signature verification with a pluggable authenticator system. The authentication flow proceeds as follows:
+
+```bash
+Transaction arrives at AnteHandler
+         |
+         v
+x/smart-account checks: is_smart_account_active?
+         |
+    +----+----+
+    |         |
+   NO        YES
+    |         |
+    v         v
+Standard    Look up account's
+Cosmos SDK  authenticators from
+sig verify  KVStore
+              |
+              v
+         For each message in tx:
+         Read TxExtension.selected_authenticators[msg_index]
+         to determine which authenticator
+         to invoke for that message
+              |
+              v
+         Invoke authenticator via sudo call
+         to CosmWasm contract
+              |
+         +----+----+
+         |         |
+      Reject    Accept
+         |         |
+         v         v
+      Return    on_auth_track()
+      error     (stateful tracking)
+                       |
+                       v
+                  Execute message
+                       |
+                       v
+                  on_auth_confirm()
+                  (post-execution validation,
+                   e.g., spend limits)
+```
+
+**Key data structures** (from `terp-auth` crate):
+
+```rust
+AccountAuthenticator {
+    id: u64,          // unique instance identifier
+    r#type: String,   // "SignatureVerification",
+                      // "CosmwasmAuthenticatorV1",
+                      // "AllOf", "AnyOf",
+                      // "MessageFilter", etc.
+    config: Vec<u8>,  // type-specific configuration
+}
+
+AuthSudoMsg {
+    OnAuthAdded(OnAuthenticatorAddedRequest),
+    OnAuthRemoved(OnAuthenticatorRemovedRequest),
+    Authenticate(Box<AuthenticationRequest>),
+    Track(TrackRequest),
+    ConfirmExecution(ConfirmExecutionRequest),
+}
+```
+
+**Sudo message flow through TerpAccountTrait:**
+
+Each CosmWasm authenticator contract implements the `TerpAccountTrait`, which provides six entry points routed by `process_sudo_auth`:
+
+1. **`on_auth_added`**: called when `MsgAddAuthenticator` adds this authenticator to an account. Validates configuration and stores account-specific state (e.g., public key, spending limits).
+2. **`on_auth_removed`**: called when `MsgRemoveAuthenticator` removes this authenticator. Cleans up account-specific state.
+3. **`on_auth_request`**: stateless validation of the transaction message. Checks signature, passkey proof, or other credential. **Must not mutate state** — state changes are discarded on failure.
+4. **`on_auth_track`**: stateful tracking after authentication succeeds. Records usage data for rate limiting, spend tracking, etc. Changes are always committed if auth succeeds.
+5. **`on_auth_confirm`**: post-execution validation. Enforces constraints like spend limits after execution completes. `Ok` commits execution changes; `Err` reverts them.
+6. **`on_hooks`**: generic hook for chain-specific events (epoch triggers, etc.).
+
+**Composite authenticator patterns:**
+
+The `AllOf` and `AnyOf` types allow authenticators to be combined:
+
+- **AllOf**: all child authenticators must pass. Used for multi-factor patterns (signature + spend limit + message filter).
+- **AnyOf**: any one child authenticator can pass. Used for fallback patterns (primary key OR recovery key).
+
+Child authenticators are addressed by a dotted path notation: `CompositeId { root, path }`. For example, `5.0.2` means authenticator ID 5, child index 0, sub-child index 2.
+
+```rust
+AllOf [
+    SignatureVerification { pubkey },
+    CosmwasmAuthenticatorV1 {
+        contract: "spend-limit-contract",
+        params: { limit: "10000", reset_period: "day" }
+    },
+    MessageFilter { @type: "/osmosis.poolmanager.v1beta1.MsgSwapExactAmountIn" }
+]
+```
+
+## 3. Key Rotation
+
+Key rotation is achieved through the authenticator lifecycle, not through a special "rotate key" transaction:
+
+1. User adds a new authenticator via `MsgAddAuthenticator` with the new key's signature verification configuration.
+2. The new authenticator is immediately usable for authentication.
+3. User removes the old authenticator via `MsgRemoveAuthenticator`.
+4. Account identity, balance, staking positions, and all on-chain state remain unchanged.
+
+**Safety constraint**: a user must never remove their last authenticator. The x/smart-account module enforces this by rejecting `MsgRemoveAuthenticator` if it would leave the account with zero authenticators. This prevents accidental account lockout.
+
+**Atomic rotation (future)**: a composite `MsgRotateKey` could atomically add a new authenticator and remove the old one in a single transaction, preventing a window where both keys are active. This is not required for the initial design but is identified as a future improvement.
+
+### 4. Non-Custodial Recovery
+
+Recovery mechanisms use the same authenticator composition model — no custodian is involved:
+
+**Multi-signature fallback**: an `AnyOf` authenticator that includes the primary key and a multi-sig contract:
+
+```text
+AnyOf [
+    SignatureVerification { primary_pubkey },
+    AllOf [
+        SignatureVerification { guardian_1_pubkey },
+        SignatureVerification { guardian_2_pubkey },
+        SignatureVerification { guardian_3_pubkey },
+    ]
+]
+```
+
+The user can authenticate with their primary key for normal operations, or with a quorum of guardian keys if the primary key is lost. Guardians never have unilateral access — they can only act in combination.
+
+**Social recovery contract**: a CosmWasm contract that implements a time-delayed recovery flow:
+
+1. User pre-registers a set of guardian addresses.
+2. If the primary key is lost, a guardian submits a recovery request.
+3. The recovery request enters a delay period (e.g., 7 days).
+4. During the delay, the user (if they still have access) can cancel the recovery.
+5. After the delay, the guardian can execute the recovery, which adds a new authenticator to the account.
+6. The old (lost) authenticator is not automatically removed — the user must remove it after regaining access.
+
+**Important**: recovery authenticators are standard CosmWasm authenticator contracts. The x/smart-account module has no special recovery logic. This ensures that recovery mechanisms are upgradeable (deploy new contracts) without modifying the module.
+
+## 5. Authentication Gradients
+
+Not all operations require the same level of authentication. Terp Network defines three authentication gradients, implemented through authenticator composition:
+
+**Gradient 1 — Viewing (read-only)**: no on-chain authentication required. Off-chain queries (LCD/RPC) are unauthenticated. This is the existing Cosmos SDK behavior and requires no changes.
+
+**Gradient 2 — Transacting (standard operations)**: signature verification is sufficient. This is the default gradient for sending tokens, interacting with CosmWasm contracts, and performing IBC transfers. Implemented as:
+
+```text
+SignatureVerification { pubkey }
+```
+
+Or with additional constraints:
+
+```text
+AllOf [
+    SignatureVerification { pubkey },
+    SpendLimitParams { limit: "1000000", reset_period: "day" }
+]
+```
+
+**Gradient 3 — Governance (high-value operations)**: multi-factor authentication required for governance votes, parameter changes, and other high-impact operations. Implemented by composing message-type-aware authenticators:
+
+```rust
+AllOf [
+    SignatureVerification { pubkey },
+    AnyOf [
+        MessageFilter { @type: "/cosmos.gov.v1beta1.MsgVote" },
+        MessageFilter { @type: "/cosmos.params.v1beta1.MsgUpdateParams" }
+    ],
+    CosmwasmAuthenticatorV1 {
+        contract: "time-lock-contract",
+        params: { delay: "24h" }
+    }
+]
+```
+
+**Gradient selection mechanism**: the `TxExtension.selected_authenticators` field specifies which authenticator to use for each message in a transaction. The same account can have authenticators at different gradient levels; the transaction submitter selects which one to invoke per message. This means:
+
+- A transaction with a `MsgSend` uses Gradient 2 authenticator (signature only).
+- A transaction with a `MsgVote` uses Gradient 3 authenticator (signature + time lock).
+- Both messages can appear in the same transaction, each routed to its appropriate authenticator.
+
+**Agent-scoped gradients**: for automated systems (per ADR-3), an agent's authenticator can include a `MessageFilter` that restricts it to specific message types:
+
+```text
+AllOf [
+    SignatureVerification { agent_pubkey },
+    MessageFilter { @type: "/cosmos.bank.v1beta1.MsgSend" },
+    SpendLimitParams { limit: "50000", reset_period: "day" }
+]
+```
+
+This gives the agent transacting capability within bounded limits, but no governance or parameter-change capability.
+
+## 6. Module Parameters and Circuit Breaker
+
+The x/smart-account module includes a circuit breaker for emergency deactivation:
+
+```text
+Params {
+    maximum_unauthenticated_gas: u64,    // gas cap for ante handler before fee-payer auth
+    is_smart_account_active: bool,       // global toggle; false = standard Cosmos SDK auth
+    circuit_breaker_controllers: [Addr], // addresses authorized to toggle active state
+}
+```
+
+If `is_smart_account_active` is set to `false` (by a circuit breaker controller or via governance), the entire smart account module is bypassed and standard Cosmos SDK signature verification is used. This provides an escape hatch for critical bugs without requiring a hard fork.
+
+## 7. Credential Types
+
+The `smart-account-auth` library supports multiple credential types, each mapping to a CosmWasm authenticator:
+
+| Credential | Curve | Use Case |
+|---|---|---|
+| Cosmos arbitrary signature | secp256k1 | Standard wallet auth (Keplr, Cosmostation) |
+| Ethereum personal sign | secp256k1 | EVM wallet compatibility (MetaMask) |
+| Passkey | secp256r1 | Biometric auth (WebAuthn/FIDO2) |
+| Ed25519 | ed25519 | Ledger hardware wallet |
+| BLS aggregate | BLS12-381 | Multi-sig aggregation (BlsConfig) |
+
+The `CredentialData` wrapper allows multiple credentials to be verified in a single call:
+
+```text
+CredentialData {
+    with_caller: false,           // allow sender address as authority?
+    credentials: [ethCredential, passkeyCredential],
+    primaryIndex: 0               // default credential index
+}
+```
+
+Replay attack protection is enforced when the contract-side configuration requires it: the signed message must be a JSON string with fields in alphabetical order (`chain_id`, `contract_address`, `messages`, `nonce`), where `nonce` equals the current account number.
+
+## Consequences
+
+### Positive
+
+- Users always control their own keys — sovereignty is an architectural invariant, not a policy
+- Composable authenticators (AllOf/AnyOf) enable arbitrarily complex authentication policies without module changes
+- Key rotation is simple and preserves account identity — add new authenticator, remove old one
+- Non-custodial recovery (multi-sig fallback, social recovery contracts) eliminates the need for trusted custodians
+- Authentication gradients allow different security levels for different operations without creating a permissioning system
+- Agent-scoped authenticators (per ADR-3) enable safe automated participation with bounded capabilities
+- CosmWasm-based authenticators are upgradeable — new authentication methods deploy as new contracts without chain upgrades
+- Circuit breaker provides emergency deactivation without hard forks
+- Passkey support (secp256r1/WebAuthn) enables biometric authentication on user devices without custodial key storage
+
+### Negative
+
+- Smart account authentication adds gas overhead compared to standard Cosmos SDK signature verification (sudo calls to CosmWasm contracts)
+- Users who lose all authenticators with no recovery mechanism configured are permanently locked out — there is no chain-level recovery
+- Composite authenticator paths (e.g., `5.0.2`) are not human-readable — tooling must translate them into understandable descriptions
+- The `on_auth_request` stateless constraint may require workarounds for authentication logic that naturally needs state (e.g., challenge-response protocols)
+- Multi-sig and social recovery require pre-configuration — users who do not set up recovery before losing their key cannot benefit
+
+### Neutral / Trade-offs
+
+- The same account address can have multiple authenticators at different gradient levels — this is powerful but requires wallet UIs to present clear choices to users
+- Recovery authenticators are standard CosmWasm contracts, meaning they are upgradeable but also subject to contract bugs
+- The circuit breaker (`is_smart_account_active`) falls back to standard auth, which means smart-account-specific features (gradients, spend limits) are unavailable during deactivation
+- BLS aggregation enables efficient multi-sig but requires BLS12-381 precompile support in the execution environment
+- ADR-6's zk-cosmwasmvm authentication will extend the gradient model, not replace it — the composable authenticator architecture accommodates future authenticator types
+
+### Backwards Compatibility
+
+The x/smart-account module is designed for backwards compatibility with existing Cosmos SDK accounts:
+
+- **Standard key accounts**: accounts that have never called `MsgAddAuthenticator` continue to use standard Cosmos SDK signature verification. The module only activates when an account has at least one authenticator.
+- **Global toggle**: `is_smart_account_active = false` reverts the entire chain to standard Cosmos SDK auth, preserving compatibility for chains that import the module but do not want to enable it.
+- **Wallet interfaces**: existing Keplr, Cosmostation, and Ledger workflows continue to work. The `SignatureVerification` authenticator accepts standard secp256k1 and ed25519 signatures.
+- **IBC compatibility**: IBC transactions are authenticated through the same flow. The `MessageFilter` authenticator can restrict IBC message types without modifying the IBC protocol.
+- **Genesis export/import**: `AuthenticatorData` and `GenesisState` types support export and import of authenticator state during chain upgrades.
+
+**Migration plan**: the x/smart-account module is added via an upgrade handler that registers the module's store key. Existing accounts are unaffected. Users opt into smart account authentication by calling `MsgAddAuthenticator`. There is no forced migration.
+
+## Test Cases
+
+- Verify that `MsgAddAuthenticator` adds a `SignatureVerification` authenticator and subsequent transactions can authenticate using it
+- Verify that `MsgRemoveAuthenticator` removes the specified authenticator and it can no longer be used for authentication
+- Verify that removing the last authenticator is rejected by the module
+- Verify that an `AllOf` composite authenticator requires all child authenticators to pass
+- Verify that an `AnyOf` composite authenticator accepts any single child authenticator passing
+- Verify that `CompositeId` path resolution correctly navigates nested composite authenticators (e.g., `5.0.2`)
+- Verify that `on_auth_request` state mutations are discarded on authentication failure
+- Verify that `on_auth_track` state changes are committed on authentication success
+- Verify that `on_auth_confirm` can revert execution changes by returning an error
+- Verify that `SpendLimitParams` enforces daily spend limits across multiple transactions
+- Verify that `MessageFilter` restricts authentication to specific message types
+- Verify key rotation: add new authenticator, authenticate with new authenticator, remove old authenticator, confirm account identity unchanged
+- Verify multi-sig fallback: primary key fails, quorum of guardian keys succeeds via `AnyOf`
+- Verify social recovery: guardian submits recovery request, delay period elapses, new authenticator is added
+- Verify authentication gradient: same account has both Gradient 2 (signature only) and Gradient 3 (signature + message filter) authenticators, and `TxExtension.selected_authenticators` routes each message to the correct authenticator
+- Verify agent-scoped authenticator: agent can send tokens within spend limit but cannot vote on governance
+- Verify circuit breaker: setting `is_smart_account_active = false` reverts to standard Cosmos SDK auth
+- Verify `CredentialData` wrapper with multiple credentials in a single verification call
+- Verify replay attack protection: signed message with incorrect field order or stale nonce is rejected
+- Verify passkey (secp256r1) authentication through WebAuthn credential flow
+
+## Further Discussions / Open Questions
+
+- Should `MsgRotateKey` be implemented as an atomic operation (add + remove in single tx) to eliminate the window where both keys are active?
+- What is the maximum safe depth for composite authenticator nesting before gas costs become prohibitive?
+- Should the module enforce a maximum number of authenticators per account to prevent store bloat?
+- How should wallet UIs present composite authenticator paths to users in a human-readable format?
+- Should social recovery contracts be standardized (a la ERC-7579) or left as application-specific implementations?
+- What guardian quorum thresholds are recommended for different account value tiers?
+- Should governance operations require a mandatory higher-gradient authenticator, or should this be left to user configuration?
+- How does ADR-6's zk-cosmwasmvm authentication integrate with the `TerpAccountTrait` sudo flow — does it become a new authenticator type or a new authentication layer?
+- Should the circuit breaker controllers be required to go through governance to re-enable smart account auth after deactivation, or should they have unilateral control?
+
+## References
+
+- ADR-1: Standard Template and Design Guidelines
+- ADR-3: Agent, LLM, and Automation Participation Expectations
+- ADR-5: HashMerchant — Verifiable Merkle Reflection Market (sudo pattern reference)
+- ADR-6: zk-cosmwasmvm Custom Wasm Module for Authentication
+- `terp-auth` crate: `/packages/terp-auth/src/lib.rs` — TerpAccountTrait definition
+- `terp-auth` types: `/packages/terp-auth/src/types.rs` — AuthSudoMsg, AuthenticationRequest, AccountAuthenticator
+- `terp-auth` composite: `/packages/terp-auth/src/authenticator/composite.rs` — CompositeId, CosmwasmAuthenticatorData, AllOf/AnyOf patterns
+- `smart-account-auth` npm package: credential types (secp256k1, secp256r1, ed25519, passkeys)
+- `terp-rs` API schemas: `terp.smartaccount.v1beta1` — protobuf/zod definitions
+- ERC-4337: Account Abstraction Using Alt Mempool
+- ERC-7579: Modular Smart Account Standard
+- Cosmos SDK x/auth module: standard signature verification
+- Osmosis x/smart-account module: original implementation reference

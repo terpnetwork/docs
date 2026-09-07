@@ -1,0 +1,134 @@
+---
+title: "ADR-2: Expected Testing Library Design for Terp Network Tooling"
+description: "Minimum standard for testing libraries, logic, and workflows in Terp Network tooling"
+status: "partial"
+---
+## ADR 2: Expected Testing Library Design for Terp Network Tooling********
+
+## Changelog
+
+- 2026-03-16: Initial draft based on existing bullet points and references from o-line, cw-infuser, terp-core
+- 2026-03-16: Expanded to full ADR-1 template with detailed workflows, test suite patterns, CI integration, and thorough examples from referenced projects
+
+## Status
+
+DRAFT
+
+## Abstract********
+
+This ADR defines the **minimum** expected design for testing libraries and workflows in all tooling, libraries, and contracts built for the Terp network. It mandates layered testing (unit with coverage, reusable integration suites, fully local E2E), self-documenting automation for docs/CLIs/MD, language-specific tools (cw-orchestrator for CosmWasm, interchaintest for Go, just/sh for devops), benchmarking, and verifiable test logic. It references implemented patterns in o-line's tiered testing, cw-infuser's InfuserTestSuite, terp-core Go suites, ensuring ecosystem-wide consistency, security, and operational excellence.
+
+## Context and Problem Statement
+
+Testing practices across Terp projects vary widely, resulting in insufficient coverage, non-reusable test environments, flaky E2E depending on live networks, lack of automated documentation generation, and no standardized benchmarking. This impacts reliability of contracts, deployment tools, and node software. A canonical minimum standard is needed to enforce reusable suites, local containment, self-documenting tests, and specific workflows for quality assurance in a Cosmos-based blockchain environment.
+
+## Decision Drivers
+
+- Reusability of test environments and suites across multiple contracts/tools
+- Full local containment for deterministic E2E and CI reliability
+- Automation of documentation, CLIs, MD headers, and data generation from tests
+- Support for multiple languages with preferred tools per domain
+- Enforceable coverage, benchmarking, and tiered execution
+- Compatibility with existing implementations in o-line, cw-infuser, terp-core
+- Security and edge-case coverage for critical paths like infusions, deployments, IBC
+
+## Considered Options / Alternatives
+
+- Ad-hoc tests per project: easy but inconsistent and hard to maintain.
+- cw-multi-test only: sufficient for basic integration but lacks E2E, reusability, and automation.
+- External heavy frameworks: adds complexity and breaks local containment.
+- **Reusable TestSuite + Justfile tiers + language tools (selected)**: best balances reusability, automation, and existing code references.
+
+## Decision Outcome
+
+We adopt the **reusable TestSuite pattern with tiered Justfile testing workflows** as the minimum standard. This is implemented via structs with setup helpers, multi-tier `just test`, cw-orchestrator suites, and self-generating tests. Tests must follow specific logic for provisioning, execution, assertion, and artifact generation.
+
+### Detailed Design
+
+**Core Testing Logic and Workflows:**
+
+**Unit Testing:**
+
+- Isolated function/module tests.
+- Enforce minimum coverage; run via `just test-unit`.
+- Example patterns in o-line Rust tests and terp-rs.
+
+**Integration Testing (Reusable Suites):**
+
+- cw-orhcestrator + ict-rs
+- starship + osmosis-test-tube
+- `struct TestSuite<Chain> { ... }` with `fn setup() -> Result<Self>` (see cw-infuser init.rs:274 for MockBech32, contract upload, NFT setup, infusion config).
+- Helper methods for default states, mint/approve, fee suites.
+- Multiple test fns per scenario (success, error paths for bundles, fees, collections).
+- Assertions: state queries, events, typed errors.
+- Workflow: provision → instantiate → execute → query/assert → cleanup.
+
+**E2E Testing:**
+
+- 100% local using Docker omnibus, MockBech32, local nodes.
+- Tiered execution in `testing.just:15`: 1.unit, 2.nginx, 3.akash-devnet, 4.single-container TLS, 5.multi-node Phase A.
+- Full workflows: bootstrap, cert delivery, peer discovery, deploy, snapshot transfer.
+- Scripts: `e2e.sh`, `local_phase_a.rs`, `test-bootstrap.sh`.
+
+**Documentation/Automation:**
+
+- Tests generate MD with standard headers, CLI refs, SFT data.
+  - cli -> MCP/skill/tool caller
+  - ./scripts || ./tools || ./docs || ./crates || ./packages || ./contracts
+  - include checksums for binaries in build cmds
+- Just/sh as central devops spec.
+- cw-orchestrator helpers for MD output.
+
+**Verification:**
+
+- confirm docker image, dns, payment confirmation methods(websocket event subscriptions,tx hash parsing, local-node sidecar-querier,argus-formula)
+
+**Benchmarking:**
+
+- Deployment timing, LOC, parallel benchmarks (`parallel_benchmark.rs`).
+- Resource monitoring in Docker tests.
+
+**CI Integration:** `just test` runs all tiers where possible; coverage checks.
+
+## Consequences
+
+### Positive
+
+- Standardized, reusable, self-documenting tests accelerate development and reduce bugs.
+- Local E2E ensures reproducibility.
+- Generated artifacts improve docs and community guides.
+
+### Negative
+
+- Requires investment to migrate existing test code.
+- Longer CI times for full tiers.
+
+### Neutral / Trade-offs
+
+- Prioritizes quality over minimalism; selective use of ignored tests for speed.
+
+### Backwards Compatibility
+
+Fully additive. Existing tests remain; new suites added in parallel. No on-chain or API changes. Migration path documented in checklist.
+
+## Test Cases
+
+- cw-infuser: successful infusion, fee validation, AllOf/AnyOf bundle logic, error cases (`test_successful_infusion`, `test_correct_fees`).
+- o-line: TLS nginx rendering, single/multi Docker E2E, concurrent deploys, HD funding, sentry SSH (`local_phase_a.rs`, `e2e_workflow.rs`).
+- Coverage of security edges, event parsing, state consistency.
+
+## Further Discussions / Open Questions
+
+- Standardize a shared TestSuite trait/crate?
+- Exact coverage % and tool (tarpaulin vs others)?
+- How to auto-generate MD from all test suites?
+
+## References
+
+- ADR-1 (`content/docs/resources/adrs/adr/1.mdx`)
+- `o-line/scripts/just/testing.just:16`, `o-line/TESTING.md:24`, `o-line/tests/local_phase_a.rs`
+- `cw-infuser/test-suite/src/infuser/test/init.rs:41`, `cw-infuser/test-suite/src/infuser/test.rs`
+- `terp-docs/content/docs/guides/cosmwasm/specs/14.testing.md:12`
+- Terp core integration/upgrade tests
+
+This provides a thorough specification of minimum testing logic and workflows.

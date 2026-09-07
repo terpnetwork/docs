@@ -1,0 +1,123 @@
+---
+title: "ADR-1: Standard Template and Design Guidelines for Architectural Decision Records"
+description: "Official ADR template and process for Terp Network crypto protocol decisions"
+status: "partial"
+---
+**ADR Specification: Standard Template and Design Guidelines for Architectural Decision Records (ADRs) in Crypto Protocols**
+**(Version 1.0 – March 2026)**
+
+This document defines the official ADR template and process for our crypto protocol project. It ensures consistent, auditable, and maintainable documentation of architecturally significant decisions (e.g., consensus changes, state machine design, cryptography, networking, or module interfaces).
+
+The template is explicitly designed for blockchain/crypto contexts where decisions often impact security, backwards compatibility, consensus safety, privacy, and upgradeability.
+
+## Core References Used
+- **2011 Core Implementation (Michael Nygard)**: The original ADR format introduced in “Documenting Architecture Decisions” (Nov 15, 2011). Core mandatory elements: numbered Markdown file (`adr-NNN.md`), **Status**, **Context**, **Decision**, and **Consequences**. Widely adopted as the foundational lightweight pattern.
+- **MADR (Markdown Architectural Decision Records)**: The most widely adopted evolution of Nygard’s template (MADR 4.x). Adds explicit **Decision Drivers**, **Considered Options** (with pros/cons), **Confirmation**, and optional sections. Used as the baseline for readability and completeness.
+- **Cosmos SDK ADR Template & Process**: Blockchain-specific enhancements (Abstract, Backwards Compatibility treatise, Test Cases for consensus changes, Further Discussions). Mandatory handling of incompatibilities and community review.
+- **Tendermint / CometBFT ADR Template**: Nearly identical to Cosmos but adds **Detailed Design** section with explicit questions on security, privacy, efficiency, APIs, data structures, breaking releases, and coordination. Status includes “Superseded” tracking.
+- **Bitcoin (BIPs), Zcash (ZIPs), Ethereum (EIPs)**: These are the canonical “ADR-equivalent” systems for core crypto protocols. They emphasize **Motivation**, **Specification**, **Rationale**, **Backwards Compatibility**, **Security Considerations**, and formal status lifecycle. Our template borrows their protocol-change rigor while keeping the lightweight ADR structure.
+
+### ADR Numbering & Filing
+- Files live in `content/docs/resources/adrs/adr/adr-NNN.mdx`.
+- Number sequentially (001, 002, …). Use 001 for this meta-specification.
+- Use GitHub PRs for proposal/review (DRAFT → PROPOSED → Accepted/Rejected/Deprecated/Superseded).
+- Link ADRs from code, specs, and upgrade docs.
+
+### Recommended ADR Template (Our Official Standard)
+Copy this exact structure for every new ADR. Sections marked **(required)** must be present; others are strongly recommended for crypto protocols.
+
+```markdown
+# ADR {NNN}: {Short descriptive title – e.g., "Switch to BLS signatures for validator aggregation"}
+
+## Changelog
+- {YYYY-MM-DD}: Initial draft
+- {YYYY-MM-DD}: Added security analysis (after review)
+
+## Status
+{DRAFT | PROPOSED | Accepted | Rejected | Deprecated | Superseded by ADR-XXX}
+(When accepted, link tracking issue/milestone/project board.)
+
+## Dependencies
+List upstream ADRs this decision depends on (e.g., "- ADR-2: testing patterns used in the decision"). Optionally note downstream ADRs that reference this one. Enables dependency graph traversal and impact analysis when an ADR is superseded or deprecated.
+
+## Abstract (required)
+One-paragraph (~150-200 words) layman summary of the problem and chosen solution. “If you can’t explain it simply…”
+
+## Context and Problem Statement (required – from Nygard/MADR)
+Describe forces (technical, security, performance, regulatory, community). Use value-neutral language. Clearly state the problem and motivation.
+
+## Decision Drivers (MADR – strongly recommended)
+- Driver 1 (e.g., “Must preserve consensus safety”)
+- Driver 2 (e.g., “Must not break existing light clients”)
+- …
+
+## Considered Options / Alternatives (required – MADR + Cosmos/CometBFT)
+List each option with brief description.
+- Option 1: {title}
+- Option 2: {title}
+- …
+
+## Decision Outcome (required)
+Chosen option: “{Option title}”, because {justification tying back to drivers}.
+(We will … – active voice.)
+
+### Detailed Design (required for crypto protocols – CometBFT style)
+Answer these explicitly when relevant:
+- User / validator / node operator requirements?
+- Affected systems / modules?
+- New or changed data structures / state?
+- New or changed APIs / RPC / ABCI?
+- Efficiency (time/space/compute) considerations?
+- Security considerations (e.g., attack vectors, quantum resistance)?
+- Privacy considerations (e.g., ZK, metadata leakage)?
+- How will changes be tested (unit, integration, consensus sims)?
+- Breaking (major) release required?
+- Coordination needed with SDK, other chains, or external protocols?
+
+## Consequences (required – all three sub-sections)
+### Positive
+### Negative
+### Neutral / Trade-offs
+
+### Backwards Compatibility (mandatory if any impact – Cosmos rule)
+Describe incompatibilities and severity. Explain migration plan, deprecation schedule, or hard-fork coordination. ADRs lacking this may be rejected.
+
+## Test Cases (mandatory for consensus / state-machine changes)
+Link or describe test vectors, simulation tests, or property-based tests.
+
+## Further Discussions / Open Questions
+(While DRAFT/PROPOSED: summarize PR feedback. Later: future improvements.)
+
+## References
+- Link to original issue / PR discussion
+- Related BIPs/EIPs/ZIPs/ADRs
+- Security audits, papers, or specs
+```
+
+## ADR-1 Dependencies
+
+As the meta-ADR, ADR-1 has no upstream dependencies. All other ADRs depend on ADR-1 for their format and process.
+
+**Downstream dependents**: ADR-2, ADR-5, ADR-9, ADR-10 (and all future ADRs)
+
+> **Amendment (2026-05-12):** The `## Dependencies` section has been promoted from an empty stub to a required field in the template. All new and existing ADRs should include a Dependencies section citing upstream ADRs they rely on and, optionally, downstream ADRs that reference them. This enables dependency graph traversal and impact analysis when an ADR is superseded or deprecated.
+
+### Minimal Variant (for trivial decisions)
+Use the MADR minimal template if the decision is purely internal and non-protocol-affecting, but still include **Backwards Compatibility** and **Security** stubs.
+
+### Process Rules (adapted from Cosmos + CometBFT + BIP/EIP best practices)
+1. **Proposal**: Open PR with ADR in DRAFT status.
+2. **Review**: At least one week of community / core-team review. Security reviewers must sign off on crypto-related ADRs.
+3. **Consensus Changes**: Require formal testnet validation and explicit backwards-compatibility section.
+4. **Implementation**: After acceptance, create tracking issue. Implementation PR must link the ADR.
+5. **Status Updates**: Only maintainers may change status to Accepted/Rejected/etc.
+6. **Supersession**: When an ADR is replaced, the old one must point to the new one(s) and explain why.
+
+### Why This Hybrid Template?
+- Retains the lightweight spirit of **Nygard 2011** and **MADR** (widely adopted, tool-friendly).
+- Adds blockchain-specific rigor from **Cosmos** and **CometBFT** (backwards compat, test cases, detailed design checklist).
+- Aligns with **Bitcoin/Zcash/Ethereum** proposal systems for protocol-level decisions (security, specification clarity, formal status).
+
+This specification itself serves as **ADR-1**. All future ADRs in our repository must follow the template above unless explicitly superseded by a later meta-ADR.
+
+Adopt this template today to ensure our architectural decisions remain transparent, reviewable, and upgrade-safe—exactly as proven in production by Cosmos, Tendermint/CometBFT, and the broader crypto ecosystem.

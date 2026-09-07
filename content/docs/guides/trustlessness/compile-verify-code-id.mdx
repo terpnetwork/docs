@@ -1,0 +1,213 @@
+---
+title: Compile & Verify Code ID
+description: Reproduce a CosmWasm contract build from source and verify the on-chain code hash matches
+status: partial
+---
+import { Tab, Tabs } from '#vocs-compat';
+
+Every CosmWasm smart contract deployed on Terp Network has an on-chain **code hash** (SHA-256 of the compiled WASM binary). If you can reproduce that hash from the contract's source code, you know the deployed bytecode is exactly what the source claims — no tampering, no backdoors inserted during deployment.
+
+The pattern is: **build from source → compare hashes → trust the deployment.**
+
+## Prerequisites
+
+- Rust toolchain with `wasm32-unknown-unknown` target
+- Docker (for the official CosmWasm optimizer)
+- `terpd` CLI or gRPC access to a Terp Network node
+
+## Step 1: Find the On-Chain Code Hash
+
+First, identify the deployed contract's `code_id` and its stored hash:
+
+<Tabs items={['terpd CLI', 'REST API', 'TypeScript/JS']}>
+<Tab value="terpd CLI">
+
+```bash
+# Query code info by code_id
+CODE_ID=42
+terpd query wasm code-info $CODE_ID \
+  --node https://rpc.cosmos.directory/terpnetwork
+
+# Output includes:
+# code_id: "42"
+# checksum: "7f6c9b9a6b8c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2"
+# creator: terp1...
+# instantiate_access: ...
+```
+
+The `checksum` field is the SHA-256 hash of the compiled WASM binary.
+
+</Tab>
+<Tab value="REST API">
+
+```bash
+curl -s https://rest.cosmos.directory/terpnetwork/cosmwasm/wasm/v1/code/42 \
+  | jq '.code_info'
+```
+
+</Tab>
+<Tab value="TypeScript/JS">
+
+```typescript
+import { CosmWasmClient } from '@cosmjs/cosmwasm-stargate';
+
+const client = await CosmWasmClient.connect(
+  'https://rpc.cosmos.directory/terpnetwork',
+);
+const codeInfo = await client.getCodeDetails(42);
+console.log('Checksum:', codeInfo.checksum);
+// Hex string of the SHA-256 hash
+```
+
+</Tab>
+</Tabs>
+
+Record the `checksum` value — this is what your local build must match.
+
+## Step 2: Clone the Source and Check Out the Tag
+
+```bash
+# Clone the contract source (from the correct repo)
+git clone https://github.com/terpnetwork/terp-core
+cd terp-core/crates/cosmwasm/contracts/<contract-name>
+
+# Check out the exact tag used for this deployment
+git checkout tags/v5.2.0  # or whatever version matches
+
+# Verify the commit matches the release notes
+git log -1 --oneline
+```
+
+## Step 3: Build with the Official Optimizer
+
+Optimized builds are deterministic only when using the same Docker image and build environment:
+
+```bash
+# Build with the official CosmWasm workspace optimizer
+docker run --rm -v "$(pwd)":/code \
+  --platform linux/amd64 \
+  cosmwasm/workspace-optimizer:0.16.0
+```
+
+This produces `artifacts/&lt;contract_name>.wasm`.
+
+## Step 4: Compute the Local Hash
+
+<Tabs items={['sha256sum (Linux/macOS)', 'Python', 'Rust']}>
+<Tab value="sha256sum (Linux/macOS)">
+
+```bash
+sha256sum artifacts/<contract_name>.wasm
+# Output: 7f6c9b9a6b8c7d8e9f0a...  <contract_name>.wasm
+```
+
+</Tab>
+<Tab value="Python">
+
+```python
+import hashlib
+
+with open("artifacts/<contract_name>.wasm", "rb") as f:
+    wasm_bytes = f.read()
+
+hash_hex = hashlib.sha256(wasm_bytes).hexdigest()
+print(f"Local hash: {hash_hex}")
+```
+
+</Tab>
+<Tab value="Rust">
+
+```rust
+use sha2::{Sha256, Digest};
+use std::fs;
+
+let wasm = fs::read("artifacts/<contract_name>.wasm")?;
+let hash = hex::encode(Sha256::digest(&wasm));
+println!("Local hash: {}", hash);
+```
+
+</Tab>
+</Tabs>
+
+## Step 5: Compare
+
+<Tabs items={['Manual', 'Shell script']}>
+<Tab value="Manual">
+
+```bash
+# On-chain hash from Step 1:
+ONCHAIN="7f6c9b9a6b8c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2"
+
+# Local hash from Step 4:
+LOCAL=$(sha256sum artifacts/<contract_name>.wasm | cut -d' ' -f1)
+
+if [ "$ONCHAIN" = "$LOCAL" ]; then
+  echo "✓ HASHES MATCH — deployment is verified"
+else
+  echo "✗ HASHES DIFFER — do NOT trust this deployment"
+fi
+```
+
+</Tab>
+<Tab value="Shell script">
+
+```bash
+#!/usr/bin/env bash
+# verify-code-id.sh — usage: ./verify-code-id.sh <code_id> <wasm_file>
+set -euo pipefail
+
+CODE_ID="${1:-}"
+WASM_FILE="${2:-}"
+RPC="${RPC:-https://rpc.cosmos.directory/terpnetwork}"
+
+if [ -z "$CODE_ID" ] || [ -z "$WASM_FILE" ]; then
+  echo "Usage: ./verify-code-id.sh <code_id> <wasm_file>"
+  echo "  RPC=https://... ./verify-code-id.sh 42 artifacts/mycontract.wasm"
+  exit 1
+fi
+
+# Get on-chain checksum
+ONCHAIN=$(terpd query wasm code-info "$CODE_ID" --node "$RPC" -o json \
+  | jq -r '.checksum')
+
+# Compute local checksum
+LOCAL=$(sha256sum "$WASM_FILE" | cut -d' ' -f1)
+
+echo "On-chain: $ONCHAIN"
+echo "Local:    $LOCAL"
+
+if [ "$ONCHAIN" = "$LOCAL" ]; then
+  echo "✓ VERIFIED — code_id $CODE_ID matches $WASM_FILE"
+else
+  echo "✗ MISMATCH — do NOT trust this deployment"
+  exit 1
+fi
+```
+
+</Tab>
+</Tabs>
+
+## Expected Results
+
+```text
+On-chain: 7f6c9b9a6b8c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2
+Local:    7f6c9b9a6b8c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2
+✓ VERIFIED — code_id 42 matches artifacts/mycontract.wasm
+```
+
+## Troubleshooting
+
+| Symptom | Likely Cause | Fix |
+|---------|-------------|-----|
+| Hashes differ | Wrong optimizer version | Use the exact `cosmwasm/optimizer` version specified in the contract's CI config |
+| Hashes differ | Wrong source tag | Confirm the git tag matches the deployment version |
+| Hashes differ | Local modifications | Run `git diff` — uncommitted changes alter the hash |
+| Hashes differ | Different platform | Build with `--platform linux/amd64` — ARM builds differ |
+| `terpd` query fails | RPC endpoint down | Try a different node or use the REST API fallback |
+
+## Related
+
+- [IBC Info checksums](/docs/guides/trustlessness/ibc-info) — verify IBC channel metadata
+- [Website verification](/docs/guides/trustlessness/verify-website) — verify static site content
+- [Integrity resources](/docs/resources/integrity) — checksum reference tables
+- [Software concepts](/docs/overview/concepts/software) — why reproducible builds matter
