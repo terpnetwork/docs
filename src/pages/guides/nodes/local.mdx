@@ -1,0 +1,158 @@
+---
+title: Local network
+description: Spawn a disposable Terp chain on your machine — single node, Docker localterp, terpd testnet, ict-rs, or O-Line
+---
+
+import { Tabs, Tab } from 'vocs'
+
+# Local network
+
+Public testnet is `120u-1` (see [Join a network](/connect/network)). This page is for **disposable local chains** — no public peers, no real value. Pick the spawn method that matches how you work.
+
+| Method | Nodes | Faucet | Typical use |
+|--------|-------|--------|-------------|
+| Manual `terpd init` | 1 | Genesis + `bank send` | CLI / contract iteration |
+| Docker `localterp` | 1 | HTTP `:5000` | App + wallet against a known image |
+| `terpd testnet create` | 1 | Optional `--faucet` | Fast CLI localnet with deterministic keys |
+| ict-rs / interchain test | Many | Harness faucet | IBC, multi-chain CI |
+| O-Line `localnet` profile | 1+ | Profile-dependent | Ephemeral ops-shaped deploys |
+
+Never reuse localnet mnemonics on mainnet or public testnet.
+
+## Prerequisites
+
+- `terpd` on `PATH` — [get script](/overview/quickstart) or [Install](/guides/nodes/install)
+- `jq` optional
+- Docker if you use the `localterp` image
+
+Use a **dedicated home** so you do not clobber `morocco-1` / `120u-1` data.
+
+## 1. Manual single node
+
+```bash
+export CHAIN_ID=localterp-1
+export MONIKER=local-dev
+export HOME_DIR=$HOME/.terpd-local
+export DENOM=uthiol
+export KEY=local-validator
+
+rm -rf "$HOME_DIR"
+
+terpd init "$MONIKER" --chain-id "$CHAIN_ID" --home "$HOME_DIR"
+terpd keys add "$KEY" --keyring-backend test --home "$HOME_DIR"
+
+terpd genesis add-genesis-account \
+  "$(terpd keys show "$KEY" -a --keyring-backend test --home "$HOME_DIR")" \
+  1000000000000${DENOM} \
+  --home "$HOME_DIR"
+
+terpd genesis gentx "$KEY" 100000000${DENOM} \
+  --chain-id "$CHAIN_ID" \
+  --keyring-backend test \
+  --home "$HOME_DIR"
+
+terpd genesis collect-gentxs --home "$HOME_DIR"
+terpd genesis validate --home "$HOME_DIR"
+```
+
+If a `genesis` subcommand fails, run `terpd genesis --help` on your binary — SDK versions nest these slightly differently.
+
+Set `minimum-gas-prices = "0.0uthiol"` in `$HOME_DIR/config/app.toml` for local-only use. Never run a public node at zero gas.
+
+```bash
+terpd start --home "$HOME_DIR"
+```
+
+RPC is typically `tcp://127.0.0.1:26657`. Fund extra keys with `terpd tx bank send`. Details and verify table live in the [faucet](/guides/nodes/faucet) guide.
+
+## 2. Docker `localterp`
+
+From [terp-core `docker/README.md`](https://github.com/terpnetwork/terp-core/blob/main/docker/README.md):
+
+```bash
+docker buildx build --target localterp -t terpnetwork/terp-core:localterp --load .
+docker run --rm -it \
+  -p 26657:26657 -p 1317:1317 -p 5000:5000 -p 9090:9090 \
+  terpnetwork/terp-core:localterp
+```
+
+```bash
+curl -sS localhost:5000/status
+curl -sS "localhost:5000/faucet?address=terp1youraddr"
+```
+
+Pre-funded keys in the image: `validator`, `a` (default faucet), `b`, `c`, `d`. Env vars: `FAUCET_WALLET_NAME`, `FAUCET_AMOUNT`, `DENOMS`.
+
+## 3. `terpd testnet create`
+
+Single-validator local chain with deterministic test mnemonics and an optional HTTP faucet.
+
+```bash
+terpd testnet create \
+  --chain-id zk-testnet-1 \
+  --faucet \
+  --faucet-port 5000 \
+  --faucet-key-name a \
+  --faucet-amount 1000000000 \
+  --faucet-denoms uterp,uthiol \
+  --home $HOME/.terpd-testnet
+```
+
+Key names `validator`, `a`, `b`, `c`, `d`, and `faucet` are **public test vectors**.
+
+## 4. ict-rs / interchain tests
+
+The Rust interchain harness (`ict-rs`) spins multi-chain topologies (Terp + Gaia / Osmosis / etc.) in Docker, including IBC and CosmWasm. Use `TestEnv::terp_localterp_config()` and `tc.faucet_fund("terp1…")` against localterp. See the `terp-rs` / `ict-rs` docs in the monorepo.
+
+## 5. O-Line localnet
+
+```bash
+oline deploy --profile localnet
+```
+
+O-Line is for ephemeral, profile-based deploys (CI and ops-shaped local runs). It is not a substitute for joining `120u-1` or `morocco-1`.
+
+## Talk to the local node
+
+<Tabs>
+<Tab title="CLI">
+
+```bash
+terpd query bank balances \
+  "$(terpd keys show alice -a --keyring-backend test --home "$HOME_DIR")" \
+  --home "$HOME_DIR"
+```
+
+</Tab>
+<Tab title="REST">
+
+```bash
+# api.enable = true in app.toml
+curl -s "http://127.0.0.1:1317/cosmos/bank/v1beta1/balances/<terp1...>" | jq .
+```
+
+</Tab>
+<Tab title="RPC">
+
+```bash
+curl -s http://127.0.0.1:26657/status | jq '.result.sync_info'
+```
+
+</Tab>
+</Tabs>
+
+## Cleanup
+
+```bash
+# Ctrl+C the process, then:
+rm -rf "$HOME_DIR"
+# or, keep config:
+terpd tendermint unsafe-reset-all --home "$HOME_DIR" --keep-addr-book
+```
+
+## Related
+
+- [Faucet](/guides/nodes/faucet) — public `120u-1` faucet vs local funding
+- [Quickstart](/overview/quickstart) — get script for a real binary
+- [Process supervisor](/guides/nodes/systemd) — keep a long-lived node running
+- [Join a network](/connect/network) — mainnet / public testnet

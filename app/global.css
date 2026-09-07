@@ -1,0 +1,291 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+@import 'fumadocs-openapi/css/preset.css';
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── Terp Network brand theme ─────────────────────────────────────
+   Green:   #cfffcf (neon lime) / #98e8c1 (mint)
+   Purple:  #bd93f9 / #d3b3e9
+   Coral:   #FA5757 / #fe7d7d
+   Brown:   #533b3b (light headings)
+   ──────────────────────────────────────────────────────────────── */
+
+/* ── Light mode ────────────────────────────────────────────────── */
+@theme {
+  --color-fd-background: hsla(0, 0%, 97%, 0.82);
+  --color-fd-foreground: hsl(0, 5%, 12%);
+  --color-fd-muted: hsla(0, 0%, 93%, 0.88);
+  --color-fd-muted-foreground: hsl(0, 0%, 42%);
+  --color-fd-popover: hsl(0, 0%, 98%);
+  --color-fd-popover-foreground: hsl(0, 0%, 12%);
+  --color-fd-card: hsla(0, 0%, 95%, 0.75);
+  --color-fd-card-foreground: hsl(0, 5%, 12%);
+  --color-fd-border: hsla(0, 0%, 72%, 0.35);
+  --color-fd-primary: hsl(265, 50%, 45%);
+  --color-fd-primary-foreground: hsl(0, 0%, 98%);
+  --color-fd-secondary: hsla(0, 0%, 91%, 0.85);
+  --color-fd-secondary-foreground: hsl(0, 5%, 12%);
+  --color-fd-accent: hsla(265, 45%, 40%, 0.2);
+  --color-fd-accent-foreground: hsl(265, 45%, 25%);
+  --color-fd-ring: hsl(265, 45%, 50%);
+}
+
+/* ── Dark mode ─────────────────────────────────────────────────── */
+.dark {
+  --color-fd-background: hsla(260, 8%, 5%, 0.82);
+  --color-fd-foreground: hsl(80, 100%, 95%);
+  --color-fd-muted: hsla(260, 6%, 10%, 0.88);
+  --color-fd-muted-foreground: hsla(0, 0%, 65%, 0.8);
+  --color-fd-popover: hsl(260, 8%, 7%);
+  --color-fd-popover-foreground: hsl(80, 40%, 90%);
+  --color-fd-card: hsla(260, 6%, 6.5%, 0.7);
+  --color-fd-card-foreground: hsl(80, 100%, 95%);
+  --color-fd-border: hsla(265, 25%, 40%, 0.18);
+  --color-fd-primary: hsl(265, 90%, 78%);
+  --color-fd-primary-foreground: hsl(260, 20%, 6%);
+  --color-fd-secondary: hsla(260, 6%, 12%, 0.85);
+  --color-fd-secondary-foreground: hsl(80, 40%, 90%);
+  --color-fd-accent: hsla(265, 50%, 55%, 0.25);
+  --color-fd-accent-foreground: hsl(265, 90%, 78%);
+  --color-fd-ring: hsl(265, 60%, 65%);
+  --background: hsl(260, 8%, 5%);
+  --foreground: hsl(80, 100%, 95%);
+  --card: hsla(260, 6%, 6.5%, 0.7);
+  --card-foreground: hsl(80, 100%, 95%);
+  --popover: hsl(260, 8%, 7%);
+  --popover-foreground: hsl(80, 40%, 90%);
+  --primary: hsl(265, 90%, 78%);
+  --primary-foreground: hsl(260, 20%, 6%);
+  --secondary: hsla(260, 6%, 12%, 0.85);
+  --secondary-foreground: hsl(80, 40%, 90%);
+  --muted: hsla(260, 6%, 10%, 0.88);
+  --muted-foreground: hsla(0, 0%, 65%, 0.8);
+  --accent: hsla(265, 50%, 55%, 0.25);
+  --accent-foreground: hsl(265, 90%, 78%);
+  --destructive: hsl(0, 93%, 74%);
+  --border: hsla(265, 25%, 40%, 0.18);
+  --input: hsla(265, 25%, 40%, 0.25);
+  --ring: hsl(265, 60%, 65%);
+  --chart-1: hsl(265, 90%, 78%);
+  --chart-2: hsl(150, 50%, 55%);
+  --chart-3: hsl(0, 93%, 74%);
+  --chart-4: hsl(265, 70%, 65%);
+  --chart-5: hsl(150, 70%, 70%);
+  --sidebar: hsl(260, 8%, 5%);
+  --sidebar-foreground: hsl(80, 100%, 95%);
+  --sidebar-primary: hsl(265, 90%, 78%);
+  --sidebar-primary-foreground: hsl(80, 100%, 95%);
+  --sidebar-accent: hsla(265, 50%, 55%, 0.25);
+  --sidebar-accent-foreground: hsl(265, 90%, 78%);
+  --sidebar-border: hsla(265, 25%, 40%, 0.18);
+  --sidebar-ring: hsl(265, 60%, 65%);
+}
+
+/* ── Sidebar — frosted glass ──────────────────────────────────── */
+#nd-sidebar {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark #nd-sidebar {
+  --color-fd-muted: hsla(260, 5%, 8%, 0.7);
+  --color-fd-secondary: hsla(260, 5%, 10%, 0.7);
+  --color-fd-muted-foreground: hsl(0, 0%, 55%);
+}
+
+/* ── Background ───────────────────────────────────────────────── */
+body {
+  background-color: hsl(0, 0%, 97%);
+}
+
+.dark body {
+  background-color: hsl(260, 8%, 4%);
+}
+
+/* Glyph watermark — single centered, SVG has its own neon glow */
+.glyph-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image: url('/terp-glyph-light.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 80vmin;
+  filter: blur(12px);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.dark .glyph-bg {
+  background-image: url('/terp-glyph.svg');
+  filter: blur(16px);
+  opacity: 0.2;
+}
+
+body > *:not(.glyph-bg) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Prose overrides — headings & links via prose variables ───── */
+.prose {
+  --tw-prose-headings: hsl(265, 45%, 30%);
+  --tw-prose-links: #c94040;
+}
+
+.dark .prose {
+  --tw-prose-headings: #d3b3e9;
+  --tw-prose-links: #fe7d7d;
+}
+
+/* ── Active links — purple highlight ──────────────────────────── */
+a[data-active='true'],
+[aria-current='page'] {
+  color: hsl(265, 50%, 45%);
+}
+
+.dark a[data-active='true'],
+.dark [aria-current='page'] {
+  color: #bd93f9;
+}
+
+/* ── Content links — coral hover ───────────────────────────────── */
+.prose a:hover {
+  color: #FA5757;
+}
+
+/* ── Code blocks — green tinted ───────────────────────────────── */
+.dark pre {
+  background: hsl(150, 8%, 6%) !important;
+  border: 1px solid hsla(150, 30%, 40%, 0.1);
+}
+
+.dark code {
+  color: #cfffcf;
+}
+
+/* ── Calendar widget — match fumadocs theme ──────────────────── */
+.calendar-widget {
+  --background: var(--color-fd-secondary);
+  --foreground: var(--color-fd-foreground);
+  --accent: var(--color-fd-accent);
+  --accent-foreground: var(--color-fd-accent-foreground);
+  --primary: var(--color-fd-primary);
+  --primary-foreground: var(--color-fd-primary-foreground);
+  --muted-foreground: var(--color-fd-muted-foreground);
+}
+
+/* ── Calendar event dots ─────────────────────────────────────── */
+.calendar-has-events button::after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: hsl(265, 50%, 45%);
+  margin: 2px auto 0;
+}
+
+.dark .calendar-has-events button::after {
+  background: #bd93f9;
+}
+
+/* ── Inline code — purple tint ────────────────────────────────── */
+:not(pre) > code {
+  background: hsla(265, 20%, 50%, 0.08);
+  color: hsl(265, 40%, 35%);
+  border: 1px solid hsla(265, 30%, 50%, 0.1);
+}
+
+.dark :not(pre) > code {
+  background: hsla(268, 30%, 50%, 0.1);
+  color: #d3b3e9;
+  border: 1px solid hsla(268, 40%, 50%, 0.12);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* ── shadcn vars — branded to Terp palette ───────────────────── */
+:root {
+  --radius: 0.625rem;
+  --background: hsl(0, 0%, 97%);
+  --foreground: hsl(0, 5%, 12%);
+  --card: hsla(0, 0%, 95%, 0.75);
+  --card-foreground: hsl(0, 5%, 12%);
+  --popover: hsl(0, 0%, 98%);
+  --popover-foreground: hsl(0, 0%, 12%);
+  --primary: hsl(265, 50%, 45%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsla(0, 0%, 91%, 0.85);
+  --secondary-foreground: hsl(0, 5%, 12%);
+  --muted: hsla(0, 0%, 93%, 0.88);
+  --muted-foreground: hsl(0, 0%, 42%);
+  --accent: hsla(265, 45%, 40%, 0.15);
+  --accent-foreground: hsl(265, 45%, 25%);
+  --destructive: hsl(0, 92%, 66%);
+  --border: hsla(0, 0%, 72%, 0.35);
+  --input: hsla(0, 0%, 72%, 0.35);
+  --ring: hsl(265, 45%, 50%);
+  --chart-1: hsl(265, 50%, 45%);
+  --chart-2: hsl(150, 50%, 55%);
+  --chart-3: hsl(0, 92%, 66%);
+  --chart-4: hsl(265, 70%, 65%);
+  --chart-5: hsl(150, 70%, 70%);
+  --sidebar: hsl(0, 0%, 97%);
+  --sidebar-foreground: hsl(0, 5%, 12%);
+  --sidebar-primary: hsl(265, 50%, 45%);
+  --sidebar-primary-foreground: hsl(0, 0%, 98%);
+  --sidebar-accent: hsla(265, 45%, 40%, 0.15);
+  --sidebar-accent-foreground: hsl(265, 45%, 25%);
+  --sidebar-border: hsla(0, 0%, 72%, 0.35);
+  --sidebar-ring: hsl(265, 45%, 50%);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+}

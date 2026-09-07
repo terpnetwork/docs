@@ -1,0 +1,103 @@
+---
+title: Governance
+description: How Terp Network is governed — on-chain voting, DAOs, parameter changes, and upgrades
+status: partial
+---
+Governance is the process by which a distributed group of participants agrees on actions. Terp Network supports multiple governance layers.
+
+## Chain-Level Governance
+
+Terp Network's on-chain governance module (`x/gov`) allows `uthiol` stakers to vote on proposals that control chain parameters, treasury spending, and upgrades.
+
+### Proposal Types
+
+| Type | Description | Quorum | Passage Threshold |
+|------|-------------|--------|-------------------|
+| Text | Non-binding signal | 20% | >50% "Yes" |
+| Parameter Change | Modify a module parameter | 20% | >50% "Yes" |
+| Community Spend | Transfer funds from community pool | 20% | >50% "Yes" |
+| Software Upgrade | Schedule a chain upgrade | 20% | >50% "Yes" |
+| IBC Client Update | Update an IBC light client | 20% | >50% "Yes" |
+
+### Voting Period
+
+The standard voting period is **7 days**. During this time:
+1. Proposal submitted with minimum deposit (recovered if quorum met)
+2. Voting period opens
+3. Stakers vote: Yes, No, Abstain, or NoWithVeto
+4. Votes tallied, proposal executed or rejected
+
+### Who Can Propose
+
+Any account can submit a governance proposal by posting the required deposit (currently `1000000uthiol`, governance-adjustable).
+
+```bash
+# Submit a text proposal
+terpd tx gov submit-proposal \
+  --title="My Proposal" \
+  --description="Description of the proposal" \
+  --deposit=1000000uthiol
+
+# Vote
+terpd tx gov vote <proposal-id> Yes
+```
+
+## DAO Governance
+
+Beyond the chain-level governance module, Terp Network supports **DAO governance** through CosmWasm smart contracts (dao-contracts). DAOs enable:
+
+- **SubDAOs** — hierarchical governance structures
+- **Token-based voting** — weight proportional to token holdings
+- **NFT-based voting** — weight proportional to NFT membership
+- **Multisig voting** — pre-configured signer thresholds
+- **Module-controlled DAOs** — programmatic governance
+
+### DAO-DAO Framework
+
+Terp Network uses the [dao-contracts](https://github.com/terpnetwork/dao-contracts) framework, which provides:
+- Proposal creation and voting
+- Treasury management
+- Module execution
+- Membership management
+- Cross-DAO communication
+
+> **Governance flow diagram scaffold** — a visual showing the lifecycle of a governance proposal from submission through voting to execution. Include both chain-level and DAO paths.
+
+## Parameter Governance
+
+Many chain modules have parameters that can be modified through governance:
+
+| Module | Param Governable | Example |
+|--------|-----------------|---------|
+| Staking | Max validators, unbonding time | `MaxValidators: 100` |
+| Governance | Voting period, deposit minimum | `VotingPeriod: 604800s` |
+| Distribution | Community tax, base proposer reward | `CommunityTax: 0.05` |
+| Global Fee | Minimum fee per tx | `MinGasPrice: 0.05uthiol` |
+| IBC | Client update parameters | `AllowedClients` |
+
+## Upgrade Governance
+
+Software upgrades on Terp Network follow a governance-driven process:
+
+1. **Governance proposal** — a `SoftwareUpgrade` proposal is submitted
+2. **Voting period** — stakers vote on the upgrade
+3. **Pre-upgrade hook** — if passed, the chain schedules the upgrade at a specified height
+4. **Cosmovisor** — node runners can use cosmovisor to automate binary swaps
+5. **Execution** — at the target height, the chain halts, validators swap binaries, and the new chain starts
+
+```bash
+# Submit upgrade proposal
+terpd tx gov submit-proposal software-upgrade <version> \
+  --title="Upgrade to v5.2.0" \
+  --description="..." \
+  --upgrade-height=12345678 \
+  --deposit=1000000uthiol
+```
+
+> **Upgrade flow diagram scaffold** — timeline showing governance proposal → voting → scheduled upgrade → binary swap → new chain start.
+
+## Further Reading
+
+- [DAO setup guide](/docs/resources/ecosystem/daodao) — deploying and configuring a DAO
+- [Governance module docs](/guides/modules) — detailed parameter descriptions
+- [Contribute to governance](/docs/connect) — join the community

@@ -1,0 +1,94 @@
+---
+title: Hash Functions
+description: Cryptographic hash functions used in Terp Network — SHA-256, BLAKE3, Poseidon — properties, uses, and interactive hash explorer
+status: partial
+---
+import { Accordion, Accordions } from '#vocs-compat';
+
+A hash function takes an input of any size and produces a fixed-size output (the **digest** or **hash**) that uniquely represents the input. Hash functions are the building blocks of blockchain integrity — every block, transaction, and state root is a hash.
+
+## Properties of Cryptographic Hashes
+
+| Property | What It Means |
+|----------|--------------|
+| Deterministic | Same input always produces the same output |
+| One-way | Given a hash, finding the input is computationally infeasible |
+| Collision-resistant | Finding two inputs that produce the same hash is computationally infeasible |
+| Avalanche effect | Changing one bit of input changes ~50% of output bits |
+| Fixed output size | Regardless of input size, output is constant (256 bits for SHA-256) |
+
+## Hash Functions on Terp Network
+
+Terp Network uses multiple hash algorithms depending on the layer:
+
+### SHA-256
+
+Used in:
+- **Block headers** — app hash, last block hash
+- **IBC light clients** — client state commitments
+- **Transaction hashing** — tx hash in block
+- **Smart account authenticators** — safe-word hash storage
+
+```text
+SHA-256("Hello") = 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+```
+
+## BLAKE3
+
+Used in:
+- **CosmWasm contract code hash** — fast verification during node startup
+- **Content-addressed storage** — IPFS/CID generation
+- **QMD indexing** — content hashing for semantic search
+
+BLAKE3 is significantly faster than SHA-256 while providing equivalent security:
+
+```bash
+# BLAKE3 checksum example
+echo -n "Hello" | b3sum
+# Output: 6671090d8c6b3b3d3c4f5e6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6
+```
+
+## Poseidon
+
+Used in:
+- **ZK circuit hashing** — Poseidon is designed for efficient use inside zero-knowledge proofs
+- **Merkle tree proofs inside circuits** — much lower constraint count than SHA-256
+- **PollRegistry** — private vote aggregation with ZK proofs
+
+```text
+Poseidon is not a general-purpose hash. It is optimized for ZK-friendly arithmetic
+circuits where SHA-256 would require thousands of constraints per hash.
+```
+
+> **Poseidon vs SHA-256 constraint comparison scaffold** — a bar chart or table showing the number of R1CS constraints required for a single hash operation across SHA-256, BLAKE3, and Poseidon in a ZK circuit context.
+
+## Interactive Hash Explorer
+
+> **Interactive hash explorer scaffold** — a component that accepts text input and displays the output hash across multiple algorithms side-by-side (SHA-256, BLAKE3, Poseidon). Users can type input and see real-time hash output with visual differences highlighted.
+
+```text
+┌─────────────────────────────────────────────────┐
+│  Input: [_____________________________]         │
+│                                                  │
+│  SHA-256  2cf24dba5fb0a30e26e83b2ac5b9e29e...  │
+│  BLAKE3   6671090d8c6b3b3d3c4f5e6a7b8c9d0e...  │
+│  Poseidon 1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6...  │
+│                                                  │
+│  Output length: 32 bytes (256 bits)              │
+└─────────────────────────────────────────────────┘
+```
+
+## Post-Quantum Hash Readiness
+
+As quantum computing advances, hash functions must be migrated to quantum-resistant primitives. Terp Network's approach:
+
+- **Algorithm agility** — the smart account module supports key rotation, enabling migration to new hash-based signature schemes
+- **Hash-based signatures** — SPHINCS+ and similar post-quantum signature schemes can be registered as authenticators
+- **Future-proof storage** — state commitments use hash functions that can be upgraded via governance
+
+## Related Concepts
+
+- [Merkle Trees](/docs/overview/concepts/crypto/merkle/trees) — trees of hashes for efficient verification
+- [Merkle Mountain Ranges](/docs/overview/concepts/crypto/merkle/mountains) — append-only hash accumulator
+- [Jellyfish Merkle Trees](/docs/overview/concepts/crypto/merkle/jellyfish) — sparse Merkle variant for account state
+- [Cryptography overview](/docs/overview/concepts/crypto)

@@ -1,0 +1,19 @@
+---
+title: Consensus
+description: CometBFT BFT — how Terp agrees on a block
+---
+
+# Consensus
+
+Terp uses **CometBFT** (bonded proof-of-stake). Validators propose and vote on blocks. More than two-thirds of voting power must pre-vote and pre-commit the same block or the height does not finalize.
+
+A **Byzantine** validator can lie or go silent. The protocol still commits as long as less than one-third of voting power is faulty. Crossing that bound is a safety failure, not a “slow block.”
+
+| Piece | Role |
+|-------|------|
+| Proposer | Assembles the next block |
+| Prevotes / precommits | Two-phase votes; 2/3+ commits |
+| Evidence | Double-sign proofs jail and slash |
+| App hash | Merkle root of state after the block |
+
+Home validators sit behind [sentries](/guides/validators/sentry) and should [threshold-sign](/guides/nodes/threshold-signing). Operations: [validator setup](/guides/validators/setup). Light verification of those commits is [light clients](/overview/concepts/light-clients).

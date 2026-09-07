@@ -1,0 +1,26 @@
+---
+title: Trustlessness Guides
+description: Reproducible builds, checksum verification, deployment integrity, and trust-minimized workflows
+status: partial
+---
+These guides walk through the practical steps of maintaining trustlessness — verifying that every artifact you download from Terp Network matches what was published. No blind trust required.
+
+## What You Can Verify
+
+| Guide | What You Verify | How |
+|-------|----------------|-----|
+| [Compile & Verify Code ID](/docs/guides/trustlessness/compile-verify-code-id) | A smart contract's on-chain code hash matches its source | Reproducible build → compare code_id hash |
+| [IBC Info Checksums](/docs/guides/trustlessness/ibc-info) | IBC channel metadata, port bindings, client states | `ibc-info` script generates verifiable checksums |
+| [Website Content](/docs/guides/trustlessness/verify-website) | Static website pages haven't been tampered with | Content hashing, source comparison |
+| [Circuit Integrity](/docs/guides/trustlessness/verify-circuit) | Zero-knowledge circuit artifacts are authentic | Build reproducibility, proof key verification |
+
+## The Trustlessness Mandate
+
+> **No user should be required to trust a third party to verify the integrity of the network, its software, or its state.**
+
+Every guide here follows a single pattern:
+1. **Build from source** — produce the artifact yourself
+2. **Compare** — match your result against the published reference
+3. **Decide** — if they match, you can use the artifact without trusting an intermediary
+
+See the [Trustlessness concept](/docs/overview/concepts/trustless) for the full manifesto and pipeline overview.

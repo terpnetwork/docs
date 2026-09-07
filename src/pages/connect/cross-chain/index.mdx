@@ -1,0 +1,29 @@
+---
+title: Cross-chain
+description: IBC is how Terp talks to other Cosmos chains
+---
+
+# Cross-chain
+
+Terp moves packets over **IBC** — light clients, connections, channels — not a trusted bridge admin. Concepts: [IBC](/overview/concepts/ibc). Query live clients and channels in the [IBC playground](/api/ibc).
+
+To join the network as a node (so you can relay or just follow state): [join](/connect/network) and [node guides](/guides).
+
+There is no separate “bridge admin” page. If a client expires, the channel is paused until someone updates the light client — that is intended, not an outage to patch around.
+
+Relayers only move packets that already committed on both sides. They do not invent state.
+
+## Send a transfer
+
+```bash
+# list your channels first — only open ones route packets
+terpd query ibc channel channels --output json | jq '.channels[] | {channel_id, state}'
+
+# transfer over an open channel (counterparty denom lands as an IBC voucher)
+terpd tx ibc-transfer transfer transfer <channel-id> <receiver> <amount><denom> \
+  --from <key-name> --chain-id <chain-id>
+```
+
+Trace a voucher back to its origin with the [IBC API](/api/ibc) (`denom_traces`) before assuming what it is worth.
+
+Use [public RPC](/resources/public) to inspect `ibc` clients before you assume a route is live.

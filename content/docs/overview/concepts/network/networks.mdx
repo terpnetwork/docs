@@ -1,0 +1,91 @@
+---
+title: Networks
+description: Terp Network's multi-network architecture — mainnet, testnet, localnet — and how they relate
+status: partial
+---
+Terp Network operates multiple network instances, each serving a distinct purpose in the development and production lifecycle.
+
+## Mainnet (`morocco-1`)
+
+The production network. Real assets, real validators, real applications.
+
+- **Chain ID:** `morocco-1`
+- **Consensus:** CometBFT with bonded proof-of-stake
+- **Validators:** Decentralized set securing the network
+- **Governance:** On-chain proposals control parameters, upgrades, treasury
+- **Asset:** `uthiol` (native fee token), IBC-connected assets
+
+Connect via: [Network guide](/docs/connect/network)
+
+## Testnet (`90u-4`)
+
+A staging environment that mirrors mainnet. Used for:
+- Smart contract testing before mainnet deployment
+- Validator dry-runs
+- Integration testing with IBC partners
+- Application prototyping
+
+- **Chain ID:** `90u-4`
+- **Faucet:** Available via [connect page](/docs/connect/network)
+- **Genesis:** Published in the [networks repo](https://github.com/terpnetwork/networks)
+- **Peers:** Public seed nodes
+
+## Localnet
+
+A single-node or multi-node network running entirely on your machine. Used for:
+- Development and debugging
+- CI/CD pipelines
+- Smart contract integration tests
+- Relayer configuration testing
+
+### Quick Start
+
+```bash
+# Using terpd
+terpd init my-local --chain-id localterp
+terpd start
+
+# Or with O-Line (ephemeral deployment)
+oline deploy --profile localnet
+```
+
+> **Localnet with faucet scaffold** — guide in progress. See [network guides](/guides/network) for current instructions.
+
+## O-Line Deployments
+
+The [O-Line](/docs/ecosystem/terp-installer) tool automates ephemeral node deployment for CI/CD and testing workflows, supporting all three network types with profile-based configuration.
+
+## Network Comparison
+
+| Feature | Mainnet | Testnet | Localnet |
+|---------|---------|---------|----------|
+| Real value | Yes | No | No |
+| Validator set | Live | Permissioned | Single node |
+| Faucet | N/A | Available | Configurable |
+| IBC peers | Live channels | Test channels | None by default |
+| State sync | Available | Available | N/A |
+| Snapshots | Available | Available | N/A |
+| Gas | Real `uthiol` | Faucet `uthiol` | Simulated |
+
+> **Network topology diagram scaffold** — a visual showing how mainnet, testnet, localnet relate, with IBC connections to counterparty chains. Arrows for relayers, boxes for validators.
+
+## Running a Node
+
+Anyone can run a node on any of these networks. See the [node guides](/guides/network/nodes) for:
+- Hardware requirements
+- Installation from source
+- State sync configuration
+- Validator setup
+- Snapshot restoration
+
+## Network Parameters
+
+Key parameters shared across networks:
+
+| Parameter | Mainnet Value | Notes |
+|-----------|---------------|-------|
+| Min gas fee | `0.05uthiol` | Configurable per validator |
+| Block time | ~6 seconds | CometBFT default |
+| Max validators | 100 | Governance-adjustable |
+| Unbonding period | 21 days | Security parameter |
+| Governance period | 7 days | Proposal voting window |

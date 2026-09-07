@@ -1,0 +1,105 @@
+---
+title: Storage Access Patterns
+description: How data is stored, accessed, and queried on Terp Network — KV store, IAVL tree, CosmWasm storage, and privacy considerations
+status: partial
+---
+Understanding how data flows through Terp Network's storage layers is essential for building efficient and private applications.
+
+## The Storage Stack
+
+Terp Network uses a multi-layered storage architecture:
+
+```rust
+┌────────────────────────────────────────┐
+│           Application Layer            │  ← Smart contracts, modules
+├────────────────────────────────────────┤
+│           CosmWasm Storage             │  ← Contract-level KV stores (prefixed)
+├────────────────────────────────────────┤
+│         Cosmos SDK Store               │  ← MultiStore with substores
+├────────────────────────────────────────┤
+│             IAVL Tree                  │  ← Merklized, versioned KV store
+├────────────────────────────────────────┤
+│         CometBFT Block Store           │  ← Block data and state
+├────────────────────────────────────────┤
+│         Filesystem (LevelDB/RocksDB)   │  ← Physical persistence
+└────────────────────────────────────────┘
+```
+
+## IAVL Tree
+
+The IAVL (Immutable AVL + Merkle) tree is the core data structure for state storage. Key properties:
+
+- **Versioned** — each block creates a new version, enabling queries at any height
+- **Merkle proofs** — any state value can be proven against the app hash
+- **Efficient range queries** — ordered traversal for iteration
+
+```bash
+# Query state at a specific height
+terpd query block <height>
+terpd query bank balances <address> --height <height>
+```
+
+## CosmWasm Contract Storage
+
+Each CosmWasm contract gets its own isolated KV store, prefixed under the Cosmos SDK multistore. Contract storage is:
+
+- **Isolated** — contracts cannot read each other's storage directly
+- **Deterministic** — storage operations always produce the same state transitions
+- **Gas-metered** — each read/write costs gas proportional to operation size
+
+Common storage patterns:
+
+```rust
+// Singleton — one item per contract
+SINGLE_ITEM: Item<Config> = Item::new("config");
+
+// Map — key-value with typed keys
+BALANCES: Map<&Addr, Uint128> = Map::new("balance");
+
+// IndexedMap — map with secondary indexes
+MEMBERS: IndexedMap<&Addr, MemberData, MemberIndexes> = IndexedMap::new("members");
+```
+
+## Privacy-Relevant Access Patterns
+
+### Public by Default
+
+All on-chain data is publicly readable. Anyone can query contract state at any block height. This has implications:
+
+- **Balance privacy** — all token balances are public
+- **Transaction graph** — all transactions are linkable
+- **Contract state** — all contract data is queryable
+
+### Mitigation Strategies
+
+| Strategy | What It Does | Tradeoff |
+|----------|-------------|----------|
+| Commit-reveal | Store hashes, reveal later | Additional round trips |
+| Encrypted storage | Encrypt data before storing | Key management complexity |
+| Off-chain storage | Store data off-chain, reference by hash | Less verifiable |
+| ZK proofs | Prove a fact without revealing data | Computation overhead |
+
+> **Storage access pattern diagram scaffold** — a diagram showing how a query traverses the storage stack: user → RPC → CometBFT → Cosmos SDK → IAVL tree → response with Merkle proof.
+
+## Query Optimization
+
+For efficient contract queries:
+
+1. **Use indexes** — `IndexedMap` for frequent lookups
+2. **Limit iteration** — avoid unbounded `range()` calls in queries
+3. **Paginate** — use `pagination` parameters for large result sets
+4. **Cache off-chain** — use QMD indexes for semantic search instead of on-chain queries
+
+```rust
+// Paginated query example
+let members: Vec<_> = MEMBERS
+    .range(deps.storage, None, None, Order::Ascending)
+    .take(100)
+    .collect();
+```
+
+## Further Reading
+
+- [CosmWasm storage docs](/guides/cosmwasm) — contract storage patterns
+- [IAVL spec](https://github.com/cosmos/iavl) — detailed IAVL tree specification
+- [Indexing guide](/guides/network/indexing) — off-chain data indexing

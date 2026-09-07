@@ -1,0 +1,148 @@
+---
+title: Integrity Verification
+description: Verify the integrity of Terp Network releases, installation scripts, genesis files, and static websites
+status: partial
+---
+import { Accordion, Accordions } from '#vocs-compat';
+
+Before using any Terp Network artifact, verify its integrity against published checksums. This ensures the artifact has not been tampered with in transit.
+
+<Accordions type="single">
+
+<Accordion title="Terp-Core Versions">
+
+Each Terp Network release publishes checksums for the compiled binary. Verify before running a new version.
+
+**SHA256 Checksums (terpd binaries):**
+
+```bash
+# Download the release tarball (ADR-11)
+wget https://s3.terp.network/releases/terp-core/v5.2.0/terpd-5.2.0-linux-amd64.tar.gz
+wget https://s3.terp.network/releases/terp-core/v5.2.0/sha256sum.txt
+sha256sum -c sha256sum.txt --ignore-missing
+```
+
+Checksums are published next to the tarball at `https://s3.terp.network/releases/terp-core/<tag>/sha256sum.txt`.
+
+**Reproducible build verification:**
+
+```bash
+# Build from source
+git checkout v5.2.0
+make build
+
+# Compare with release binary checksum
+sha256sum build/terpd
+# Should match the published release checksum
+```
+
+For reproducible builds, use the same build environment as CI (Docker-based). See the [Makefile](https://github.com/terpnetwork/terp-core/blob/main/Makefile) for build targets.
+
+See [Software concepts](/docs/overview/concepts/software), [Verify guide](/docs/resources/verify)
+</Accordion>
+
+<Accordion title="Installation Scripts">
+
+Installation scripts (`terp-installer.sh`, `terp-installer.py`) have published checksums.
+
+**SHA256:**
+
+```text
+b507799e558e8173d7a4139dd5caaa73b5fc6c8dba2a58b3f0015b726e239266  terp-installer.py
+9f76178e8d5146b7c3c004463d64aac36ce0f35d49477c1a69e4f1e5dee860c5  terp-installer.sh
+```
+
+**BLAKE3:**
+
+```text
+3113805970499a614c8dda2b8d2730bade6f0b0a3d5a8fa99bac4e9856396cee  terp-installer.py
+8c1826931f3c9c620dddabe6756881a2a51aa977c24b60842eca697dfd40ebb7  terp-installer.sh
+```
+
+**Verify:**
+
+```bash
+curl -sL https://terp.network/get > terp-installer.sh
+echo "a233f0863b439273e772b14d61b985c8a20e719c72506399adebff03551596c7  terp-installer.sh" | sha256sum -c
+# Expected: terp-installer.sh: OK
+```
+
+See [Verify guide](/docs/resources/verify) for detailed instructions for both SHA256 and BLAKE3.
+</Accordion>
+
+<Accordion title="Genesis Files">
+
+Genesis files define the initial state of a network. Verify before initializing a node.
+
+**Mainnet genesis:**
+
+```bash
+curl -sL https://s3.terp.network/snapshots/mainnet/morocco-1/genesis.json > genesis.json
+
+# Verify with published SHA256
+# Checksum is published in the networks repo
+# https://github.com/terpnetwork/networks
+sha256sum genesis.json
+```
+
+**Testnet genesis:**
+
+```bash
+curl -sL https://s3.terp.network/snapshots/testnet/120u-1/genesis.json > genesis.json
+```
+
+Genesis checksums are published alongside the genesis files in the [networks repository](https://github.com/terpnetwork/networks). Compare against the checksum at the matching git tag.
+
+> **Genesis integrity diagram scaffold** — a flowchart showing: genesis.json downloaded → checksum computed → compared against published hash → match (proceed) or mismatch (abort).
+
+See [Networks concepts](/docs/overview/concepts/network/networks)
+</Accordion>
+
+<Accordion title="Static Websites">
+
+Terp Network publishes static websites (this docs site, installers, community pages) with integrity metadata.
+
+**Content-hash verification:**
+
+Static assets are served with digest headers where available. You can verify content integrity using:
+
+```bash
+# Fetch a known page and verify its checksum
+curl -sL https://docs.terp.network/ > index.html
+sha256sum index.html
+# Compare with the published hash from the release tag
+```
+
+**Source verification:**
+
+All static sites are built from source repositories:
+- Docs: [terp-core/websites/terp-docs](https://github.com/terpnetwork/terp-core)
+- Installer: [terp-installer repo](https://github.com/terpnetwork/terp-installer)
+
+Build repositories produce deterministic outputs via CI. Verify by building from source and comparing the output.
+
+See [Trustlessness concepts](/docs/overview/concepts/trustless)
+</Accordion>
+
+</Accordions>
+
+## Checksum Reference
+
+| Artifact | Algorithm | Where To Find Checksum |
+|----------|-----------|----------------------|
+| terpd binary | SHA256 | GitHub release notes |
+| terp-installer.sh | SHA256, BLAKE3 | This page, verify page |
+| terp-installer.py | SHA256, BLAKE3 | This page, verify page |
+| genesis.json | SHA256 | networks repository |
+| Docker images | SHA256 | Container registry |
+| Deployed contracts | SHA256 | On-chain code hash |
+| Static sites | SHA256 | Release tags |
+
+## Verification Tools
+
+| Tool | Install | Purpose |
+|------|---------|---------|
+| `sha256sum` | Built-in (Linux/macOS) | SHA-256 checksums |
+| `b3sum` | `brew install b3sum` or `cargo install b3sum` | BLAKE3 checksums |
+| `gpg` | Built-in (Linux/macOS) | Signed release verification |
+| `minisign` | `brew install minisign` | Lightweight signature verification |

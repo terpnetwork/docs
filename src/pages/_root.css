@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --vocs-font-family-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    monospace;
+  --vocs-spacing-topNav: 60px;
+}
+
+/* Page title: iron vocs_Header — rule under the h1, then the lead */
+article[data-v-content] > h1:first-child {
+  border-bottom: 1px solid var(--vocs-border-color-primary);
+  padding-bottom: 1.75rem;
+  margin-bottom: 1.75rem;
+}
+
+article[data-v-content] > hgroup:first-child {
+  border-bottom: 1px solid var(--vocs-border-color-primary);
+  padding-bottom: 1.75rem;
+  margin-bottom: 1.75rem;
+}
+
+/* Top bar: translucent strip, search sits like iron's DesktopSearch pill */
+[data-v-gutter-top] {
+  background-color: color-mix(in srgb, var(--vocs-background-color-primary) 98%, transparent);
+}
+
+[data-v-gutter-top-left] {
+  align-items: center;
+}
+
+[data-v-gutter-top-left] > div:has(button) {
+  width: 15.5rem;
+  max-width: 15.5rem;
+  height: 40px;
+}
+
+[data-v-gutter-top-left] button {
+  height: 40px;
+  border-radius: 8px;
+  background-color: var(--vocs-background-color-surfaceMuted);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* Sidebar wordmark + hairline, iron Sidebar_logo / divider */
+.doc-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  height: 2.5rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.doc-brand-mark {
+  height: 1.35rem;
+  width: auto;
+}
+
+/* Light: orange glyph. Dark: green. (img SVGs do not inherit page color-scheme.) */
+.doc-brand-mark--dark {
+  display: none;
+}
+
+:root[style*='color-scheme: dark'] .doc-brand-mark--light,
+:root[data-vocs-theme='dark'] .doc-brand-mark--light {
+  display: none;
+}
+
+:root[style*='color-scheme: dark'] .doc-brand-mark--dark,
+:root[data-vocs-theme='dark'] .doc-brand-mark--dark {
+  display: block;
+}
+
+.doc-brand-word {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+aside[data-v-sidebar-container] [data-v-sidebar-header] {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--vocs-border-color-primary);
+}
+
+/* Logo already lives in the sidebar wordmark on desktop */
+@media (min-width: 1024px) {
+  [data-v-logo-link] {
+    display: none;
+  }
+}
+
+/* Concept opener — “X is many things to many people.” */
+.doc-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  text-align: center;
+  margin: 0 0 2rem;
+  padding: 1.35rem 1.25rem 1.5rem;
+  border-top: 1px solid var(--vocs-border-color-primary);
+  border-bottom: 1px solid var(--vocs-border-color-primary);
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.35;
+  color: var(--vocs-text-color-heading);
+}
+
+.doc-intro-label {
+  font-family: var(--vocs-font-family-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vocs-text-color-muted);
+}

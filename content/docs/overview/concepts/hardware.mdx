@@ -1,0 +1,73 @@
+---
+title: Hardware
+description: Physical infrastructure for Terp Network — nodes, validators, sensors, relayers, HSMs
+status: partial
+---
+Hardware is the physical layer of Terp Network. Every interaction — from validating blocks to broadcasting transactions — runs on some hardware device.
+
+## Node Hardware
+
+Anyone running a Terp Network node needs:
+
+### Full Node (Minimum)
+
+| Component | Requirement |
+|-----------|-------------|
+| CPU | 2+ cores (x86_64 or ARM64) |
+| RAM | 8GB+ |
+| Storage | 500GB+ SSD (NVMe recommended) |
+| Network | 100Mbps+ stable connection |
+| OS | Linux (Ubuntu 22.04+, Debian 12+, NixOS) |
+
+### Validator Node (Recommended)
+
+| Component | Requirement |
+|-----------|-------------|
+| CPU | 4+ cores, 3GHz+ |
+| RAM | 16GB+ |
+| Storage | 1TB+ NVMe SSD |
+| Network | 1Gbps with redundant links |
+| OS | Linux, minimized |
+| HSM | Optional (YubiHSM2, Ledger) |
+
+### Sentry Node
+
+Same as full node, but with:
+- Public IP with DDoS protection
+- Higher bandwidth allocation
+- Rate limiting configured
+
+## Hardware Security Modules (HSMs)
+
+Validators can use HSMs to protect their consensus key:
+
+- **YubiHSM2** — USB-connected, supports Ed25519 signing
+- **Ledger** — Cosmos app for transaction signing
+- **SGX/TEE** — future support for trusted execution environments
+
+## Specialized Hardware
+
+Terp Network extends beyond validators:
+
+| Hardware | Role |
+|----------|------|
+| Relayer server | Runs IBC relayer software (low resources) |
+| IPFS/storage server | Content-addressed storage for chain data |
+| Sensor node | IoT/edge devices using light client proofs |
+| Communication relay | Mesh network or LoRaWAN connectivity |
+| Broadcast node | Transaction submission gateway |
+
+> **Hardware topology diagram scaffold** — a diagram showing different hardware types in the Terp Network ecosystem: validator, sentry, full node, relayer, storage server, sensor. Show connectivity between them.
+
+## Hardware Security Considerations
+
+1. **Physical access** — keep validator hardware in a secure, locked location
+2. **Network isolation** — validators should not face the public internet directly (use sentries)
+3. **Key storage** — consensus keys should use HSMs or encrypted storage
+4. **Backup** — maintain offline backups of validator state
+
+## Further Reading
+
+- [Node setup guides](/guides/network/deploy) — hardware provisioning walkthrough
+- [Validator guide](/guides/network/validators) — operational security
+- [O-Line deployment](/docs/ecosystem/terp-installer) — ephemeral test hardware

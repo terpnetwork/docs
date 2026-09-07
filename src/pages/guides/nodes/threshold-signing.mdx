@@ -1,0 +1,125 @@
+---
+title: Threshold signing
+description: Split the consensus key across cosigners so no single host can double-sign or leak priv_validator_key.json
+---
+
+# Threshold signing
+
+A validator’s consensus key (`priv_validator_key.json`) is the thing that can get you **tombstoned**. One hot copy on the `terpd` host is a single disk, a single SSH session, and a single process away from leak or double-sign.
+
+**Threshold signing** replaces that file with a cluster of cosigners. The CometBFT process asks for a signature over the privval socket; *k-of-n* machines must cooperate. No one machine holds a usable key.
+
+This page replaces the old TMKMS walkthrough. TMKMS is a *single* remote signer (often with an HSM). It moves the key off the node, but it is still one signer. Threshold is the production pattern we recommend.
+
+## What you are protecting
+
+| File / socket | Role |
+|---------------|------|
+| `config/priv_validator_key.json` | Consensus private key. Delete it from the validator host once the cluster is live. |
+| `data/priv_validator_state.json` | Last height/round/step signed. Double-sign insurance. Each cosigner keeps its own watermark. |
+| `priv_validator_laddr` | CometBFT **listens** here for a remote signer (TCP). |
+| Cosigner raft / p2p | How Horcrux (or equivalent) reaches quorum. Never expose this to the public internet. |
+
+Never run two signing stacks for the same consensus pubkey at the same height. That is how you tombstone yourself during a migration.
+
+## Topology
+
+```
+        sentry / public P2P
+                 |
+            validator node
+           (terpd, no key file)
+                 |
+         privval TCP (localhost or private net)
+                 |
+        ┌────────┴────────┐
+        │  cosigner 1..n  │   k-of-n (e.g. 2-of-3)
+        └─────────────────┘
+```
+
+The validator process stays on a private network behind [sentries](/guides/validators/sentry). Cosigners live on **separate** machines (or at least separate failure domains). A 2-of-3 survives one host dying; a 3-of-3 does not.
+
+## Node side (`config.toml`)
+
+Empty the local key path once the cluster owns the key, and listen for the signer:
+
+```toml
+[priv_validator]
+# CometBFT waits for the threshold cluster to connect (or you dial out,
+# depending on the signer). Horcrux typically has the cosigner dial the node.
+# Set the listen address the signer docs specify, e.g.:
+# priv_validator_laddr = "tcp://0.0.0.0:1234"
+```
+
+In current CometBFT config the field is still commonly:
+
+```toml
+priv_validator_laddr = "tcp://0.0.0.0:1234"
+```
+
+Bind that port to the private network only. Firewall: cosigners → validator `:1234`. Not `0.0.0.0` on a public NIC.
+
+Confirm the node is **not** loading a leftover file:
+
+```bash
+# After cut-over this file should be gone or renamed off-disk
+ls $HOME/.terpd/config/priv_validator_key.json
+```
+
+## Horcrux (k-of-n cosigners)
+
+[Horcrux](https://github.com/strangelove-ventures/horcrux) is the usual CometBFT threshold signer: Shamir-style shares, raft between cosigners, privval to the node.
+
+High-level:
+
+1. On an air-gapped or at least offline machine, generate the consensus key **or** shard an existing `priv_validator_key.json`.
+2. Distribute shares to `n` cosigner hosts. Destroy the unsharded key.
+3. Configure each cosigner with:
+   - peer list of the other cosigners (private IPs)
+   - `threshold` (`k`)
+   - `chain-id` (`morocco-1` or `120u-1`)
+   - validator privval address (`tcp://validator-priv:1234`)
+4. Start **all** cosigners, then start `terpd`. The node should sit at “waiting for signer” until quorum exists.
+5. Watch signatures: `terpd status` + your explorer. One missed window during cut-over is expected; two signers active is not.
+
+Follow Horcrux’s current `cosigner` / `config.yaml` reference for flag names — they move across major versions. The invariants above do not.
+
+Supervise each cosigner with the same [process supervisor](/guides/nodes/systemd) story (systemd or pm2). A dead cosigner below threshold means **you stop signing**. Alert on that.
+
+## Single remote signer (when threshold is not ready)
+
+If you only have one HSM or one offline box, a **single** remote signer (TMKMS, a lone Horcrux node, or `priv_validator_laddr` + one process) is still better than a key file on the validator disk. It is not threshold: compromise or downtime of that one process is compromise or downtime of the validator.
+
+TMKMS + YubiHSM docs: [iqlusioninc/tmkms](https://github.com/iqlusioninc/tmkms). Treat it as a stopgap, not the target architecture.
+
+## Cut-over without double-sign
+
+1. Sync the new validator host as a **full node** (no consensus key).
+2. Stop the old signer **and** confirm the last signed height on-chain (explorer / `signing_infos`).
+3. Copy `priv_validator_state.json` watermarks into the new cluster (Horcrux import / state file) so it will not sign a height already signed.
+4. Start cosigners, then the new node.
+5. Only then retire the old process. Do not start the old `terpd` again with the old key file.
+
+See [validator migration](/guides/validators/migration).
+
+## Checks
+
+| Check | How |
+|-------|-----|
+| Node has no local consensus key | file absent; logs show remote signer connected |
+| Only one signing cluster | old host stopped; old key offline |
+| Quorum | `k` cosigners healthy; one kill-test still signs if `k < n` |
+| Watermark | after restart, no double-sign; next height signs once |
+| Network | privval + cosigner raft not on the public internet |
+
+## FROST sidecar alternative
+
+If the consensus key lives in the hash-market sidecar, threshold signing happens there instead of Horcrux: FROST-Ed25519 shares in one runtime, no key file anywhere. See [FROST sidecar](/guides/validators/frost-privval). Do not run both stacks against the same consensus key.
+
+## Related
+
+- [FROST sidecar](/guides/validators/frost-privval)
+- [Keys](/guides/nodes/keys)
+- [Sentry](/guides/validators/sentry)
+- [Process supervisor](/guides/nodes/systemd)
+- [Validator setup](/guides/validators/setup)

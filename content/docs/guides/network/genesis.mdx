@@ -1,0 +1,157 @@
+---
+title: Genesis
+description: The genesis file defines the initial state of the blockchain. This guide explains how to download and set up the genesis file for Terp Network.
+status: partial
+---
+## Download Genesis File
+
+The genesis file defines the initial state of the blockchain. This guide explains how to download and set up the genesis file for Terp Network.
+
+## What is the Genesis File?
+
+The genesis file contains:
+- Initial chain parameters
+- Initial token distribution
+- Validator set at chain start
+- Chain ID and other network configuration
+
+## Download Genesis File
+
+### Mainnet (morocco-1)
+
+```bash
+# Create config directory if it doesn't exist
+mkdir -p $HOME/.terpd/config
+
+# Download genesis file
+curl -Ls https://raw.githubusercontent.com/terpnetwork/mainnet/main/morocco-1/genesis.json > $HOME/.terpd/config/genesis.json
+
+# Verify the download
+ls -la $HOME/.terpd/config/genesis.json
+```
+
+## Testnet (90u-4)
+
+```bash
+# Create config directory if it doesn't exist
+mkdir -p $HOME/.terpd/config
+
+# Download genesis file
+curl -Ls https://raw.githubusercontent.com/terpnetwork/test-net/master/90u-4/genesis.json > $HOME/.terpd/config/genesis.json
+
+# Verify the download
+ls -la $HOME/.terpd/config/genesis.json
+```
+
+## Verify Genesis File
+
+Always verify the genesis file after downloading:
+
+```bash
+# Check it's valid JSON
+jq '.' $HOME/.terpd/config/genesis.json
+
+# Verify chain ID
+jq '.chain_id' $HOME/.terpd/config/genesis.json
+
+# Verify initial height
+jq '.initial_height' $HOME/.terpd/config/genesis.json
+```
+
+## Genesis Locations
+
+| Network | Chain ID | Genesis URL |
+|---------|----------|--------------|
+| Mainnet | morocco-1 | https://raw.githubusercontent.com/terpnetwork/mainnet/main/morocco-1/genesis.json |
+| Testnet | 90u-4 | https://raw.githubusercontent.com/terpnetwork/test-net/master/90u-4/genesis.json |
+
+## Manual Node Initialization
+
+If you're starting from scratch:
+
+```bash
+# 1. Initialize the node
+terpd init <your-moniker> --chain-id <chain-id>
+
+# 2. Download the appropriate genesis file (see above)
+
+# 3. Verify the genesis file matches your chain
+terpd validate-genesis $HOME/.terpd/config/genesis.json
+```
+
+## Genesis for Different Use Cases
+
+### For Full Nodes
+
+```bash
+# Download mainnet genesis
+curl -Ls https://raw.githubusercontent.com/terpnetwork/mainnet/main/morocco-1/genesis.json > $HOME/.terpd/config/genesis.json
+```
+
+## For Validators
+
+```bash
+# Validators should verify the genesis file before starting
+# Check the chain ID matches the expected network
+jq '.chain_id' $HOME/.terpd/config/genesis.json
+
+# Verify genesis hash matches official sources
+sha256sum $HOME/.terpd/config/genesis.json
+```
+
+## For Testnet Development
+
+```bash
+# Download testnet genesis
+curl -Ls https://raw.githubusercontent.com/terpnetwork/test-net/master/90u-4/genesis.json > $HOME/.terpd/config/genesis.json
+
+# Verify testnet chain ID
+jq '.chain_id' $HOME/.terpd/config/genesis.json
+# Should output: "90u-4"
+```
+
+## Troubleshooting
+
+### Invalid Genesis JSON
+
+If you get a JSON parsing error:
+
+```bash
+# Re-download the genesis file
+rm $HOME/.terpd/config/genesis.json
+curl -Ls https://raw.githubusercontent.com/terpnetwork/mainnet/main/morocco-1/genesis.json > $HOME/.terpd/config/genesis.json
+
+# Verify it's valid JSON
+jq '.' $HOME/.terpd/config/genesis.json > /dev/null && echo "Valid JSON"
+```
+
+## Chain ID Mismatch
+
+If you see "chain ID mismatch" error:
+
+```bash
+# Make sure you're using the correct genesis for your network
+# Check what chain ID your terpd is configured for
+grep 'chain-id' $HOME/.terpd/config/client.toml
+
+# If needed, re-initialize with correct chain ID
+terpd init <moniker> --chain-id <correct-chain-id>
+```
+
+## Network Upgrade
+
+When a network upgrade requires a new genesis file:
+
+1. Stop your node
+2. Backup the existing genesis: `cp $HOME/.terpd/config/genesis.json $HOME/.terpd/config/genesis.json.backup`
+3. Download the new genesis file
+4. Restart your node
+
+## Next Steps
+
+After setting up the genesis file:
+
+1. [Configure your node](/guides/network/nodes/configure)
+2. [Add persistent peers](/guides/network/nodes/sentry) to help your node discover peers
+3. [Start your node](/docs/guides/network/bootstrap)
+4. [Set up systemd](/docs/guides/network/systemd-service) for production use

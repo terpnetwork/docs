@@ -1,0 +1,121 @@
+---
+title: Patricia Merkle Tries
+description: Radix-encoded Merkle trie optimized for key-value state storage — used in Ethereum and adapted for Terp Network's IBC light clients
+status: partial
+---
+A **Patricia Merkle trie** (also called a Merkle Patricia Trie or MPT) combines a radix tree (compressed prefix tree) with Merkle hashing. Each key-value pair is stored at a leaf determined by the key's path through the tree, and every internal node is hashed to produce a root commitment.
+
+## Why Patricia?
+
+Standard Merkle trees pack leaves densely and order them by index. Patricia tries organize leaves by **key prefix** — the tree structure mirrors the key space itself. This gives three properties that standard Merkle trees don't have:
+
+| Property | Standard Merkle | Patricia Merkle Trie |
+|----------|----------------|----------------------|
+| Key-based lookup | O(n) scan | O(log n) path walk |
+| Sparse keys | Wastes space | Compact (only occupied paths) |
+| Insert order | Affects structure | Key-based, order-independent |
+| Prefix proofs | Not supported | Prove all keys sharing a prefix |
+
+## Structure
+
+A Patricia trie has three node types:
+
+```text
+Root
+  │
+  ├── Branch Node (16 children + value)
+  │     hex character "a" through "f"
+  │     │
+  │     ├── Extension Node (compressed path)
+  │     │     "bcd" → skip shared prefix
+  │     │     │
+  │     │     └── Leaf Node (key, value)
+  │     │           ("abcd", account_state)
+  │     │
+  │     └── Leaf Node
+  │           ("a", value)
+```
+
+| Node Type | Description |
+|-----------|-------------|
+| **Branch** | 16 children (one per hex character 0-f) + optional leaf value |
+| **Extension** | Compressed shared prefix — skips nodes when only one branch exists |
+| **Leaf** | End of key path + stored value |
+
+## Hex Encoding (Nibbles)
+
+Keys in a Patricia trie are encoded as hex nibbles (4 bits each). Each nibble selects one of the 16 children of a branch node. This means:
+
+- A 32-byte key (SHA-256 hash) produces 64 nibbles → at most 64 branch nodes in the proof path
+- Sibling nodes along the path provide the Merkle proof that a key exists
+- The root hash commits to the entire key-value set
+
+## Where Terp Network Uses Patricia Tries
+
+| Use | Context |
+|-----|---------|
+| **IBC light clients** | Ethereum state proofs (Eth2 light client verification) |
+| **EVM-compatible state verification** | Cross-chain proof of account state, storage slots |
+| **IBC v2 light clients** | Generalized proof verification for non-Cosmos chains |
+
+The Patricia trie is the native state structure of Ethereum, so any IBC connection to Ethereum or an EVM chain requires Patricia proof verification in the light client.
+
+## Comparison: Merkle Tree Variants
+
+| Variant | Key Structure | Appendable | Sparse | Best For |
+|---------|--------------|------------|--------|----------|
+| Standard Merkle | Index-based | No (rebuild) | No | Transaction batches |
+| Jellyfish (sparse) | Address-keyed | Yes | Yes | Account state |
+| MMR | Append-sequence | Yes | No | Streaming data |
+| **Patricia trie** | **Key-prefix** | **Yes** | **Yes** | **Key-value stores, EVM state** |
+
+## Interactive Patricia Trie Visualizer
+
+> **Patricia trie explorer scaffold** — an interactive component that accepts key-value pairs, renders the node structure with branch/extension/leaf node types color-coded, and allows clicking a key to see its proof path through the trie. The root hash updates in real-time as entries are added or removed.
+
+```text
+┌──────────────────────────────────────────────┐
+│  Patricia Trie Explorer                        │
+│                                                │
+│  Keys: [a] [ab] [abc] [abcd] [b] [bc]         │
+│                                                │
+│  ┌── Root ─────────────────────────────────┐   │
+│  │  Branch (nibble: 0-f)                   │   │
+│  │  ├─ a → Extension("") → Branch           │   │
+│  │  │      ├─ (leaf) → "value_a"           │   │
+│  │  │      └─ b → Extension("c") → Leaf     │   │
+│  │  │             └─ d → "value_abcd"       │   │
+│  │  └─ b → Extension("c") → Leaf("value_bc")│   │
+│  └──────────────────────────────────────────┘   │
+│                                                │
+│  Root hash: 0x1a2b...                          │
+│  [Add Key] [Verify Proof] [Inspect Node]       │
+└──────────────────────────────────────────────┘
+```
+
+## Proof Verification
+
+To prove a key-value pair exists in a Patricia trie:
+
+1. Walk the key nibble-by-nibble through branch nodes
+2. Collect sibling hashes at each branch node
+3. The prover provides the leaf value and the proof path
+4. The verifier reconstructs the root hash from leaf to root
+5. Compare against the known root
+
+```text
+Proof for key "abcd":
+  Leaf("abcd", value) → hash
+  Branch(nibble d) → combines with leaf hash
+  Extension("") → hash of branch
+  Branch(nibble a) → hash of extension
+  Root hash → compare with stored root
+```
+
+## Related Concepts
+
+- [Merkle Trees](/docs/overview/concepts/crypto/merkle/trees) — standard Merkle structure
+- [Jellyfish Merkle Trees](/docs/overview/concepts/crypto/merkle/jellyfish) — sparse Merkle variant for account state
+- [Merkle Mountain Ranges](/docs/overview/concepts/crypto/merkle/mountains) — append-only accumulator
+- [Hash Functions](/docs/overview/concepts/crypto/hash/hash) — the primitives powering all Merkle structures
+- [IBC Concepts](/docs/overview/concepts/ibc) — light client verification using Patricia proofs

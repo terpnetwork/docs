@@ -1,0 +1,45 @@
+---
+title: Libraries
+description: Curated clients for talking to Terp — start with one per language
+---
+
+# Libraries
+
+Use these to query `morocco-1` / `120u-1` and sign txs. Public RPC is `https://rpc.terp.network` (testnet: `https://testnet-rpc.terp.network`). Do not use cosmos.directory.
+
+## Start here
+
+| Language | Library | Use it for |
+|----------|---------|------------|
+| TypeScript | [cosmjs](https://github.com/cosmos/cosmjs) | Wallets, LCD/RPC queries, CosmWasm execute |
+| TypeScript | [cosmes](https://github.com/goblinhunt/cosmes) | Lighter CosmJS-shaped client used on terp.network |
+| Rust | [terp-rs](https://github.com/permissionlessweb/terp-rs) | Typed queries, CosmWasm, ict-rs localnets |
+| Go | [terp-core](https://github.com/terpnetwork/terp-core) | `terpd`, proto stubs, module keepers |
+| CLI | `terpd` | Same binary as the node — [get script](/overview/quickstart) |
+
+Point any of them at `https://rpc.terp.network:443` (or your own node). REST/LCD is `https://api.terp.network`. Playgrounds: [API](/api).
+
+## TypeScript
+
+- **[cosmjs](https://github.com/cosmos/cosmjs)** — default Cosmos client (`StargateClient`, `SigningCosmWasmClient`).
+- **[cosmes](https://github.com/goblinhunt/cosmes)** — compact client + wallet adapters (Keplr, Leap, mnemonic).
+- **[terp-ts](https://github.com/terpnetwork/terp-ts)** — Terp-typed helpers when you need chain-specific messages.
+- **[ts-codegen](https://github.com/hyperweb-io/ts-codegen)** — generate CosmWasm contract clients from schema.
+
+## Rust
+
+- **[terp-rs](https://github.com/permissionlessweb/terp-rs)** — first stop for Rust apps and tests.
+- **[cw-orchestrator](https://github.com/abstractsdk/cw-orchestrator)** — deploy/test CosmWasm from Rust.
+- **[climb](https://github.com/Lay3rLabs/climb)** — CosmWasm + IBC scripting.
+
+Deeper IBC / consensus crates (only if you are building that layer): [ibc-rs](https://github.com/permissionlessweb/ibc-rs), [ibc-middleware](https://github.com/permissionlessweb/ibc-middleware), [tendermint-rs](https://github.com/permissionlessweb/tendermint-rs), [basecoin-rs](https://github.com/permissionlessweb/basecoin-rs), [cosmos-rust](https://github.com/permissionlessweb/cosmos-rust).
+
+## Go
+
+- **[terp-core](https://github.com/terpnetwork/terp-core)** — proto + `terpd` + module APIs.
+
+## Related
+
+- [Quickstart](/overview/quickstart) — install `terpd`
+- [CLI](/api/cli) — query/tx from the shell
+- [Public endpoints](/resources/public)

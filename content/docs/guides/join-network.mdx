@@ -1,0 +1,106 @@
+---
+title: Join mainnet or testnet
+description: Connect a node or wallet to Terp Network mainnet (morocco-1) or testnet (90u-4)
+status: complete
+---
+import { Callout } from '#vocs-compat';
+import { Card, Cards } from '#vocs-compat';
+import { Tab, Tabs } from '#vocs-compat';
+
+Use this page to **pick a network and get online**. Operator deep-dives (validators, sentries, indexing) live under [Network ops](/docs/guides/network).
+
+<Callout type="info" title="Two ways to “connect”">
+**Wallet only** — install Keplr, add the chain, use public RPC (no full node).
+**Run a node** — install `terpd`, sync (state sync / snapshot / bootstrap), optionally validate.
+</Callout>
+
+## Network parameters
+
+| | Mainnet | Testnet |
+|---|---------|---------|
+| **Chain ID** | `morocco-1` | `90u-4` |
+| **Fee denom** | `uthiol` | `uthiolx` (confirm live) |
+| **Bech32** | `terp` | `terp` |
+| **Public RPC** | `https://rpc.cosmos.directory/terpnetwork` | community / [public endpoints](/docs/resources/public) |
+| **Public REST** | `https://rest.cosmos.directory/terpnetwork` | see public endpoints |
+| **Genesis** | [networks/mainnet/morocco-1](https://github.com/terpnetwork/networks) | [networks/testnet](https://github.com/terpnetwork/networks) |
+| **S3 pack** | `https://s3.terp.network/snapshots/mainnet/morocco-1/` | `https://s3.terp.network/snapshots/testnet/120u-1/` |
+| **Faucet** | — | `https://faucet.terp.network/90u-4/&lt;address>` |
+
+Full endpoint catalog: [Public endpoints](/docs/resources/public).
+
+## Path A — Wallet (no node)
+
+1. [Install Keplr](/docs/guides/authentication/wallets/keplr)
+2. Add chain ID `morocco-1` or `90u-4`
+3. Point at public RPC/REST (or your own node later)
+4. Testnet: fund via faucet; mainnet: fund via exchange/IBC
+
+Then: [Quick start](/docs/overview/quickstart).
+
+## Path B — Run a full node
+
+<Tabs items={['Mainnet (morocco-1)', 'Testnet (90u-4)']}>
+<Tab value="Mainnet (morocco-1)">
+
+```bash
+## 1. Install
+## See: /docs/guides/network/nodes/install
+
+## 2. Init
+terpd init <moniker> --chain-id morocco-1
+
+## 3. Genesis (verify checksums when available)
+curl -Ls https://s3.terp.network/snapshots/mainnet/morocco-1/genesis.json \
+  > $HOME/.terpd/config/genesis.json
+
+## 4. Sync (pick one)
+##    Fast:  State sync  → /docs/guides/network/state-sync
+##    Medium: Snapshots → /docs/guides/network/nodes/snapshots
+##    Full:  Bootstrap  → /docs/guides/network/bootstrap
+
+## 5. Production process
+##    → /docs/guides/network/systemd-service
+```
+
+</Tab>
+<Tab value="Testnet (90u-4)">
+
+```bash
+terpd init <moniker> --chain-id 90u-4
+
+## Genesis from networks repo or S3 testnet folder — confirm current ID
+curl -Ls https://raw.githubusercontent.com/terpnetwork/networks/main/testnet/90u-4/genesis.json \
+  > $HOME/.terpd/config/genesis.json
+
+## Same sync options as mainnet; use testnet RPC peers
+## Faucet: https://faucet.terp.network/90u-4/<your-terp1...>
+```
+
+</Tab>
+</Tabs>
+
+## Sync method chooser
+
+| Goal | Guide |
+|------|--------|
+| Online in minutes | [State sync](/docs/guides/network/state-sync) |
+| Packed home tarball | [Snapshots](/docs/guides/network/nodes/snapshots) |
+| Full history / max trust | [Bootstrap](/docs/guides/network/bootstrap) |
+| Install binary only | [Install terpd](/docs/guides/network/nodes/install) |
+| Local disposable chain | [Local network](/docs/guides/network/deploy/local) |
+
+## Path C — Become a validator
+
+After a synced node on the right network:
+
+1. [Validators hub](/docs/guides/network/validators)
+2. [Sentry array](/docs/guides/network/validators/sentry)
+3. [Monitoring](/docs/guides/network/validators/monitoring)
+
+## Related
+
+- [Network ops index](/docs/guides/network)
+- [Public endpoints](/docs/resources/public)
+- [state.json](/docs/resources/state-json)
+- [Get involved (community)](/docs/resources/get-involved)

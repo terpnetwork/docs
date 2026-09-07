@@ -1,0 +1,207 @@
+---
+title: Crypto
+description: Cryptographic primitives used in Terp Network — hash functions, elliptic curves, key pairs, Merkle structures, zero-knowledge proofs, post-quantum readiness
+status: partial
+---
+import { Accordion, Accordions } from '#vocs-compat';
+
+## Cryptography on Terp Network
+
+Cryptography is the foundation of every trust-minimized system. Terp Network uses cryptographic primitives at every layer — from account authentication to block finalization to cross-chain proofs.
+
+## Where Terp Uses Cryptography
+
+| Layer | Cryptographic Primitive | What It Does |
+|-------|----------------------|--------------|
+| **Account authentication** | secp256k1 / Ed25519 digital signatures | Verifies transaction senders |
+| **Block headers** | SHA-256 hashing | App hash, last block hash chain |
+| **State storage** | IAVL Merkle tree (SHA-256) | Merklized state root at every block |
+| **IBC light clients** | Hash chains + signature verification | Verify counterparty chain state |
+| **Smart account authenticators** | Hash-based commitments | Safe-word hashes, credential verification |
+| **ZK PollRegistry** | Poseidon hash + ZK-SNARK | Private vote aggregation |
+| **Content addressing** | BLAKE3 hashing | IPFS CIDs, code verification |
+| **Consensus** | Ed25519 (CometBFT) | Validator signature aggregation |
+
+## Cryptographic Primitives
+
+<Accordions type="single">
+
+<Accordion title="Hash Functions">
+
+Hash functions take an input of any size and produce a fixed-size digest that uniquely represents the input. They are the building blocks of blockchain integrity.
+
+**Properties:**
+- **Deterministic** — same input always produces the same output
+- **One-way** — given a hash, finding the input is computationally infeasible
+- **Collision-resistant** — finding two inputs with the same hash is infeasible
+
+**Hash functions used on Terp Network:**
+
+| Algorithm | Used For | Key Property |
+|-----------|----------|--------------|
+| **SHA-256** | Block headers, IBC commitments, account state | NIST standard, widely audited |
+| **BLAKE3** | Code hashes, content addressing, QMD indexing | 10x faster than SHA-256 |
+| **Poseidon** | ZK circuits, PollRegistry | ZK-friendly — low constraint count |
+
+**Example — same input, different algorithms:**
+
+```text
+Input: "Hello"
+
+SHA-256:  2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+BLAKE3:   6671090d8c6b3b3d3c4f5e6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6
+```
+
+See the full [Hash Functions guide](/docs/overview/concepts/crypto/hash/hash) for details, including post-quantum hash readiness.
+
+> **Interactive hash explorer scaffold** — a component that accepts text input and displays the output hash across SHA-256, BLAKE3, and Poseidon side-by-side, with byte-level visual diff highlighting.
+
+</Accordion>
+
+<Accordion title="Elliptic Curves">
+
+Elliptic curve cryptography (ECC) provides the mathematical foundation for Terp Network's digital signatures and key pairs. The security rests on the **Elliptic Curve Discrete Logarithm Problem (ECDLP)** — given a public key (a point on the curve), finding the private key (the scalar multiplier) is computationally infeasible.
+
+**Curves used on Terp Network:**
+
+| Curve | Key Size | Signature Scheme | Where Used |
+|-------|----------|-----------------|------------|
+| **secp256k1** | 32 bytes | ECDSA | Account keys, wallet signatures (Keplr, Leap, Ledger) |
+| **Ed25519** | 32 bytes | EdDSA | CometBFT consensus validator signatures |
+| **secp256r1** | 32 bytes | ECDSA | Passkey/WebAuthn authentication (future) |
+
+**How key pairs work:**
+
+```text
+Private Key: a random 256-bit integer
+        ↓ (scalar multiplication on the curve)
+Public Key: a point (x, y) on the curve, 33 bytes compressed
+        ↓ (Bech32 encoding with chain prefix)
+Address: terp1...
+```
+
+The critical property: you can derive the address from the public key, but you cannot derive the private key from the public key (ECDLP).
+
+> **Curve comparison diagram scaffold** — a visual showing signature sizes, verification speeds, and security levels for secp256k1, Ed25519, and secp256r1 on Terp Network.
+
+</Accordion>
+
+<Accordion title="Key Pairs & HD Derivation">
+
+A key pair on Terp Network consists of a **private key** (kept secret) and a **public key** (shared openly). Hierarchical Deterministic (HD) wallets derive multiple key pairs from a single seed phrase using BIP-44 paths.
+
+**Terp Network derivation path:**
+
+```text
+m / 44' / 114' / 0' / 0 / <index>
+  ↑      ↑       ↑
+ BIP-44  Coin   Account
+         Type
+```
+
+**Chain-specific coin types:**
+
+| Chain | Coin Type | HD Path | Bech32 Prefix |
+|-------|-----------|---------|---------------|
+| Terp Network | **114** | `m/44'/114'/0'/0/0` | `terp1` |
+| Cosmos Hub | 118 | `m/44'/118'/0'/0/0` | `cosmos1` |
+| Osmosis | 118 | `m/44'/118'/0'/0/0` | `osmo1` |
+
+The same seed phrase produces **different private keys on different chains** because the coin type segment in the HD path changes. This is by design — it prevents cross-chain replay attacks.
+
+**Address conversion (Bech32):**
+
+```bash
+# Convert a Terp address to Cosmos format (same public key, different prefix)
+terpd keys parse terp1fts0sdw08e5kj02qev8hkmuwgr3wr2rxnl092t --output cosmos
+```
+
+> **Address derivation visualizer scaffold** — an interactive component that accepts a seed phrase or private key and shows the derived public key, address, and HD path for any supported chain.
+
+</Accordion>
+
+<Accordion title="Merkle Structures">
+
+Merkle trees are hash-based data structures that enable efficient verification of large datasets. Terp Network uses multiple Merkle variants depending on the use case:
+
+| Variant | Structure | Best For | Terp Use |
+|---------|-----------|----------|----------|
+| **Standard Merkle** | Binary hash tree | Fixed dataset proofs | IBC light client commitments |
+| **IAVL Merkle** | Balanced BST + hashing | Key-value state | Cosmos SDK state storage |
+| **Jellyfish (sparse)** | Key-addressed sparse tree | Account state | PollRegistry, account proofs |
+| **Merkle Mountain Range** | Append-only accumulator | Streaming data | Block headers, event logs |
+| **Patricia Merkle Trie** | Prefix-compressed trie | Key-value with shared prefixes | IBC v2 light clients (Ethereum) |
+
+See the dedicated guides for each variant:
+- [Standard Merkle Trees](/docs/overview/concepts/crypto/merkle/trees)
+- [Jellyfish Merkle Trees](/docs/overview/concepts/crypto/merkle/jellyfish)
+- [Merkle Mountain Ranges](/docs/overview/concepts/crypto/merkle/mountains)
+- [Patricia Merkle Tries](/docs/overview/concepts/crypto/merkle/patricia)
+
+> **Merkle variant comparison diagram scaffold** — an interactive side-by-side that takes the same 4 data items and shows how each Merkle variant structures them, with proof sizes, append costs, and verification times.
+
+</Accordion>
+
+<Accordion title="Zero-Knowledge Proofs">
+
+Zero-knowledge proofs allow a prover to convince a verifier that a statement is true without revealing any information beyond the statement's validity. Terp Network supports ZK proofs through precompiled circuits.
+
+**Supported proof systems:**
+
+| System | Trusted Setup | Proof Size | Verification | Terp Integration |
+|--------|--------------|------------|-------------|------------------|
+| **ZK-STARK** | None | KB-scale | Moderate | Selective disclosure, general ZK |
+| **ZK-SNARK** | Per-circuit | B-scale | Cheap | PollRegistry, token-gating |
+
+**Where Terp uses ZK:**
+
+- **PollRegistry** — private vote tallying with ZK proofs of correct aggregation
+- **Selective disclosure** — prove age, membership, or credential without revealing underlying data
+- **IBC v2 light clients** — ZK-verified consensus proofs for non-Cosmos chains
+- **Future: zk-CosmWasm VM** — private contract execution
+
+ZK operations run as **native precompiles**, not in-contract WASM. This means orders of magnitude lower gas costs than implementing ZK logic in CosmWasm bytecode.
+
+> **ZK proof flow diagram scaffold** — a diagram showing: User Data → Witness Generation → Prover (STARK/SNARK) → Proof → On-Chain Verifier Precompile → Result (accept/reject). Highlight the precompile boundary.
+
+</Accordion>
+
+<Accordion title="Post-Quantum Readiness">
+
+As quantum computing advances, current elliptic curve cryptography (secp256k1, Ed25519) will become vulnerable to Shor's algorithm. Terp Network is designed for cryptographic agility — the ability to migrate to new primitives without breaking the network.
+
+**How Terp is post-quantum ready:**
+
+| Feature | What It Enables |
+|---------|-----------------|
+| **Smart account authenticators** | Register new key types (hash-based, lattice-based) without changing your account key |
+| **Authenticator composability** | Combine a classical key with a post-quantum authenticator during migration (AllOf) |
+| **Algorithm-agnostic module** | The `x/smart-account` module has no hardcoded curve dependency — authenticators define their own verification logic |
+| **Governance-upgradable** | Chain-level crypto parameters can be updated through governance |
+| **IBC light client agility** | Light clients can be migrated to post-quantum signature schemes independently per connection |
+
+**Migration path:**
+
+```text
+Today:    secp256k1 → SignatureVerification authenticator
+Migrate:  secp256k1 AND sphincs+ → AllOf(SigVerif, PQ-Auth)
+Future:   sphincs+ → single PostQuantumVerification authenticator
+```
+
+This means Terp Network does not need a hard fork to become post-quantum secure — accounts can migrate at their own pace.
+
+> **PQ migration timeline diagram scaffold** — a Gantt chart showing the phased migration from classical signatures through hybrid (AllOf) to post-quantum-only, with governance milestones.
+
+</Accordion>
+
+</Accordions>
+
+## Related Pages
+
+- [Hash Functions in detail](/docs/overview/concepts/crypto/hash/hash) — SHA-256, BLAKE3, Poseidon
+- [Merkle Trees](/docs/overview/concepts/crypto/merkle/trees) — standard Merkle structure
+- [Merkle Mountain Ranges](/docs/overview/concepts/crypto/merkle/mountains) — append-only accumulator
+- [Jellyfish Merkle Trees](/docs/overview/concepts/crypto/merkle/jellyfish) — sparse Merkle variant
+- [Patricia Merkle Tries](/docs/overview/concepts/crypto/merkle/patricia) — prefix-compressed trie
+- [Privacy & ZK](/docs/overview/concepts/privacy) — selective disclosure and zero-knowledge
+- [Smart Account Authenticators](/docs/guides/authentication/authenticators) — programmable authentication

@@ -1,0 +1,60 @@
+---
+title: Join a Network
+description: Mainnet and testnet connection guides (installation from source)
+status: partial
+---
+Connecting to Terp Network is permissionless. Use the tabs below for Mainnet or Testnet workflows (identical steps, network-specific configs).
+
+## LocalTerp
+
+## Chain.json
+
+### Peers
+
+## Snapshots
+
+### Required Data
+
+## Statesync
+State sync wires into a Cosmos SDK app through the ABCI interface, using dedicated ABCI methods for snapshot management. Its internal storage is isolated from both CometBFT's storage namespace and the application's main KV store.
+https://github.com/cosmos/cosmos-sdk/blob/main/store/snapshots/README.md
+https://medium.com/tendermint/tendermint-core-state-sync-for-developers-70a96ba3ee35
+## Pruning
+
+<Tabs items={['Mainnet', 'Testnet']} defaultValue="Mainnet">
+<Tab value="Mainnet" label="Mainnet (morocco-1)">
+**Chain ID:** `morocco-1`
+
+**Install from source:**
+```bash
+git clone https://github.com/terpnetwork/terp-core.git
+cd terp-core
+git checkout v4.x.x # latest tag
+make build
+```
+
+**Genesis:** `https://raw.githubusercontent.com/terpnetwork/networks/main/mainnet/morocco-1/genesis.json`
+
+**RPC:** `https://rpc.cosmos.directory/terpnetwork:443`
+</Tab>
+<Tab value="Testnet" label="Testnet (90u-4)">
+**Chain ID:** `90u-4`
+
+**Install from source:** (same as above)
+
+**Genesis:** `https://raw.githubusercontent.com/terpnetwork/networks/main/testnet/90u-4/genesis.json`
+
+**RPC:** `https://testnet-rpc.terp.network:443`
+
+**Seed:** `e3f7a6a37f9b1bc7648603360b24312493c031f1@testnet-peer.terp.network:26656`
+</Tab>
+</Tabs>
+
+## Common Workflow
+1. `terpd init &lt;moniker> --chain-id $CHAIN_ID`
+2. Download genesis, update `config.toml` (seeds, peers), `app.toml` (gas prices: `0.05uthiol`)
+3. Sync using snapshot or state-sync
+4. Start node with `terpd start` or cosmovisor
+5. Create validator tx if applicable
+
+See [node guides](/guides/network/nodes) for full setup, hardware, and sentry configuration.

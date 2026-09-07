@@ -1,0 +1,77 @@
+---
+title: "State Sync"
+description: "Sync a node in minutes from a trusted height instead of replaying history"
+---
+
+State sync gets a node running in minutes by fetching a recent state snapshot from peers instead of replaying every block. Prefer a [snapshot download](./snapshots) for the very fastest start; use state sync when no fresh snapshot fits your binary version.
+
+## Pick your RPCs
+
+Use the network's own endpoints — these are the same servers the chain's bootstrap tooling uses:
+
+| Network | RPC servers |
+|---|---|
+| Mainnet (`morocco-1`) | `https://rpc.terp.network:443` (list twice — CometBFT wants at least two entries) |
+| Testnet (`120u-1`) | `https://testnet-rpc.terp.network:443` (twice) |
+
+Check one is alive before you start: `curl -s https://rpc.terp.network:443/status | jq .result.sync_info.latest_block_height`.
+
+## Configure
+
+Everything lives in `config.toml` (not `app.toml`):
+
+```toml
+[statesync]
+enable = true
+rpc_servers = "https://rpc.terp.network:443,https://rpc.terp.network:443"
+trust_height = 0      # filled in below
+trust_hash = ""       # filled in below
+trust_period = "168h" # must sit inside the unbonding period
+```
+
+## Trust a recent height
+
+Never hardcode a height from a guide — fetch it live and stay ~1000–2000 blocks behind the tip:
+
+```bash
+RPC="https://rpc.terp.network:443"
+LATEST=$(curl -s ${RPC}/status | jq -r .result.sync_info.latest_block_height)
+TRUST_HEIGHT=$(( (LATEST - 1000) / 1000 * 1000 ))
+TRUST_HASH=$(curl -s "${RPC}/block?height=${TRUST_HEIGHT}" | jq -r .result.block_id.hash)
+
+sed -i "s/^trust_height = .*/trust_height = ${TRUST_HEIGHT}/" $HOME/.terpd/config/config.toml
+sed -i "s/^trust_hash = .*/trust_hash = \"${TRUST_HASH}\"/" $HOME/.terpd/config/config.toml
+grep -E "^trust_(height|hash)" $HOME/.terpd/config/config.toml
+```
+
+The chain's own tooling uses the same recipe (`latest − 1000`, 168h trust window). If the trust hash is rejected, the snapshot aged out — re-run with a newer height.
+
+## Start and verify
+
+```bash
+sudo systemctl start terpd
+terpd status | jq .sync_info.catching_up
+# false → synced and following head
+```
+
+Expect 5–15 minutes depending on state size and distance to the tip.
+
+## Reset and retry
+
+```bash
+sudo systemctl stop terpd
+terpd tendermint unsafe-reset-all --keep-addr-book
+# refresh trust_height/trust_hash as above, then start again
+sudo systemctl start terpd
+```
+
+## When it fails
+
+- **No snapshot available** — the trust height is too old or too close to the tip; pick a fresh height ~1000 behind latest.
+- **App hash mismatch** — your binary version disagrees with the network; install the recommended release ([Install](./install)) and retry.
+- **Still stuck** — fall back to a [snapshot download](./snapshots), which skips trust negotiation entirely.
+
+## Next steps
+
+- [Set up systemd](./systemd) so the node survives restarts
+- [Join as a validator](/guides/validators/overview) once synced

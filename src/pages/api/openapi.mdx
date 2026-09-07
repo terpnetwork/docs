@@ -1,0 +1,36 @@
+---
+title: "OpenAPI (gRPC-gateway)"
+description: "OpenAPI document surface for Terp Network protobuf HTTP gateway"
+status: "complete"
+---
+HTTP routes generated from protobuf services (gRPC-gateway). Use this when you want typed REST paths that mirror gRPC methods.
+
+## Spec source
+
+YAML in-repo:
+
+```text
+static/api/openapi.yaml
+```
+
+## gRPC list (binary)
+
+```bash
+## Public or self-hosted gRPC
+grpcurl -plaintext grpc.terp.network:9090 list
+```
+
+Enable on node (`app.toml`):
+
+```toml
+[grpc]
+enable = true
+address = "0.0.0.0:9090"
+```
+
+## Related
+
+- [API hub](/api)
+- [LCD / REST](/api/lcd)
+- [IBC-Go](/api/ibcgo)
+- [Libraries](/resources/libraries)

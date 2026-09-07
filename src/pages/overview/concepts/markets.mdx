@@ -1,0 +1,66 @@
+---
+title: "Markets"
+description: "How Terp Network enables verifiable, open, and closed markets \u2014 programmable economic coordination"
+status: "partial"
+---
+Terp Network provides the primitives for building **verifiable markets** — economic coordination mechanisms where rules are enforced by code, not counterparties.
+
+## Open Markets
+
+An open market is one where any participant can join, submit orders, and settle without permission. On Terp Network, open markets are implemented using:
+
+- **Smart contracts** — any contract can define an exchange mechanism (order book, AMM, batch auction)
+- **IBC** — assets from any IBC-connected chain can participate
+- **Permissionless deployment** — no approval needed to launch a market contract
+
+Open markets on Terp Network inherit the network's properties:
+- Censorship resistance — no entity can block a participant
+- Transparency — all trades are on-chain and auditable
+- Finality — settled trades cannot be reversed
+
+## Closed Markets
+
+A closed market restricts participation to verified members. Terp Network supports closed markets through:
+
+- **Token-gating** — only holders of a specific NFT or token can interact
+- **DAO-controlled markets** — membership is governed by vote
+- **Selective disclosure contracts** — participants prove attributes without revealing identity
+
+Closed markets are useful for:
+- Regulated environments (KYC-compliant pools)
+- Private trading groups
+- Membership-based economies
+
+## Verifiable Markets
+
+A verifiable market is one where all operations can be independently audited. Terp Network ensures verifiability through:
+
+- **On-chain settlement** — every trade is recorded in a block
+- **Merkle proofs** — participants can prove their trade was included without revealing their counterparty
+- **Open source contracts** — market logic is publicly auditable
+- **Zero-knowledge proofs** — future capability for private but verifiable trades
+
+> **Market architecture diagram scaffold** — a visual showing how smart contracts, IBC, token-gating, and settlement connect in a Terp Network market. Categories: open, closed, verifiable.
+
+## Market Examples on Terp Network
+
+| Market Type | Implementation | Use Case |
+|-------------|---------------|----------|
+| Token swap | CW20 / CW721 AMM | Peer-to-pool trading |
+| NFT marketplace | CW721 auction contract | Collectible trading |
+| Forward market | Time-locked escrow | Pre-sale commitments |
+| Subscription | Recurring payment contract | DAO membership dues |
+| Outcome market | Binary prediction contract | Community forecasts |
+
+> **Market flow scaffold** — a sequence diagram illustrating a complete market lifecycle: participant creates order → contract validates → counterparty fills → settlement occurs → state update confirmed.
+
+## Design Principles
+
+When building markets on Terp Network:
+
+1. **Start with the settlement mechanism** — how do tokens change hands?
+2. **Define participation rules** — open, gated, or hybrid?
+3. **Specify the resolution** — how does the market settle disputes?
+4. **Test with localnet** — use O-Line or `terpd testnet` before mainnet
+
+See the [CosmWasm guides](/resources/libraries) for contract development patterns.

@@ -1,0 +1,36 @@
+---
+title: Contribute
+description: How to change Terp docs and what still needs a diagram
+---
+
+# Contribute to the docs
+
+Pages live in `src/pages` (Vocs / MDX). The old Fumadocs tree under `content/docs` is an archive — do not add new pages there.
+
+```bash
+pnpm install
+pnpm dev          # 127.0.0.1:5173
+pnpm check        # links, stubs, empty pages, scaffolds
+pnpm build        # full-static → out/ for S3
+```
+
+## Writing
+
+- One idea per page. Link to [concepts](/overview/concepts) instead of restating them.
+- Public RPC is `https://rpc.terp.network`. Testnet chain ID is `120u-1`.
+- Prefer `terp.network/get` over ad-hoc `git clone` in quickstarts.
+- New ADRs stay in `drafts/adrs/` until accepted. Only [ADR 1](/resources/adrs/adr/1) is published.
+
+## Diagrams still to draw
+
+Unbuilt visuals are marked in MDX as scaffolds. Inventory and how to label them: [Scaffold inventory](/resources/contribution/scaffolds).
+
+```bash
+pnpm check-scaffolds --label --write
+```
+
+## PRs
+
+1. Branch from the docs repo
+2. `pnpm check` clean (or explain remaining stubs)
+3. Keep the static build (`out/index.html`) in mind — no server-only widgets

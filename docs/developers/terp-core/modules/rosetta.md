@@ -1,4 +1,0 @@
-# Rosetta
-
-Coinbase API 
-

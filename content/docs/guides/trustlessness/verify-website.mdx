@@ -1,0 +1,106 @@
+---
+title: Verify Website Content
+description: Validate that static website pages served by Terp Network infrastructure have not been tampered with
+status: partial
+---
+Static websites published by Terp Network — including this documentation site, installer pages, and community portals — are built deterministically from source repositories. You can verify that the served content matches the published source.
+
+## Verification Methods
+
+| Method | What It Proves | Effort |
+|--------|---------------|--------|
+| Checksum comparison | Page content is byte-identical to a known good version | Low |
+| Source rebuild | The site was built from the published source code | Medium |
+| Git tag verification | The deployed site matches a specific git tag | Low |
+
+## Method 1: Checksum Comparison
+
+The simplest verification. Download a page and compare its hash against a published checksum:
+
+```bash
+# Download a page
+curl -sL https://docs.terp.network/docs/overview/concepts/ibc > ibc-page.html
+
+# Compute hash
+sha256sum ibc-page.html
+# Output: a1b2c3d4e5f6...  ibc-page.html
+
+# Compare against published checksum
+# Checksums are published in the release notes for each docs deployment
+```
+
+Published checksums for static sites are available at `https://s3.terp.network/snapshots/mainnet/morocco-1/site-checksums.txt`.
+
+## Method 2: Rebuild from Source
+
+This is the most thorough verification — rebuild the site yourself and compare the output:
+
+```bash
+# Clone the source
+git clone https://github.com/terpnetwork/terp-core.git
+cd terp-core/websites/terp-docs
+
+# Check out the tag matching the deployment
+git checkout tags/v5.2.0
+
+# Install dependencies and build
+pnpm install
+pnpm build
+
+# The output is in .next/ (Next.js) or out/ (static export)
+# Compare the generated HTML against the live site
+diff .next/server/app/docs.html \
+  <(curl -sL https://docs.terp.network/docs)
+```
+
+If the source and build tooling versions match exactly, the output should be deterministic.
+
+## Method 3: Git Tag Verification
+
+Each deployment to Terp Network's static hosting is tagged in the source repository:
+
+```bash
+# List tags for docs deployments
+git tag --list 'docs/*' | sort -V
+
+# Check out a specific deployment tag
+git checkout docs/2026-06-01
+
+# Verify the commit signed by a known maintainer
+git verify-commit HEAD
+```
+
+## Integrity Headers
+
+Terp Network's static hosting serves content with integrity metadata when available:
+
+```bash
+# Check response headers for integrity info
+curl -sI https://docs.terp.network/docs/overview/concepts/ibc | grep -i "etag\|checksum\|digest\|integrity"
+```
+
+The `ETag` header often matches the file's content hash.
+
+## Expected Results
+
+```text
+✓ Checksum match — page content is verified
+✓ Source rebuild — output matches live deployment
+✓ Signed tag — deployment tagged by a known maintainer
+```
+
+## When Verification Fails
+
+| Symptom | What It Means | Action |
+|---------|--------------|--------|
+| Hash mismatch | The served content differs from the reference | Contact the maintainers via [community channels](/docs/connect) |
+| Source won't build | Missing dependencies or wrong toolchain | Check the build prerequisites in the repo README |
+| Tag not found | Deployment may be newer than the last tag | Check for an untagged deployment or unreleased fix |
+| No integrity headers | Hosting provider may not support them | Use the checksum method instead |
+
+## Related
+
+- [Compile & verify code ID](/docs/guides/trustlessness/compile-verify-code-id) — verify smart contract code
+- [IBC Info checksums](/docs/guides/trustlessness/ibc-info) — verify IBC channel metadata
+- [Integrity resources](/docs/resources/integrity) — checksum reference tables
+- [Trustlessness concept](/docs/overview/concepts/trustless) — the trustlessness mandate

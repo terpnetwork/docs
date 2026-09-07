@@ -4,7 +4,7 @@ info:
   description: A REST interface for state queries
   version: 1.0.0
 servers:
-- url: /
+  - url: https://api.terp.network
 paths:
   /ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address:
     get:
@@ -14296,8 +14296,3 @@ components:
       - STATE_TRYOPEN
       - STATE_OPEN
       - STATE_CLOSED
-servers:
-  - url: https://lcd.terp.network
-    description: TerpNET mainnet node
-  - url: https://lcd-test.terp.network
-    description: TerpNET testnet node

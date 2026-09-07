@@ -1,0 +1,31 @@
+---
+title: IBC-Go API
+description: Query IBC clients, connections, and channels on Terp Network
+status: complete
+---
+IBC module queries via REST / CLI / gRPC.
+
+## CLI examples
+
+```bash
+NODE=https://rpc.cosmos.directory/terpnetwork
+
+terpd query ibc channel channels --node "$NODE" -o json | jq '.channels | length'
+terpd query ibc client states --node "$NODE" -o json | jq '.client_states | length'
+terpd query ibc connection connections --node "$NODE" -o json | jq '.connections | length'
+```
+
+## REST examples
+
+```bash
+REST=https://rest.cosmos.directory/terpnetwork
+
+curl -s "$REST/ibc/core/channel/v1/channels" | jq '.channels[:3]'
+```
+
+## Related
+
+- [IBC workflows](/docs/guides/ibc/info)
+- [IBC info checksums](/docs/guides/trustlessness/ibc-info)
+- [API hub](/docs/api)
+- Spec file: `static/api/IBCGO.yaml`

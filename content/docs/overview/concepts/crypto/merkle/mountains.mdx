@@ -1,0 +1,96 @@
+---
+title: Merkle Mountain Ranges
+description: Append-only Merkle accumulator optimized for streaming data, blockchain history, and efficient proof generation
+status: partial
+---
+A **Merkle Mountain Range (MMR)** is an append-only Merkle accumulator that grows incrementally as new data is added. Unlike a standard Merkle tree which requires full knowledge of all leaves to build, an MMR supports **incremental addition** — each new leaf produces a new root without rebuilding the entire structure.
+
+## Why MMR?
+
+Standard Merkle trees need all leaves up front. MMRs solve this problem by maintaining a set of **peaks** — perfect Merkle trees of decreasing sizes — arranged as "mountains." Adding a new leaf merges mountains like binary addition:
+
+```text
+New leaf → create 1-leaf mountain
+If two mountains of size 1 exist → merge into a 2-leaf mountain
+If two mountains of size 2 exist → merge into a 4-leaf mountain
+... and so on, like binary carry
+```
+
+## Structure
+
+After inserting 7 leaves:
+
+```text
+        Mountain 3 (height 2)         Mountain 2 (height 1)   Peak
+       ┌──────────M3──────────┐       ┌────M1────┐
+      M1                      M2      M0        L5          L6
+    ┌──┴──┐                 ┌─┴─┐    ┌─┴─┐
+   L0    L1                L2   L3   L4
+```
+
+Peaks: `[M3, M1, L6]` — the root is the hash of all peaks combined.
+
+## Properties
+
+| Property | Standard Merkle | MMR |
+|----------|----------------|-----|
+| Append | Requires rebuilding | O(log n) per append |
+| Proof for leaf N | O(log n) | O(log n) |
+| Membership proof | Yes | Yes |
+| Non-membership proof | No (not sparse) | No |
+| Size from root only | No (need leaf count) | Yes (root encodes size) |
+| Ideal for | Static datasets | Append-only logs, blockchain headers |
+
+## Where Terp Network Uses MMRs
+
+| Use Case | What's Accumulated | Benefit |
+|----------|-------------------|---------|
+| **Block header chain** | Consecutive block hashes | Fast historical verification without full replay |
+| **Event logs** | Sequential contract events | Prove an event occurred without scanning all blocks |
+| **Merkle tree server** | Streaming data sets | Append data incrementally with continuous verifiability |
+| **IBC light client history** | Consumed IBC packets | Prove packet lifecycle without storing all packets |
+
+## Interactive MMR Visualizer
+
+> **MMR growth visualizer scaffold** — an interactive component showing how the MMR structure evolves as new leaves are appended. Each append step animates the merging of mountains (binary carry visualization). Users can click a leaf to highlight its proof path through the mountains.
+
+```text
+┌───────────────────────────────────────────────┐
+│  MMR Growth Simulator                          │
+│                                                 │
+│  Leaves added: 7                                │
+│                                                 │
+│  Mountains:                                      │
+│  ┌────┬────┬────┐     ┌────┬────┐     ┌────┐   │
+│  │ L0 │ L1 │ L2 │ ... │ L4 │ L5 │ ... │ L6 │   │
+│  └────┴────┴────┘     └────┴────┘     └────┘   │
+│  Peaks: [M3, M1, L6] → Root                    │
+│                                                 │
+│  [Add Leaf]  [Verify Proof]  [Reset]            │
+└───────────────────────────────────────────────┘
+```
+
+## Proof Size Comparison
+
+For a dataset of n leaves:
+
+| Structure | Proof Size | Append Cost |
+|-----------|-----------|-------------|
+| Standard Merkle | O(log n) | O(n) rebuild |
+| MMR | O(log n) | O(log n) |
+| Jellyfish (sparse) | O(log key_space) | O(log key_space) |
+
+## MMR Root Commitment
+
+The MMR root is the hash of all peak hashes concatenated. Since peaks encode the total size, the root acts as a **unique commitment to the entire append-only history** — given only the root, you can verify if a specific leaf was included.
+
+```text
+mmr_root = hash(peak_hashes_sorted_by_height || leaf_count)
+```
+
+## Related Concepts
+
+- [Standard Merkle Trees](/docs/overview/concepts/crypto/merkle/trees) — comparison with dense Merkle structure
+- [Jellyfish Merkle Trees](/docs/overview/concepts/crypto/merkle/jellyfish) — sparse Merkle variant
+- [Hash Functions](/docs/overview/concepts/crypto/hash/hash) — the primitives powering MMRs
+- [Integrity Verification](/docs/resources/integrity) — applying MMRs to verifiable data pipelines

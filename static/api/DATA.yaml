@@ -6,5 +6,4 @@ info:
 servers:
   - url: https://api.terp.network/
     description: TerpNET Historical Data
-paths:
-TBD
+paths: {}

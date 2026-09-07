@@ -1,0 +1,41 @@
+---
+title: LCD / REST
+description: Cosmos SDK REST (LCD) queries on Terp Network
+status: complete
+---
+REST API for bank, staking, wasm, gov, and other module queries.
+
+## Default public endpoint
+
+```text
+https://rest.cosmos.directory/terpnetwork
+```
+
+## Common calls
+
+```bash
+## Bank balances
+curl -s "https://rest.cosmos.directory/terpnetwork/cosmos/bank/v1beta1/balances/terp1..." | jq .
+
+## Bank params
+curl -s "https://rest.cosmos.directory/terpnetwork/cosmos/bank/v1beta1/params" | jq .
+
+## Wasm code info
+curl -s "https://rest.cosmos.directory/terpnetwork/cosmwasm/wasm/v1/code/1" | jq .
+```
+
+## Enable on your node
+
+`app.toml`:
+
+```toml
+[api]
+enable = true
+address = "tcp://0.0.0.0:1317"
+```
+
+## Related
+
+- [API hub](/docs/api)
+- [OpenAPI / gRPC-gateway](/docs/api/openapi)
+- [state.json](/docs/resources/state-json)

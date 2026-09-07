@@ -1,0 +1,196 @@
+---
+title: IBC Info Checksums
+description: Use the ibc-info script to query IBC channel metadata, generate verifiable checksums, and confirm integrity
+status: partial
+---
+import { Tab, Tabs } from '#vocs-compat';
+
+IBC channel metadata — port bindings, client states, connection handshakes, channel capabilities — must be verified independently rather than trusted from a single source. The **ibc-info** workflow queries raw on-chain state, generates checksums from the exported data, and lets you compare against published references.
+
+## How It Works
+
+```text
+1. Query on-chain IBC state (clients, connections, channels)
+2. Export structured data (JSON)
+3. Generate SHA-256 checksums over the exported data
+4. Compare against published checksums from independent sources
+```
+
+## Prerequisites
+
+- `terpd` CLI with access to a Terp Network RPC node
+- `jq` for JSON processing
+- `sha256sum` (built-in on Linux/macOS)
+
+## Step 1: Export IBC Channel Data
+
+Query all IBC channels on a network and export to JSON:
+
+<Tabs items={['terpd CLI', 'Script']}>
+<Tab value="terpd CLI">
+
+```bash
+# Export all channels
+terpd query ibc channel channels \
+  --node https://rpc.cosmos.directory/terpnetwork \
+  -o json > ibc-channels-mainnet.json
+
+# Export all clients
+terpd query ibc client states \
+  --node https://rpc.cosmos.directory/terpnetwork \
+  -o json > ibc-clients-mainnet.json
+
+# Export all connections
+terpd query ibc connection connections \
+  --node https://rpc.cosmos.directory/terpnetwork \
+  -o json > ibc-connections-mainnet.json
+```
+
+</Tab>
+<Tab value="Script">
+
+```bash
+#!/usr/bin/env bash
+# ibc-info.sh — export IBC state and generate checksums
+set -euo pipefail
+
+NETWORK="${1:-mainnet}"
+OUTDIR="ibc-info-${NETWORK}"
+RPC="${RPC:-https://rpc.cosmos.directory/terpnetwork}"
+
+mkdir -p "$OUTDIR"
+
+echo "=== Exporting IBC state for $NETWORK ==="
+
+terpd query ibc channel channels \
+  --node "$RPC" -o json > "${OUTDIR}/channels.json"
+echo "  channels: $(jq '.channels | length' "${OUTDIR}/channels.json")"
+
+terpd query ibc client states \
+  --node "$RPC" -o json > "${OUTDIR}/clients.json"
+echo "  clients:  $(jq '.client_states | length' "${OUTDIR}/clients.json")"
+
+terpd query ibc connection connections \
+  --node "$RPC" -o json > "${OUTDIR}/connections.json"
+echo "  connections: $(jq '.connections | length' "${OUTDIR}/connections.json")"
+
+# Generate checksums
+echo ""
+echo "=== Checksums ==="
+for f in "${OUTDIR}"/*.json; do
+  CS=$(sha256sum "$f" | cut -d' ' -f1)
+  echo "  $CS  $(basename "$f")"
+  echo "$CS  $(basename "$f")" >> "${OUTDIR}/checksums.txt"
+done
+
+echo ""
+echo "Checksums written to ${OUTDIR}/checksums.txt"
+```
+</Tab>
+</Tabs>
+
+## Step 2: Generate Checksums
+
+<Tabs items={['After export', 'Per-file']}>
+<Tab value="After export">
+
+```bash
+# Generate checksums for all exported files
+sha256sum ibc-channels-mainnet.json \
+          ibc-clients-mainnet.json \
+          ibc-connections-mainnet.json > ibc-checksums.txt
+
+cat ibc-checksums.txt
+# Example output:
+# a1b2c3d4...  ibc-channels-mainnet.json
+# e5f6a7b8...  ibc-clients-mainnet.json
+# c9d0e1f2...  ibc-connections-mainnet.json
+```
+
+</Tab>
+<Tab value="Per-file">
+
+```bash
+for f in ibc-*.json; do
+  echo "$(sha256sum "$f" | cut -d' ' -f1)  $f"
+done
+```
+
+</Tab>
+</Tabs>
+
+## Step 3: Compare Against Published Checksums
+
+Published IBC checksums are available from independent sources — the chain registry, community dashboards, or Terp Network's [integrity resources](/docs/resources/integrity):
+
+```bash
+# Download the reference checksums
+curl -sL https://s3.terp.network/snapshots/mainnet/morocco-1/ibc-checksums.txt \
+  > reference-checksums.txt
+
+# Compare
+diff ibc-checksums.txt reference-checksums.txt
+
+# If no output — checksums match, IBC data is verified
+# If any lines differ — investigate before trusting
+```
+
+## Step 4: Verify Specific Channel Data
+
+For a specific IBC channel, verify its metadata independently:
+
+```bash
+# Query a specific channel
+CHANNEL="channel-42"
+PORT="transfer"
+
+terpd query ibc channel channel "$PORT" "$CHANNEL" \
+  --node https://rpc.cosmos.directory/terpnetwork \
+  -o json
+
+# Extract key fields for manual verification
+echo "Channel ID: $CHANNEL"
+echo "Port: $PORT"
+echo "Counterparty:"
+terpd query ibc channel channel "$PORT" "$CHANNEL" \
+  --node https://rpc.cosmos.directory/terpnetwork \
+  -o json | jq '.channel.counterparty'
+```
+
+## Published IBC Checksums
+
+The latest IBC checksums for Terp Network are published at:
+
+| Network | URL |
+|---------|-----|
+| Mainnet (`morocco-1`) | `https://s3.terp.network/snapshots/mainnet/morocco-1/ibc-checksums.txt` |
+| Testnet (`90u-4`) | `https://s3.terp.network/snapshots/testnet/90u-4/ibc-checksums.txt` |
+
+> **IBC topology diagram scaffold** — a network diagram showing all IBC channels with counterparty chains, port bindings, and client expiration dates. Replace with an interactive visual.
+
+## Automation
+
+Add this to a CI pipeline to alert on IBC state changes:
+
+```yaml
+# .github/workflows/ibc-verify.yml
+name: Verify IBC State
+on:
+  schedule:
+    - cron: '0 6 * * *'  # daily at 06:00 UTC
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sL https://s3.terp.network/snapshots/mainnet/morocco-1/ibc-checksums.txt -o ref.txt
+          bash -c "$(curl -sL https://terp.network/ibc-info.sh)" mainnet
+          diff ibc-checksums.txt ref.txt && echo "✓ IBC state verified"
+```
+
+## Related
+
+- [Compile & verify code ID](/docs/guides/trustlessness/compile-verify-code-id) — verify smart contract hashes
+- [Website verification](/docs/guides/trustlessness/verify-website) — verify static site content
+- [IBC concepts](/docs/overview/concepts/ibc) — IBC protocol explained
+- [Public endpoints](/docs/resources/public) — S3 resource URLs

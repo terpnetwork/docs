@@ -1,0 +1,207 @@
+---
+title: state.json reference
+description: Parse multi-chain deployment state — code_ids, default addresses, assets, and IBC data
+status: complete
+---
+import { Callout } from '#vocs-compat';
+import { Tab, Tabs } from '#vocs-compat';
+
+`state.json` is the **multi-chain deployment map** used by Abstract / Terp tooling (`abstract-interface`, scripts, and public mirrors). One file keys every chain by **chain ID**, then nests code IDs, live contract addresses, assets, and IBC path metadata.
+
+Canonical reads (pick one):
+
+| Source | URL / path |
+|--------|------------|
+| Public S3 (ops mirror) | `https://s3.terp.network/snapshots/mainnet/morocco-1/state.json` |
+| abstract-interface embed | `crates/abstract/framework/packages/abstract-interface/state.json` |
+| terp-rs public | `crates/terp-rs/public/state.json` |
+
+<Callout type="info" title="Schema shape (logical)">
+There is no separate JSON Schema file required to parse it. The structure is stable and matches `AbstractDaemonState` in abstract-interface: look up by `chain_id`, then `code_ids` / `default`.
+</Callout>
+
+## Top-level shape
+
+```text
+{
+  "<chain-id>": {
+    "code_ids":  { "<contract-id>": <number>, ... },
+    "default":   { "<contract-id>": "<bech32-address>", ... },
+    "assets":    { ... },      // optional — denom metadata / IBC assets
+    "chains":    { ... },      // optional — cross-chain asset views
+    "ibc_data":  { ... }       // optional — clients, connections, channels
+  },
+  ...
+}
+```
+
+## Root keys (chain IDs)
+
+Examples present in the public file:
+
+| Chain ID | Role |
+|----------|------|
+| `morocco-1` | Terp mainnet (richest entry: assets + ibc_data) |
+| `120u-1` | Terp testnet (often sparse) |
+| `osmosis-1`, `juno-1`, `akash-1`, … | Peer / remote chains with deployments |
+
+Parse root as `Record&lt;string, ChainState>`.
+
+## Field reference
+
+### `code_ids`
+
+Map of **logical contract id → CosmWasm code id** (on-chain number).
+
+| Property | Type | Example |
+|----------|------|---------|
+| key | string | `abstract:registry`, `cw-infuser`, `crates.io:terp721-account` |
+| value | number (u64) | `66` |
+
+**Use:** store / instantiate matching bytecode; verify with [compile & verify code ID](/docs/guides/trustlessness/compile-verify-code-id).
+
+### `default`
+
+Map of **logical contract id → instantiated address** for the “default” deployment on that chain.
+
+| Property | Type | Example |
+|----------|------|---------|
+| key | string | `abstract:ans-host` |
+| value | bech32 string | `terp133wf9…` |
+
+**Use:** clients and CLIs resolve known modules without hardcoding addresses in app code.
+
+Abstract interface helpers (Rust mental model):
+
+```text
+contract_code_id(chain_id, contract_id)  → code_ids[contract_id]
+contract_addr(chain_id, contract_id)     → default[contract_id]
+```
+
+## `assets` (optional)
+
+Denom / IBC asset metadata, often under a nested key (including `""` as a bucket). Entries follow chain-registry-like objects:
+
+| Common fields | Meaning |
+|---------------|---------|
+| `base` | Minimal denom (native, factory, or `ibc/…`) |
+| `display` / `symbol` / `name` | Human labels |
+| `denom_units` | exponent ladder |
+| `traces` | IBC / mintage path |
+| `type_asset` | e.g. `sdk.coin`, `ics20` |
+| `logo_URIs`, `coingecko_id` | optional presentation |
+
+### `ibc_data` (optional)
+
+Keyed by **counterparty chain name** (e.g. `osmosis`, `akash`). Each value is an IBC path record:
+
+| Field | Meaning |
+|-------|---------|
+| `chain_1` / `chain_2` | `chain_id`, `chain_name`, `client_id`, `connection_id` |
+| `channels[]` | `channel_id`, `port_id`, ordering, version, tags |
+| `client_status` | e.g. `Active` |
+| `$schema` | optional pointer to ibc_data schema |
+
+### `chains` (optional)
+
+Cross-chain asset projections (e.g. how Terp assets appear on Osmosis). Nested similarly to `assets`.
+
+## Worked example: morocco-1
+
+```bash
+curl -sL https://s3.terp.network/snapshots/mainnet/morocco-1/state.json \
+  | jq '.["morocco-1"] | keys'
+## ["assets","chains","code_ids","default","ibc_data"]
+
+## Registry code id + address
+curl -sL https://s3.terp.network/snapshots/mainnet/morocco-1/state.json \
+  | jq '{
+      code_id: .["morocco-1"].code_ids["abstract:registry"],
+      address: .["morocco-1"].default["abstract:registry"]
+    }'
+
+## IBC path Terp ↔ Osmosis
+curl -sL https://s3.terp.network/snapshots/mainnet/morocco-1/state.json \
+  | jq '.["morocco-1"].ibc_data.osmosis | {
+      clients: [.chain_1.client_id, .chain_2.client_id],
+      channels: [.channels[0].chain_1.channel_id, .channels[0].chain_2.channel_id]
+    }'
+```
+
+## Parsing recipes
+
+<Tabs items={['jq', 'TypeScript', 'Rust (concept)']}>
+<Tab value="jq">
+
+```bash
+STATE_URL=https://s3.terp.network/snapshots/mainnet/morocco-1/state.json
+CHAIN=morocco-1
+CONTRACT=abstract:registry
+
+curl -sL "$STATE_URL" | jq --arg c "$CHAIN" --arg id "$CONTRACT" '{
+  code_id: .[$c].code_ids[$id],
+  address: .[$c].default[$id]
+}'
+```
+
+</Tab>
+<Tab value="TypeScript">
+
+```typescript
+type ChainState = {
+  code_ids?: Record<string, number>;
+  default?: Record<string, string>;
+  assets?: unknown;
+  chains?: unknown;
+  ibc_data?: Record<string, unknown>;
+};
+
+type StateFile = Record<string, ChainState>;
+
+async function loadState(url: string): Promise<StateFile> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`state.json ${res.status}`);
+  return res.json();
+}
+
+const state = await loadState(
+  'https://s3.terp.network/snapshots/mainnet/morocco-1/state.json',
+);
+const codeId = state['morocco-1']?.code_ids?.['abstract:registry'];
+const addr = state['morocco-1']?.default?.['abstract:registry'];
+```
+
+</Tab>
+<Tab value="Rust (concept)">
+
+```text
+// abstract-interface::AbstractDaemonState
+//   contract_code_id(chain_id, id) → Option<u64>
+//   contract_addr(chain_id, id)    → Option<Addr>
+// Loads embedded or filesystem state.json the same way.
+```
+
+</Tab>
+</Tabs>
+
+## Verification habits
+
+| Claim in state.json | How to verify |
+|---------------------|---------------|
+| `code_ids[id] = N` | `terpd query wasm code-info N` → checksum; rebuild source |
+| `default[id] = addr` | `terpd query wasm contract addr` → code_id matches map |
+| `ibc_data` channels | [IBC info checksums](/docs/guides/trustlessness/ibc-info) |
+| Asset denoms | LCD bank metadata + chain-registry cross-check |
+
+## Related
+
+- [Public endpoints / S3 files](/docs/resources/public)
+- [API hub](/docs/api) — how clients talk to the chain
+- [Libraries](/docs/resources/libraries)
+- [Trustlessness guides](/docs/guides/trustlessness)
+
+## Further reading
+
+- [Compile & verify code ID](/docs/guides/trustlessness/compile-verify-code-id)
+- [IBC workflows](/docs/guides/ibc/info)
+- [Tokens concept](/docs/overview/concepts/tokens)

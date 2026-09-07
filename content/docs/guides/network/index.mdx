@@ -1,0 +1,59 @@
+---
+title: Connect
+description: There are multiple ways to synchronize a Terp Network node depending on your needs for speed, storage, and security. This guide covers all available methods...
+status: partial
+---
+import { Tab, Tabs } from '#vocs-compat';
+import { Files, Folder, File } from '#vocs-compat';
+import { Database, FileJson, Tags, Globe, Layers, Archive, ExternalLink } from 'lucide-react';
+
+## Many Ways to Connect to Terp Network
+
+There are multiple ways to synchronize a Terp Network node depending on your needs for speed, storage, and security. This guide covers all available methods to get your node up and running.
+
+## Connection Methods Overview
+
+| Method | Time to Sync | Storage Required | Security Level |
+|--------|-------------|------------------|----------------|
+| [State Sync](/docs/guides/network/state-sync) | Minutes | Low (~2GB) | High |
+| [Snapshots](/guides/network/nodes/snapshots) | 15-30 min | Medium (~10-20GB) | High |
+| [Bootstrap](/docs/guides/network/bootstrap) | Hours | Full (~100GB+) | Highest |
+| [Genesis](/docs/guides/network/genesis) | Hours | Full (~100GB+) | Manual |
+
+## Choosing the Right Method
+
+### Use State Sync when:
+- You need a working node quickly
+- You don't need historical data before a recent block
+- You want minimal disk space usage
+- You're setting up a RPC node or sentry node
+
+### Use Snapshots when:
+- You want a balance of speed and data availability
+- You need recent state but not the entire history
+- You're setting up a validator or full node
+
+### Use Bootstrap when:
+- You need the complete blockchain history
+- You're running an archive node
+- You need to verify the entire chain history
+- You're a validator requiring maximum trust
+
+### Use Genesis when:
+- You want to start from scratch and sync block by block
+- You prefer manual verification of the chain
+- You have specific security requirements
+
+## Quick Start
+
+For most use cases, we recommend starting with either **State Sync** or **Snapshots**:
+
+1. **Fastest**: Use [State Sync](/docs/guides/network/state-sync) to get a working node in minutes
+2. **Standard**: Use [Snapshots](/guides/network/nodes/snapshots) for a balance of speed and functionality
+3. **Production Validators**: Use [Bootstrap](/docs/guides/network/bootstrap) with [Systemd Service](/docs/guides/network/systemd-service) for production setups
+
+## Next Steps
+
+- [Set up State Sync](/docs/guides/network/state-sync) - Quickest way to get a running node
+- [Download Genesis File](/docs/guides/network/genesis) - For manual sync
+- [Configure Systemd Service](/docs/guides/network/systemd-service) - For production deployments

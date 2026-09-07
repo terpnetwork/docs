@@ -1,0 +1,48 @@
+---
+title: Public Endpoints
+description: RPC, REST, gRPC, snapshots, and genesis files for mainnet and testnet
+---
+
+# Public Endpoints
+
+Use these endpoints and artifacts to join a network or query chain state. cosmos.directory listings for Terp are stale — use the hosts below.
+
+## Chain IDs
+
+| Network | Chain ID | Fee denom |
+|---------|----------|-----------|
+| Mainnet | `morocco-1` | `uthiol` |
+| Testnet | `120u-1` | `uthiol` |
+
+## Mainnet
+
+| Surface | URL |
+|---------|-----|
+| RPC | `https://rpc.terp.network` |
+| REST | `https://api.terp.network` |
+| gRPC | `https://grpc.terp.network` |
+| Snapshots / genesis | `https://s3.terp.network/snapshots/` |
+
+## Testnet
+
+| Surface | URL |
+|---------|-----|
+| RPC | `https://testnet-rpc.terp.network` |
+| Faucet | `https://testnet-faucet.terp.network` (`GET /status`, `GET /faucet?address=`) |
+
+## S3 buckets (`s3.terp.network`)
+
+MinIO-IPFS creates these buckets on boot (`ensure-s3-buckets.sh`). Layout: [S3-LAYOUT](https://github.com/terpnetwork/terp-core/blob/v6.0.0-dev/scripts/release/S3-LAYOUT.md) / ADR-11.
+
+| Bucket | Purpose | Typical public URL |
+|--------|---------|--------------------|
+| `static` | Websites (terp.network, permissionless.money, docs) | Host maps, not path-style site roots |
+| `snapshots` | Per-network genesis, chain.json, entrypoints, state archives | `https://s3.terp.network/snapshots/<network>/<chain_id>/` |
+| `releases` | Per-repo source/binaries | `https://s3.terp.network/releases/<repo>/<tag>/manifest.json` |
+| `upgrades` | Governance upgrade packages | `https://s3.terp.network/upgrades/…` |
+
+## Network artifacts
+
+Each environment publishes machine-readable files (addrbook, chain.json, genesis, snapshots). Start from `https://s3.terp.network/snapshots/` and the [networks](https://github.com/terpnetwork/networks) repository.
+
+See [Install a node](/guides/nodes/install) and [State sync](/guides/nodes/state-sync) to use these endpoints.

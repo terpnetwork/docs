@@ -1,0 +1,55 @@
+---
+title: Sources
+description: "Libraries and papers that shape re-zerve: public ask, sealed bid, ZAP1, Halo2, FROST, Ironwood."
+---
+
+# Sources
+
+**re-zerve** is a research product: a public compute ask, an encrypted bid, and a commitment-only chain record. These are the specifications and libraries the stack is built from. Each line is a title, a public link, and why it matters here.
+
+This is not a bibliography of everything we read. If a paper or crate is not on this page, it is not part of the product path (or it is explicitly **not** this path).
+
+re-zerve is available in the local lab. It is not a public marketplace.
+
+## Market shape
+
+- [Akash SDL](https://akash.network/docs/getting-started/stack-definition-language/) — the public ask is an Akash-shaped manifest plus resources. The lease key is **not** Akash ES256K tenant JWT. Access is a derived bearer from the out-of-band session.
+- [RFC 8439, ChaCha20-Poly1305](https://datatracker.ietf.org/doc/html/rfc8439) — the bid envelope. Associated data binds ask id and nonce. Price and identity stay in the plaintext that never hits the chain.
+- [RFC 7693, BLAKE2](https://www.rfc-editor.org/rfc/rfc7693.html) — ZAP1 leaf and node hashes (`NordicShield_` / `NordicShield_MRK` personalization in `zap1-verify`).
+
+## Pay inclusion (ZAP1 + Halo2)
+
+- [Frontier-Compute/zap1](https://github.com/Frontier-Compute/zap1) — ZAP1 writes typed lifecycle events into a BLAKE2b Merkle tree. re-zerve uses the **HOSTING_PAYMENT** event kind. Anchoring a root in a shielded memo is specified by ZAP1; this product does **not** treat memo-open as inclusion.
+- [zap1-verify](https://github.com/Frontier-Compute/zap1-verify) (`zap1-verify` 0.2.1 on crates.io) — leaf hash and Merkle path check used to **build** the witness. On-chain execute does not re-walk siblings.
+- [ZIP 302, Encrypted Memo Format](https://zips.z.cash/zip-0302) — memo container. Recorded as a tip reference when stamped; not opened as a Zcash state root.
+- [Bowe, Grigg, Hopwood, *Halo*](https://eprint.iacr.org/2019/1021) and [zcash/halo2](https://github.com/zcash/halo2) — recursive proof composition without a trusted setup. The CosmWasm host verifies Halo2, not a dummy STARK.
+- [The Pasta curves](https://electriccoin.co/blog/the-pasta-curves-for-halo-2-and-beyond/) (`pasta_curves`) — Pallas / Vesta. re-zerve stores a **Pasta** circuit (circuit-type 0, curve-type 0, k=17, four public instances). Halo2-axiom KZG on BN256 is a different curve id and is **not** this circuit.
+- CosmWasm **zk-wasmvm** Path A — `store-full-circuit` pins the verifying key; the guest calls host `proof_instance_verify(zkid, proof, instances)`. Missing host fails closed.
+
+## Custody (FROST + Ironwood)
+
+- [Komlo, Goldberg, *FROST*, eprint 2020/852](https://eprint.iacr.org/2020/852) — two-round threshold Schnorr. Product custody is **DKG** among tenant, provider, and resolver, not a dealer.
+- [RFC 9591, FROST](https://www.rfc-editor.org/rfc/rfc9591.html) and [ZF frost-ed25519](https://frost.zfnd.org/) — the ciphersuite this crate signs with. Happy-path sign is tenant + provider. The resolver signs only after a recorded close grant.
+- [ZIP 258, NU6.3 / Ironwood](https://zips.z.cash/zip-0258) and [zcash/ironwood](https://github.com/zcash/ironwood) — shielded value is the **Ironwood** pool (NU6.3 v6, V3 notes). Same action shape as Orchard, distinct tree and nullifiers. **Not Sapling. Not Orchard.**
+- [ZIP 317, Proportional Transfer Fee](https://zips.z.cash/zip-0317) — lab shield fee accounting on Zakura `sendrawtransaction` (not zcashd).
+- Zakura — local Zcash-family node used to create and spend those notes in the lab.
+
+## On-chain record (Cosmos)
+
+- [CosmWasm](https://docs.cosmwasm.com/) — `cw-pir-commit` (ask/bid hex only), `cw-pir-escrow` (grant and events, not bank coins), `cw-zap1-ibcv2` (`AttestHalo2`).
+- [IBC](https://github.com/cosmos/ibc) — IBC v2 **packet bind** (clients, sequence, app-data hash). Crosslink 08-wasm verifies **headers**. That is a different client and is **not** pay inclusion.
+
+## How they show up in this product
+
+| Source | In re-zerve |
+|---|---|
+| Akash SDL | Public ask. Not the lease JWT. |
+| ChaCha20-Poly1305 | Sealed bid envelope, out of band. |
+| ZAP1 HOSTING_PAYMENT + BLAKE2b | Leaf in the tree. Siblings stay in the Halo2 witness. |
+| Halo2 + Pasta | On-chain `proof_instance_verify` with a pinned VK. |
+| FROST DKG (RFC 9591, Ed25519) | Spend authority for the pool. |
+| Ironwood / NU6.3 | Shielded deposit and two-spend close. |
+| IBC v2 packet | Binds note, amount, FROST group, leaf. Not a light client by itself. |
+| CosmWasm escrow | Close grant. Does not move uterp as money. |
+
+See [How it works](/research/re-zerve/how-it-works) for the four steps. See [For engineers](/research/re-zerve/for-engineers) for type names. See [Lab vs network](/research/re-zerve/status) for what is local-lab only.

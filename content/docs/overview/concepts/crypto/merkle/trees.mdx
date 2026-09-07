@@ -1,0 +1,81 @@
+---
+title: Merkle Trees
+description: Standard Merkle trees — binary hashed data structures for efficient verification of large datasets
+status: partial
+---
+A Merkle tree is a binary tree where each leaf is a hash of a data block and each internal node is the hash of its two children. The root hash summarizes the entire dataset — change any leaf and the root changes.
+
+## Structure
+
+```text
+                Root
+               /    \
+        Hash(A)      Hash(B)
+        /    \        /    \
+      A      B      C      D
+    Data   Data   Data   Data
+```
+
+## Properties
+
+- **Efficient verification** — prove a leaf is in the tree with O(log n) hashes (the Merkle proof)
+- **Tamper-evident** — modifying any leaf changes the root
+- **Compact** — the root is always 32 bytes regardless of dataset size
+
+## Merkle Proofs
+
+A Merkle proof for leaf B consists of the sibling hashes needed to reconstruct the root:
+
+```text
+Proof for B: [Hash(A), Hash(B)]
+              + B                → Hash(A+B)
+              + Hash(D)          → Root
+
+Verification: hash(Hash(A + hash(B)) + Hash(D)) == stored_root
+```
+
+## Where Terp Network Uses Merkle Trees
+
+| Use | What It Merklizes | Purpose |
+|-----|-------------------|---------|
+| **IAVL tree** | Account state, module state at each block | Efficient state queries with proofs |
+| **IBC light clients** | Transaction batches | Verify inclusion without downloading full block |
+| **Smart contract storage** | Contract state per key | Prove a specific key exists without revealing all state |
+| **PollRegistry** | Vote commitments | Prove a vote was cast without revealing its content |
+| **Merkle tree server** | External data sets | Serve verifiable proofs of off-chain data |
+
+## Interactive Proof Visualizer
+
+> **Merkle proof visualizer scaffold** — an interactive component that renders a Merkle tree given input values at the leaves, highlights the proof path when you click a leaf, and shows which sibling hashes are needed. Users click "Verify" and the component walks through root reconstruction step-by-step.
+
+```text
+┌───────────────────────────────────────────────┐
+│  Merkle Tree Explorer                          │
+│                                                 │
+│  Leaves: [Tx1] [Tx2] [Tx3] [Tx4]               │
+│           │      │      │      │                │
+│  Click Tx2 → Proof path highlighted             │
+│  Siblings: [H(Tx1), H(H(Tx3)+H(Tx4))]          │
+│  Root reconstructed: ✓ MATCH                    │
+└───────────────────────────────────────────────┘
+```
+
+## IAVL Tree (Application-Specific)
+
+Terp Network uses the **IAVL (Immutable AVL + Merkle)** tree for Cosmos SDK state storage at each block height. Unlike standard Merkle trees, the IAVL supports:
+
+- **Ordered key-value operations** — range queries and iteration
+- **Versioned snapshots** — query state at any past block height
+- **Proof generation** — verify any state value against the block's app hash
+
+```bash
+# Query state at a specific height with proof
+terpd query bank balances terp1... --height 12345678 --prove
+```
+
+## Related Concepts
+
+- [Merkle Mountain Ranges](/docs/overview/concepts/crypto/merkle/mountains) — append-only accumulator optimized for streaming data
+- [Jellyfish Merkle Trees](/docs/overview/concepts/crypto/merkle/jellyfish) — sparse Merkle variant for account-based state
+- [Hash Functions](/docs/overview/concepts/crypto/hash/hash) — the primitives that power Merkle trees
+- [Storage Access Patterns](/docs/overview/concepts/privacy/storage-access-patterns) — how data flows through the IAVL layer

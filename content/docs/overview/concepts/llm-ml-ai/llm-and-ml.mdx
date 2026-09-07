@@ -1,0 +1,92 @@
+---
+title: AI & ML Integration
+description: How Terp Network integrates with AI and ML tooling — QMD semantic analysis, LLM code generation, smart contract indexing
+status: partial
+---
+Terp Network provides infrastructure and tooling for integrating AI and ML capabilities into blockchain workflows.
+
+## QMD — Query Markdown Documentation
+
+[QMD](/docs/resources/development) is a semantic code analysis tool that indexes CosmWasm contract source code and documentation into a searchable database. It powers:
+
+- **Smart contract discovery** — find contracts by behavior, not just name
+- **Semantic code search** — query code by meaning, not exact strings
+- **Documentation generation** — auto-generate API docs from indexed contracts
+- **Agent integration** — LLMs use QMD indexes to answer questions about Terp Network contracts
+
+```bash
+# Index a contract collection
+qmd collection add my-contracts ./contracts/
+qmd index my-contracts
+
+# Semantic search
+qmd query "contracts that handle IBC callbacks"
+```
+
+## QMD + Trailmark
+
+[Trailmark](/docs/resources/development) extends QMD with AST-level code graph analysis, enabling:
+
+- **Dependency mapping** — visualize contract dependency trees
+- **Entrypoint analysis** — understand which entrypoints a contract exposes
+- **Pattern detection** — find common implementation patterns across contracts
+
+> **QMD workflow diagram scaffold** — a flow showing source code → QMD index → semantic queries → LLM/developer consumption. Include Trailmark AST analysis as a parallel path.
+
+## LLM Integration Points
+
+Terp Network documentation and tooling are designed to work with LLM-based coding assistants:
+
+### llms.txt
+
+Terp Network provides an [llms.txt](/docs/guides/llms) file that LLMs can ingest for context-aware assistance. This file includes:
+
+- Core documentation pages in LLM-friendly format
+- Code snippets and examples
+- Import paths and module references
+- Common patterns and best practices
+
+### Contract Development Assistance
+
+LLMs can assist with CosmWasm contract development using QMD-indexed context:
+
+- Generate contract scaffolding
+- Explain IBC callback patterns
+- Suggest fee grant implementations
+- Debug compilation errors
+
+```rust
+// Example: LLM-generated IBC callback pattern
+#[entry_point]
+pub fn ibc_source_callback(deps: DepsMut, env: Env, msg: IbcSourceCallbackMsg) -> StdResult<Response> {
+    // Validate the callback came from the expected channel
+    // Process the acknowledgement result
+    // Execute any conditional logic
+}
+```
+
+## Semantic Code Indexing
+
+The Terp Network ecosystem uses semantic indexing to make codebases searchable by meaning rather than keywords.
+
+| Tool | Purpose | Status |
+|------|---------|--------|
+| QMD | Language-agnostic semantic code indexing | Live |
+| QMD Collections | Contract-specific indexes (vote-sdk, dao-contracts) | Live |
+| Trailmark | AST-based code graph analysis | Live |
+| Trailmark + Audit | Audit augmentation with code graph context | Live |
+
+> **Indexing architecture diagram scaffold** — a system diagram showing how source code flows through QMD indexing, semantic search, and LLM consumption. Include collections, vector embeddings, and query interfaces.
+
+## Use Cases
+
+1. **Developer onboarding** — new developers query the codebase semantically instead of grepping
+2. **Audit assistance** — auditors traverse code graphs to find security-relevant paths
+3. **Automated documentation** — generated docs stay in sync with indexed code
+4. **Agent tooling** — autonomous agents use QMD indexes to answer user questions about specific contracts
+
+## Further Reading
+
+- [QMD setup guide](/docs/resources/development) — installation and configuration
+- [Semantic indexing docs](/docs/resources/development) — advanced usage
+- [LLM context configuration](/docs/guides/llms) — machine-readable doc index

@@ -1,0 +1,181 @@
+---
+title: "ADR-10: Community Working Groups and Resource Coordination"
+description: "How Terp Network structures community contributions through working groups, mirroring Akash Network's SIG model, with defined resource curation and event coordination"
+status: "partial"
+---
+## ADR 10: Community Working Groups and Resource Coordination
+
+## Changelog
+
+- 2026-05-11: Initial draft
+
+## Status
+
+DRAFT
+
+## Dependencies
+
+- **ADR-1**: Standard Template and Design Guidelines — this ADR follows the format defined in ADR-1
+- **ADR-2**: Expected Testing Library Design — wg-contracts follows testing standards defined in ADR-2
+## Abstract
+
+This ADR establishes a working group model for organizing community contributions to Terp Network. Modeled on Akash Network's SIG (Special Interest Group) structure, working groups are domain-scoped teams with defined charters, deliverables, and communication channels. The model replaces ad-hoc coordination with a transparent structure that makes it clear who is working on what, how resources are curated, and how events are coordinated. This directly enables the LM-augmented development workflow defined in ADR-9 by providing clear organizational context for agent and human contributors alike.
+
+## Context and Problem Statement
+
+Terp Network currently coordinates community activity through a mix of Discord channels, governance meetings, and informal DMs. This creates several problems:
+
+1. **Discoverability gap**: New contributors cannot find what work is happening or where to plug in
+2. **Resource fragmentation**: Community resources (public RPCs, snapshots, event archives, documentation) are maintained by individuals without shared ownership or curation standards
+3. **Event coordination**: Governance meetings happen weekly, DAO meetings bi-weekly, but community events (hacker houses, testnet campaigns, working sessions) have no defined coordination mechanism
+4. **Accountability ambiguity**: When a domain (e.g., IBC relaying, documentation, validator onboarding) needs attention, it's unclear who owns it and what the expected deliverables are
+5. **LM context gap**: Agents operating on Terp Network (per ADR-9) cannot determine who is responsible for a domain or what the current work status is
+
+Akash Network solved a similar coordination problem by introducing SIGs — domain-scoped working groups with charters, meeting cadences, and public archives. We adopt a comparable model adapted for Terp Network's scale and culture.
+
+## Decision Drivers
+
+- Transparency: working group membership, charters, and outputs must be publicly discoverable
+- Low barrier to entry: anyone should be able to join or propose a working group without gatekeeping
+- Accountability: each group has a designated lead responsible for coordination and reporting
+- Composability: working groups can collaborate and share resources without merge conflicts
+- LM-friendly: the structure must be representable in structured data (so agents can query it, per ADR-9)
+- Alignment with existing meetings: governance meetings (Thursdays) and DAO meetings (bi-weekly Tuesdays) remain the coordination backbone
+
+## Considered Options / Alternatives
+
+- Status quo (informal Discord coordination): works at small scale but creates discoverability and accountability gaps as community grows
+- Rigid committee structure with formal elections: too heavy for current scale, discourages participation
+- **Working group model with lightweight charters (selected)**: mirrors Akash SIG structure — domain-scoped, opt-in, with a minimal charter template. Flexible enough for current scale, structured enough for growth.
+
+## Decision Outcome
+
+We adopt the **Working Group model** as the standard for organizing community contributions to Terp Network.
+
+### Working Group Definition
+
+A working group (WG) is a domain-scoped team with:
+
+| Field | Required | Description |
+|---|---|---|
+| Name | Yes | Short identifier (e.g., `wg-validators`, `wg-ibc`, `wg-docs`) |
+| Charter | Yes | One-paragraph description of the group's scope and objectives |
+| Lead | Yes | One person responsible for coordination, reporting, and facilitation |
+| Members | Yes | Public list of active participants (opt-in) |
+| Meeting cadence | Yes | Defined frequency (weekly, bi-weekly, ad-hoc) and channel |
+| Deliverables | No | Current active work items with status |
+| Resources | No | Curated resources the group maintains (endpoints, docs, tools) |
+| Status | Yes | Active, Inactive, or Dissolved |
+
+### Initial Working Groups
+
+| WG | Charter | Lead | Cadence |
+|---|---|---|---|
+| wg-validators | Validator onboarding, node operations, security, monitoring, and chain upgrades | TBD | Bi-weekly, aligns with DAO meeting |
+| wg-ibc | IBC relaying, channel management, cross-chain integration, and self-relay tooling | TBD | Bi-weekly |
+| wg-docs | Documentation, ADRs, guides, and developer resources including LM tooling pipeline (ADR-9) | TBD | Weekly |
+| wg-infra | Public RPC endpoints, snapshots, indexing (Argus/SubQuery), and community resource curation | TBD | Bi-weekly |
+| wg-contracts | CosmWasm contract development, cw-orchestrator patterns, testing standards (ADR-2) | TBD | Bi-weekly |
+| wg-events | Community events, hacker houses, testnet campaigns, meeting coordination, and archive management | TBD | Monthly |
+
+### Resource Curation Model
+
+Each working group maintains a curated resource list in their charter document. This replaces the current fragmented resource ownership:
+
+**wg-infra** owns:
+- Public RPC/API endpoint verification and health monitoring
+- Snapshot provisioning and archival
+- Chain registry data accuracy
+- Community resource reporting (cosmos.directory integration)
+
+**wg-events** owns:
+- Meeting scheduling and archive management (replacing "Coming Soon!" placeholders)
+- Event coordination: Jito streaming rooms, Discord/Element spaces, hacker houses
+- Transcript and recording archival via S3 bucket uploads
+- Token-gated vs public access policies for event content
+
+**wg-docs** owns:
+- ADR pipeline and review process
+- Documentation accuracy and currency
+- Developer resource curation (API libraries, tooling references)
+
+### Event Coordination Structure
+
+Building on existing meeting cadences:
+
+1. **Governance Meetings** (Thursdays 16:00 UTC) — remain the primary community coordination point. Working groups report status here.
+2. **DAO Meetings** (bi-weekly Tuesdays 14:00 UTC) — remain the formal workstream coordination point. Working group leads present deliverables.
+3. **Working Group Sessions** — each WG schedules its own synchronous sessions as needed. These are publicly announced and recorded.
+4. **Community Events** — wg-events coordinates one-off events (hacker houses, testnet campaigns, AMAs). These are scheduled via the governance meeting calendar.
+
+### Working Group Lifecycle
+
+1. **Proposal**: Any community member proposes a new WG via governance meeting or forum post, providing the charter template
+2. **Formation**: Minimum 3 members opt in. A lead is designated.
+3. **Activation**: WG is listed in the community index and begins operating
+4. **Reporting**: Lead provides updates at governance meetings (bi-weekly minimum)
+5. **Dissolution**: If a WG has no activity for 30 days, it is marked Inactive. After 60 days, Dissolved. Can be reactivated at any time by a new proposal.
+
+### LM Integration (ADR-9 Connection)
+
+Working group structure is ingestible into QMD, enabling agents to:
+
+- Query "who owns IBC relaying?" and receive wg-ibc charter + lead + current deliverables
+- Query "what community resources are available?" and receive wg-infra's curated list
+- Determine accountability context before proposing changes or generating code
+
+The charter template is designed to be both human-readable and machine-parseable, so QMD can index WGs as first-class documents.
+
+## Consequences
+
+### Positive
+
+- New contributors can discover active work and plug in immediately
+- Resource curation has clear ownership — no more orphaned endpoints or stale docs
+- Event coordination has a defined process instead of ad-hoc scheduling
+- Agents can query organizational structure to understand accountability context
+- Mirrors a proven model (Akash SIGs) adapted to Terp Network's scale
+
+### Negative
+
+- Charter maintenance is ongoing overhead for WG leads
+- Risk of "WG theater" — groups that exist on paper but don't actually meet
+- Requires discipline around reporting and archive management
+
+### Neutral / Trade-offs
+
+- The model is intentionally lightweight — no formal elections, no budget authority. Governance proposals handle funding decisions. WGs handle coordination only.
+- Working group leads are facilitators, not authorities. Decisions within a WG's domain still follow the standard governance process when they affect on-chain parameters or protocol behavior.
+
+### Backwards Compatibility
+
+Fully additive. No changes to on-chain governance, meeting schedules, or existing community channels. The model organizes what already exists into discoverable structures. Existing governance meetings and DAO meetings remain unchanged — WGs report into them.
+
+## Test Cases
+
+- Verify a new WG proposal following the charter template is complete and actionable
+- Verify wg-infra resource list includes all currently known public endpoints
+- Verify a QMD query for "who owns validator onboarding" returns wg-validators charter
+- Verify meeting archives for governance meetings are accessible (replacing "Coming Soon!")
+- Verify a WG with no activity for 30 days is correctly marked Inactive
+
+## Further Discussions / Open Questions
+
+- Should WG charters be stored on-chain (as governance params) or off-chain (as markdown documents in terp-docs)?
+- What is the minimum participation threshold for a WG to remain Active?
+- Should wg-events manage token-gating for event content, and if so, what authentication mechanism?
+- How to handle WG lead transitions — election, appointment, or volunteer?
+- Should working group deliverables be tracked in the kanban system alongside code tasks?
+
+## References
+
+- ADR-1: Standard Template and Design Guidelines
+- ADR-9: LM-Augmented Development and Semantic Tooling
+- Akash Network SIG model
+- Community meetings page: `/docs/connect/community/meetings`
+- Community event resources: `terp-community-event-resources.md` (Obsidian vault)
+- NIPS
+- Jackal Protocol
+- IPFS
+- Minio-IPFS
+- maxtrix-server

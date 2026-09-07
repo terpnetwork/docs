@@ -1,0 +1,84 @@
+<svg width="96" height="96" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="1.5" flood-color="#cfffcf" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#cfffcf" flood-opacity="0.5"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#cfffcf" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#glow)">
+    <!-- Center -->
+    <circle cx="48" cy="48" r="4.2" fill="#cfffcf">
+      <animate attributeName="cx" values="48;49.5;48;46.5;48" dur="8s" begin="0s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="48;46.5;48;49.5;48" dur="10s" begin="0s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4.2;4.6;4.2;3.8;4.2" dur="6s" begin="0s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Far cardinal — edges -->
+    <circle cx="0" cy="48" r="4.2" fill="#cfffcf">
+      <animate attributeName="cx" values="0;1.5;0;-1.5;0" dur="9s" begin="2s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="48;46.5;48;49.5;48" dur="11s" begin="2s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4.2;4.5;4.2;3.9;4.2" dur="7s" begin="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="96" cy="48" r="4.2" fill="#cfffcf">
+      <animate attributeName="cx" values="96;97.5;96;94.5;96" dur="9s" begin="2s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="48;49.5;48;46.5;48" dur="11s" begin="1.8s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4.2;3.9;4.2;4.5;4.2" dur="7s" begin="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="48" cy="0" r="4.2" fill="#cfffcf">
+      <animate attributeName="cx" values="48;46.5;48;49.5;48" dur="11s" begin="2s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="0;1.5;0;-1.5;0" dur="9s" begin="2s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4.2;4.5;4.2;3.9;4.2" dur="7s" begin="1.6s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="48" cy="96" r="4.2" fill="#cfffcf">
+      <animate attributeName="cx" values="48;49.5;48;46.5;48" dur="11s" begin="2s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="96;97.5;96;94.5;96" dur="9s" begin="2.2s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4.2;3.9;4.2;4.5;4.2" dur="7s" begin="2s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Mid cardinal -->
+    <circle cx="23" cy="48" r="4" fill="#cfffcf">
+      <animate attributeName="cx" values="23;24.5;23;21.5;23" dur="9s" begin="0.8s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="48;46.8;48;49.2;48" dur="7s" begin="0.8s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4;4.3;4;3.7;4" dur="8s" begin="0.8s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="73" cy="48" r="4" fill="#cfffcf">
+      <animate attributeName="cx" values="73;74.5;73;71.5;73" dur="9s" begin="0.8s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="48;49.2;48;46.8;48" dur="7s" begin="1s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4;3.7;4;4.3;4" dur="8s" begin="0.8s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="48" cy="23" r="4" fill="#cfffcf">
+      <animate attributeName="cx" values="48;49.2;48;46.8;48" dur="7s" begin="0.8s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="23;24.5;23;21.5;23" dur="9s" begin="0.8s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4;4.3;4;3.7;4" dur="8s" begin="1.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="48" cy="73" r="4" fill="#cfffcf">
+      <animate attributeName="cx" values="48;46.8;48;49.2;48" dur="7s" begin="0.8s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="73;74.5;73;71.5;73" dur="9s" begin="1s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4;3.7;4;4.3;4" dur="8s" begin="0.8s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Diagonals -->
+    <circle cx="23" cy="23" r="4" fill="#cfffcf">
+      <animate attributeName="cx" values="23;24.2;23;21.8;23" dur="10s" begin="1.4s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="23;21.8;23;24.2;23" dur="8s" begin="1.4s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4;4.3;4;3.7;4" dur="9s" begin="1.4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="23" cy="73" r="4" fill="#cfffcf">
+      <animate attributeName="cx" values="23;21.8;23;24.2;23" dur="10s" begin="1.6s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="73;74.2;73;71.8;73" dur="8s" begin="1.6s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4;3.7;4;4.3;4" dur="9s" begin="1.6s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="73" cy="23" r="4" fill="#cfffcf">
+      <animate attributeName="cx" values="73;74.2;73;71.8;73" dur="10s" begin="1.6s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="23;24.2;23;21.8;23" dur="8s" begin="1.4s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4;4.3;4;3.7;4" dur="9s" begin="1.8s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="73" cy="73" r="4" fill="#cfffcf">
+      <animate attributeName="cx" values="73;71.8;73;74.2;73" dur="10s" begin="1.8s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="73;71.8;73;74.2;73" dur="8s" begin="1.8s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4;3.7;4;4.3;4" dur="9s" begin="1.4s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>

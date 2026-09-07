@@ -1,0 +1,24 @@
+<svg width="32" height="32" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="g" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#cfffcf" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="7" flood-color="#cfffcf" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <rect width="200" height="200" rx="40" fill="#080c0a"/>
+  <g filter="url(#g)">
+    <circle cx="100" cy="100" r="10" fill="#cfffcf"/>
+    <circle cx="52" cy="100" r="9" fill="#cfffcf"/>
+    <circle cx="148" cy="100" r="9" fill="#cfffcf"/>
+    <circle cx="100" cy="52" r="9" fill="#cfffcf"/>
+    <circle cx="100" cy="148" r="9" fill="#cfffcf"/>
+    <circle cx="75" cy="100" r="8" fill="#cfffcf"/>
+    <circle cx="125" cy="100" r="8" fill="#cfffcf"/>
+    <circle cx="100" cy="75" r="8" fill="#cfffcf"/>
+    <circle cx="100" cy="125" r="8" fill="#cfffcf"/>
+    <circle cx="75" cy="75" r="8" fill="#cfffcf"/>
+    <circle cx="75" cy="125" r="8" fill="#cfffcf"/>
+    <circle cx="125" cy="75" r="8" fill="#cfffcf"/>
+    <circle cx="125" cy="125" r="8" fill="#cfffcf"/>
+  </g>
+</svg>

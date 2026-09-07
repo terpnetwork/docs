@@ -1,0 +1,166 @@
+---
+title: "ADR-7: External Architectural Decision Record References"
+description: "Curated index of external ADRs, BIPs, EIPs, ZIPs, and protocol proposals that influence Terp Network architecture"
+status: "partial"
+---
+## ADR 7: External Architectural Decision Record References
+
+## Changelog
+
+- 2026-03-16: Initial stub with category headings
+- 2026-05-12: Expanded to full ADR-1 template format with curated references and rationale
+
+## Status
+
+DRAFT
+
+## Dependencies
+
+- **ADR-1**: Standard Template and Design Guidelines
+- **ADR-4**: Sovereign Custody & Authentication — references Ethereum account abstraction proposals
+- **ADR-5**: HashMerchant — references ICS-23 and IBC specifications
+- **ADR-6**: ZK-WASM — references Zcash ZIPs and zero-knowledge proof standards
+- **ADR-9**: LM-Augmented Development — references Cosmos SDK ADR process
+
+Dependencies
+ADR-1: Standard Template and Design Guidelines
+ADR-6: ZK-WASM Custom Module for Authentication
+ADR-7: External Architectural Decision Record References
+Halo2: Circuit construction and proof generation
+ZIP-225: Block commitment structure informing verification patterns
+
+## Abstract
+
+This ADR serves as a curated index of external architectural decision records, improvement proposals, and protocol specifications that directly influence Terp Network's architecture. It organizes references by ecosystem (Cosmos, Ethereum, Bitcoin, Zcash, web/platform) and documents why each reference is relevant. This index enables contributors to trace Terp Network's architectural lineage and understand the reasoning behind adopted patterns without searching across multiple external repositories.
+
+## Context and Problem Statement
+
+Terp Network's architecture draws from decisions made across multiple blockchain ecosystems. Cosmos SDK provides the base framework; IBC defines inter-chain communication; Ethereum's account abstraction influences our smart account design; Bitcoin's UTXO model informs certain state management patterns; Zcash's zero-knowledge work shapes our ZK-WASM module. Without a central index, contributors must discover these influences ad-hoc, leading to duplicated research and inconsistent understanding of why certain patterns were adopted.
+
+## Decision Drivers
+
+- Traceability: contributors should be able to trace any Terp architectural decision back to its external influences
+- Discoverability: relevant external ADRs should be findable by category without searching multiple repositories
+- Relevance filtering: only include external references that have a direct, documented influence on Terp Network architecture
+- Maintainability: the index should be updatable as new influences are identified
+
+## Considered Options / Alternatives
+
+- **No index (status quo)**: contributors discover external references organically. Low maintenance but poor discoverability.
+- **Automated cross-reference scraping**: parse external repos and auto-generate references. Comprehensive but includes noise and lacks context about *why* a reference matters.
+- **Curated index with rationale (selected)**: manually maintained list of external references organized by category, each with a brief note on its relevance to Terp Network. Requires maintenance but provides high-signal, contextual references.
+
+## Decision Outcome
+
+We maintain a curated index organized by ecosystem. Each entry includes the reference identifier, title, and a note on its specific relevance to Terp Network.
+
+### Cosmos Ecosystem
+
+- https://docs.cosmos.network/sdk/v0.53/build/architecture
+- https://github.com/cosmos/ibc/tree/main/spec
+
+### Ethereum Ecosystem
+
+- https://eips.ethereum.org/
+
+| Reference | Title | Relevance to Terp |
+|---|---|---|
+| EIP-4337 | Account Abstraction Using Alt Mempool | Smart account design (ADR-4) adapts the authenticator pattern to CosmWasm |
+| EIP-712 | Typed structured data hashing | Transaction signing format for Terp accounts |
+| EIP-1271 | Smart contract signature validation | CosmWasm authenticator signature verification pattern |
+| EIP-3074 | AUTH and AUTHCALL opcodes | Influences composite authenticator delegation design |
+
+### Bitcoin Ecosystem
+
+- https://github.com/bitcoin/bips
+
+| Reference | Title | Relevance to Terp |
+|---|---|---|
+| BIP-32 | Hierarchical Deterministic Wallets | Key derivation for Terp account key rotation |
+| BIP-39 | Mnemonic code for generating deterministic keys | Wallet recovery seed standard |
+| BIP-340 | Schnorr Signatures for Secp256k1 | Signature scheme option for Terp authenticators |
+
+#### Nostr
+- https://github.com/nostr-protocol/nips
+
+#### Cashu
+- https://github.com/cashubtc/nuts
+
+### Zcash Ecosystem
+- https://zips.z.cash/
+
+| Reference | Title | Relevance to Terp |
+|---|---|---|
+| ZIP-200 | Network Upgrade Mechanism | Influences Terp upgrade handler design |
+| ZIP-221 | FlyClient — Consensus-Layer Light Client | Light client verification patterns for Terp |
+| ZIP-225 | Block Commitments (NU5) | Block commitment structure informs HashMerchant root storage |
+| ZIP-226 | Transfer and Memo Encryption | Privacy patterns for Terp account data |
+
+### Zero-Knowledge Proof Standards
+
+| Reference | Title | Relevance to Terp |
+|---|---|---|
+| Halo2 (Zcash/Pasta curves) | Recursive proof composition without trusted setup | ZK-WASM module (ADR-6) uses halo2 circuits for authentication proofs |
+| PLONKish arithmetization | Polynomial commitment scheme | Circuit design for norick WASM demo and future zkVM |
+| ICS-23 (non-ZK) | Vector commitment proofs | Baseline commitment scheme that ZK-WASM extends |
+
+#### Penumbra protocol
+- https://protocol.penumbra.zone/main/
+
+### Web and Platform
+
+| Reference | Title | Relevance to Terp |
+|---|---|---|
+| W3C WebAuthn (L3) | Web Authentication | Passkey authentication in ADR-4 smart accounts (secp256r1 credential type) |
+| W3C DID Core | Decentralized Identifiers | Terp account naming and identity resolution |
+| CW-721 (CosmWasm) | Non-Fungible Token standard | Terp account NFT implementation |
+| CW-2981 (CosmWasm) | Royalty standard | NFT royalty enforcement in cw-infuser contracts |
+
+## Consequences
+
+### Positive
+
+- Single location to trace all external architectural influences
+- New contributors can quickly understand why Terp made specific design choices
+- Cross-references enable impact analysis when external specs change
+
+### Negative
+
+- Requires manual maintenance as new influences are identified
+- Risk of becoming stale if not updated alongside new ADRs
+
+### Neutral / Trade-offs
+
+- This ADR is inherently incomplete — it captures known influences at the time of writing
+- Relevance notes are subjective — what seems tangential now may become critical later
+
+### Backwards Compatibility
+
+Fully additive. No existing code or on-chain behavior changes. This is a reference document only.
+
+## Test Cases
+
+- Verify each listed external reference still resolves (periodic link check)
+- Verify that every Terp ADR with an external influence has a corresponding entry in this index
+- Verify that new ADRs adding external references update this index as a dependency
+
+## Further Discussions / Open Questions
+
+- Should this ADR auto-generate from metadata tags in other ADRs' References sections?
+- What is the cadence for reviewing and updating this index?
+- Should we include rejected external proposals that influenced our decision to take a different path?
+
+## References
+
+- ADR-1: Standard Template and Design Guidelines
+- ADR-4: Sovereign Custody & Authentication Specifications
+- ADR-5: HashMerchant
+- ADR-6: ZK-WASM Custom Module for Authentication
+- ADR-9: LM-Augmented Development and Semantic Tooling
+- Cosmos SDK ADRs: https://github.com/cosmos/cosmos-sdk/tree/main/docs/architecture
+- IBC-go ADRs: https://github.com/cosmos/ibc-go/tree/main/docs/architecture
+- CometBFT ADRs: https://github.com/cometbft/cometbft/tree/main/docs/architecture
+- EIPs: https://eips.ethereum.org
+- BIPs: https://github.com/bitcoin/bips
+- ZIPs: https://zips.z.cash
+

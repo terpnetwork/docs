@@ -1,0 +1,82 @@
+---
+title: Tax & Fees
+description: Transaction fees, gas, minimum fee policy, and economic sustainability on Terp Network
+status: partial
+---
+Transactions on Terp Network require fees to compensate validators for computational resources. Fees are denominated in `uthiol`.
+
+## Gas
+
+Every transaction consumes gas proportional to the computational work required. Each operation in the Cosmos SDK and CosmWasm contract execution has an associated gas cost.
+
+```bash
+# Estimate gas for a transaction
+terpd tx bank send <from> <to> 1000000uthiol --dry-run
+```
+
+## Gas Components
+
+- **Base fee** — overhead per transaction
+- **Contract execution** — CosmWasm VM gas (instructions, storage reads/writes)
+- **Storage** — KV store writes
+- **IBC** — packet submission and acknowledgement
+
+## Minimum Fee
+
+Terp Network uses the `x/globalfee` module to enforce a **minimum gas fee**. All transactions must specify a gas price at or above this minimum:
+
+```text
+Minimum gas price: 0.05uthiol
+```
+
+Transaction fee = gas limit × gas price. A transaction with `gas_limit = 200000` and `gas_price = 0.05uthiol` costs `10000uthiol`.
+
+> **Fee comparison visualizer scaffold** — an interactive component that lets users input a transaction type (simple send, contract execute, IBC transfer) and see estimated gas costs with current minimum fee.
+
+## Fee Types
+
+| Fee Type | Description | Paid In |
+|----------|-------------|---------|
+| Standard tx fee | Gas × gas price | `uthiol` |
+| Contract surcharge | Additional fee for CosmWasm execution | `uthiol` |
+| IBC fee | Relayer incentive (optional, configurable) | `uthiol` or IBC token |
+| Fee grant | Sponsor pays fees on behalf of user | `uthiol` |
+
+## Fee Market Dynamics
+
+Unlike Ethereum's EIP-1559, Terp Network uses a **minimum fee floor** rather than a dynamic fee market. Validators prioritize transactions with higher fees when the mempool is congested.
+
+## Fee Grants
+
+The `x/feegrant` module allows one account to grant fee allowances to another. This enables:
+
+- **Sponsored transactions** — dApps pay user fees
+- **Gas station wallets** — pre-funded fee allowance for onboarding
+- **Delegated fee payment** — smart contracts pay fees on behalf of users
+
+```bash
+# Grant fee allowance
+terpd tx feegrant grant <grantor> <grantee> \
+  --spend-limit=1000000uthiol
+```
+
+## FeeShare
+
+The `x/feeshare` module shares contract execution fees with smart contract developers. When a user executes a contract, a portion of the fee goes to the developer's registered address.
+
+> **Fee flow diagram scaffold** — a visual showing how fees flow from user through gas consumption to validators, with FeeShare splitting to developers and FeeGrant redirecting from sponsors.
+
+## Economic Sustainability
+
+Fee mechanisms serve multiple purposes:
+
+1. **DoS protection** — prevents spam by making each tx cost something
+2. **Validator compensation** — fees add to block rewards
+3. **Resource accounting** — gas metering prevents runaway computation
+4. **Developer incentives** — FeeShare rewards contract development
+
+## Further Reading
+
+- [Global fee module](/guides/modules) — detailed configuration
+- [Fee grant guide](/guides/authentication/feegrants) — setting up fee allowances
+- [FeeShare guide](/guides/authentication/authz) — register for fee sharing

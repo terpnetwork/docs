@@ -1,0 +1,71 @@
+---
+title: "Integrity Verification"
+description: "Verify the integrity of Terp Network releases, installation scripts, and genesis files"
+---
+
+Before running any Terp Network artifact, verify it against its published checksum. The checksum files live next to the artifacts themselves — treat them, not this page, as the source of truth.
+
+## terpd releases (v6.0.0)
+
+Each release publishes a `sha256sum.txt` next to its tarballs:
+
+```bash
+wget https://s3.terp.network/releases/terp-core/v6.0.0/terpd-6.0.0-linux-amd64.tar.gz
+wget https://s3.terp.network/releases/terp-core/v6.0.0/sha256sum.txt
+sha256sum -c sha256sum.txt --ignore-missing
+# terpd-6.0.0-linux-amd64.tar.gz: OK
+```
+
+Use the tag matching your network (`v6.0.0` is current; browse `https://s3.terp.network/releases/terp-core/` for newer). To verify a reproducible build instead:
+
+```bash
+git checkout v6.0.0
+make build
+sha256sum build/terpd
+# compare against the published sha256sum.txt — build with the same
+# containerized environment as CI for a byte match
+```
+
+## Installation scripts
+
+Verify the installer before piping it to a shell:
+
+```bash
+curl -sL https://terp.network/get > terp-installer.sh
+
+# SHA256 (macOS: shasum -a 256 -c)
+echo "<hash-from-release>  terp-installer.sh" | sha256sum -c
+
+# or BLAKE3 (brew install b3sum / cargo install b3sum)
+echo "<hash-from-release>  terp-installer.sh" | b3sum --check
+# terp-installer.sh: OK
+```
+
+## Genesis files
+
+Verify the chain ID and hash after downloading ([Genesis guide](/guides/nodes/genesis)):
+
+```bash
+jq -r .chain_id $HOME/.terpd/config/genesis.json
+sha256sum $HOME/.terpd/config/genesis.json
+# compare against the checksum published with the
+# release in the networks repository (https://github.com/terpnetwork/networks)
+```
+
+## Checksum reference
+
+| Artifact | Algorithm | Where the checksum lives |
+|----------|-----------|--------------------------|
+| terpd tarball | SHA256 | `https://s3.terp.network/releases/terp-core/<tag>/sha256sum.txt` |
+| terp-installer.sh / .py | SHA256, BLAKE3 | alongside the installer release |
+| genesis.json | SHA256 | networks repository release tag |
+| Docker images | digest | container registry (`terpnetwork/terp-core:<tag>`) |
+
+## Tools
+
+| Tool | Install | Purpose |
+|------|---------|---------|
+| `sha256sum` / `shasum -a 256` | built in | SHA-256 checksums |
+| `b3sum` | `brew install b3sum` or `cargo install b3sum` | BLAKE3 checksums |
+
+See also [Networks](/overview/concepts/networks) and [Trustlessness](/overview/concepts/trustless).

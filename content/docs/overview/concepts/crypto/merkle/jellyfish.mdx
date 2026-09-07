@@ -1,0 +1,75 @@
+---
+title: Jellyfish Merkle Trees
+description: Sparse Merkle tree variant optimized for account-based blockchain state — used in Diem/Aptos and adapted for ZK-friendly verification
+status: partial
+---
+Jellyfish Merkle trees are a **sparse Merkle tree** variant designed for account-based blockchains. Unlike a standard Merkle tree where leaves are packed densely, a sparse tree maps every possible key to a slot — even if that slot is empty.
+
+## Why Sparse?
+
+In an account-based blockchain, the total address space is vast (2^256 for Ethereum-style addresses). A standard Merkle tree would need O(n) leaves for n accounts. A sparse tree places each account at its address' position — empty slots are filled with a placeholder hash, and Merkle proofs remain compact because sibling nodes along the path are known at tree construction time.
+
+## Structure
+
+```text
+                     Root
+                   /      \
+            Node(A)        Node(B)
+           /      \        /     \
+      Leaf(0)  Default  Leaf(2)  Default
+        "alice"          "bob"
+```
+
+Empty slots (addresses with no account) are filled with a **default hash** — the hash of a default leaf value. This means:
+
+- **Inserting a new account** only updates O(log n) nodes
+- **Proofs are stable** — they don't grow as the tree fills up
+- **State size** grows proportionally to the number of filled slots, not the address space
+
+## Where Jellyfish Is Used
+
+| Context | Why Jellyfish |
+|---------|--------------|
+| **Account state storage** | Each account address maps to a sparse leaf position |
+| **ZK-optimized state proofs** | Sparse structure keeps proof size small in ZK circuits |
+| **PollRegistry** | Voter commitments mapped to sparse positions for private tallying |
+| **Cross-chain state verification** | Light clients prove specific account states without downloading full state |
+
+## Comparison: Standard vs Jellyfish Merkle
+
+| Property | Standard Merkle | Jellyfish (Sparse) |
+|----------|----------------|--------------------|
+| Leaf arrangement | Dense (all leaves filled) | Sparse (one leaf per possible key) |
+| Proof size | O(log n) | O(log N) where N is key space |
+| Insert cost | O(log n) | O(log N) — constant per key |
+| Empty slots | No concept | Filled with default hash |
+| Use case | Transaction batches | Account state, key-value stores |
+
+> **Sparse vs dense Merkle visualizer scaffold** — an interactive side-by-side comparison showing the same data (4 accounts) represented in a standard Merkle tree (dense) and a Jellyfish sparse Merkle tree (address-keyed). Highlight how proof paths differ.
+
+```text
+┌──────────────────────────────────────────────┐
+│  Standard Merkle           Jellyfish Sparse   │
+│  ┌────┬────┬────┬────┐   ┌──┬──┬──┬──┬──┬──┐ │
+│  │ A  │ B  │ C  │ D  │   │A │  │B │  │C │  │ │
+│  └────┴────┴────┴────┘   │  │  │  │  │  │  │ │
+│  Proof for B: [A, CD]      Proof for B: path  │
+│  Siblings: full structure   Siblings: default │
+└──────────────────────────────────────────────┘
+```
+
+## ZK-Friendly Properties
+
+Jellyfish trees are particularly useful in zero-knowledge contexts because:
+
+- **Fixed proof size** — always O(log address_space), independent of current account count
+- **Deterministic default hash** — empty slots don't require storing placeholder data
+- **Parallelizable** — proof generation can be batched across multiple leaves
+- **Low constraint count** — sparse structure maps well to circuit arithmetic
+
+## Related Concepts
+
+- [Standard Merkle Trees](/docs/overview/concepts/crypto/merkle/trees) — dense binary Merkle structure
+- [Merkle Mountain Ranges](/docs/overview/concepts/crypto/merkle/mountains) — append-only accumulator
+- [Hash Functions](/docs/overview/concepts/crypto/hash/hash) — the primitives powering Merkle proofs
+- [HashMerchant](/docs/resources/ecosystem/privacy/hashmerchant) — verifiable Merkle reflection market

@@ -1,0 +1,44 @@
+---
+title: Lab vs network
+description: "What re-zerve implements in the local lab, and what is not a public marketplace."
+---
+
+# Lab vs network
+
+re-zerve is a **research product**. The crate implements the market, pay, custody, and lease path. You exercise that path on a **local** Terp chain and Zakura node — the same operations you expect on a live network. There is no public re-zerve marketplace.
+
+## Available in the local lab
+
+| Piece | What it does |
+|---|---|
+| Public ask + sealed bid | SDL/resources public; price and identity off-chain |
+| Commitment contracts | `cw-pir-commit` stores ask/bid hex only |
+| Halo2 pay inclusion | Store Pasta circuit, `AttestHalo2`, host `proof_instance_verify` |
+| FROST DKG | Tenant, provider, resolver; no dealer as product custody |
+| Escrow grants | `cw-pir-escrow` events only; no bank coins as money |
+| Ironwood notes | Shielded deposit and two-spend close on Zakura |
+| Derived access bearer | Winner opens; foreign and post-close denied |
+| Provider fork | Bid gate + bearer at the gateway (`akash-provider-pir`) |
+
+## Not on the public network yet
+
+| Missing | Honest state |
+|---|---|
+| Network of providers bidding in the wild | Lab fork and in-process market only |
+| Stock Akash provider image running the gate | Public path still uses the stock image |
+| Public Terp selecting `cw-zap1-ibcv2` as the live IBC client | Local e2e stores and attests; public chain does not |
+| Durable FROST holders without a lab key path | DKG is real; operations packaging is lab |
+
+Do not call this a production marketplace until network bids and the live pay client are the default path.
+
+## Sim vs product
+
+| Sim (local only) | Product ingest |
+|---|---|
+| Transcript credit / `prove_for_test` | `credit_deposit_zap1` + Halo2 on-chain accept |
+| Dealer-generated FROST packages | Three-party DKG |
+| RAM pool balance as “Zcash” | Ironwood notes |
+
+If the chain, the host verifier, or the Zakura node is missing when the lab flags require them, the path **fails closed**. It does not skip-green.
+
+See [For engineers](/research/re-zerve/for-engineers) for type names.
